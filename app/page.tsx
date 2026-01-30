@@ -51,7 +51,6 @@ export default function Home() {
         </div>
       </div>
       <FloatingPromo />
-      <ChatWidget />
       <FooterContent />
       <SiteFooter />
     </div>

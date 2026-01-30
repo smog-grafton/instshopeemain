@@ -119,11 +119,11 @@ export function MallProductsSection({ products }: MallProductsSectionProps) {
 
   return (
     <div className="[overflow:unset] bg-white w-[50rem] inline-block align-top">
-      <div className="w-full h-full relative group/carousel">
+      <div className="w-full relative transition-all group/carousel min-h-[320px] overflow-visible">
         <div
           ref={scrollContainerRef}
-          className="touch-pan-y h-full overflow-x-hidden overflow-y-hidden"
           onScroll={handleScroll}
+          className="touch-pan-y overflow-x-auto overflow-y-hidden min-h-[300px] w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
           <ul
             className="relative grid grid-rows-2 auto-cols-[13rem] grid-flow-col gap-x-0 h-[472px] w-full"

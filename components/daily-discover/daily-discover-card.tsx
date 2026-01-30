@@ -48,15 +48,32 @@ function VideoPlayIcon() {
   );
 }
 
-export function DailyDiscoverCard({ product }: { product: DailyDiscoverProduct }) {
+export interface DailyDiscoverCardProps {
+  product: DailyDiscoverProduct;
+  /** Use "fromSameShop" for From The Same Shop section: no hover border, no Find Similar, no border radius */
+  variant?: "default" | "fromSameShop";
+}
+
+export function DailyDiscoverCard({ product, variant = "default" }: DailyDiscoverCardProps) {
   const imageSrc = getDailyDiscoverImageSrc(product.imageIndex);
+  const isFromSameShop = variant === "fromSameShop";
 
   return (
-    <div className="group relative h-full rounded-md border border-solid border-black/[0.09] transition-[border-color,box-shadow,transform] duration-100 ease-in-out hover:z-10 hover:-translate-y-px hover:border-red-500 hover:shadow-sm">
+    <div
+      className={`relative h-full border border-solid border-black/[0.09] transition-[border-color] duration-100 ease-in-out ${
+        isFromSameShop
+          ? "rounded-none"
+          : "group rounded-md hover:z-10 hover:-translate-y-px hover:border-red-500 hover:shadow-sm"
+      }`}
+    >
       <a className="contents" href={product.href}>
-        <div className="flex h-full cursor-pointer flex-col overflow-hidden rounded-md bg-white">
+        <div
+          className={`flex h-full cursor-pointer flex-col overflow-hidden bg-white ${
+            isFromSameShop ? "rounded-none" : "rounded-md"
+          }`}
+        >
           {/* Image block: square aspect + overlays */}
-          <div className="relative z-0 w-full pt-[100%]">
+          <div className={`relative z-0 w-full pt-[100%] ${isFromSameShop ? "rounded-none" : ""}`}>
             <Image
               src={imageSrc}
               alt={product.title}
@@ -72,7 +89,11 @@ export function DailyDiscoverCard({ product }: { product: DailyDiscoverProduct }
             </div>
             {product.hasVideo && <VideoPlayIcon />}
             {/* Top-right discount badge */}
-            <div className="absolute right-0 top-0 z-30 rounded-bl-md bg-rose-50 px-1 py-0.5 text-xs font-medium leading-4 text-red-500">
+            <div
+              className={`absolute right-0 top-0 z-30 bg-rose-50 px-1 py-0.5 text-xs font-medium leading-4 text-red-500 ${
+                isFromSameShop ? "rounded-none" : "rounded-bl-md"
+              }`}
+            >
               -{product.discountPercent}%
             </div>
           </div>
@@ -115,13 +136,15 @@ export function DailyDiscoverCard({ product }: { product: DailyDiscoverProduct }
           </div>
         </div>
       </a>
-      {/* Find Similar: visible on hover */}
-      <a
-        href={product.findSimilarHref}
-        className="absolute -left-px top-[calc(100%-6px)] z-10 box-border flex h-8 w-full items-center justify-center rounded-bl-sm rounded-br-sm border border-solid border-red-500 bg-red-500 text-center text-sm leading-8 text-white opacity-0 transition-opacity duration-100 hover:opacity-100 group-hover:opacity-100"
-      >
-        Find Similar
-      </a>
+      {/* Find Similar: visible on hover (hidden for fromSameShop variant) */}
+      {!isFromSameShop && (
+        <a
+          href={product.findSimilarHref}
+          className="absolute -left-px top-[calc(100%-6px)] z-10 box-border flex h-8 w-full items-center justify-center rounded-bl-sm rounded-br-sm border border-solid border-red-500 bg-red-500 text-center text-sm leading-8 text-white opacity-0 transition-opacity duration-100 hover:opacity-100 group-hover:opacity-100"
+        >
+          Find Similar
+        </a>
+      )}
     </div>
   );
 }

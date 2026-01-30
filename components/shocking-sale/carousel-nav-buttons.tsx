@@ -18,10 +18,10 @@ export function CarouselNavButtons({
       <button
         type="button"
         onClick={onPrev}
-        className={`cursor-pointer outline-0 justify-center items-center text-xl duration-100 ease-in-out flex absolute shadow rounded-[50%] top-2/4 left-0 bg-white w-6 h-6 leading-6 -mt-3 -translate-x-2/4 transition-all duration-300 ease-in-out z-10 ${
+        className={`cursor-pointer outline-0 justify-center items-center text-xl duration-100 ease-in-out flex absolute shadow rounded-[50%] border-[none] top-2/4 left-0 bg-white w-6 h-6 leading-6 -mt-3 -translate-x-2/4 transition-all duration-300 z-[5] ${
           showPrev
             ? "opacity-100 scale-100 group-hover/carousel:scale-[1.75]"
-            : "opacity-0 scale-0 pointer-events-none"
+            : "opacity-0 scale-0 pointer-events-none invisible"
         }`}
         role="button"
         tabIndex={showPrev ? 0 : -1}
@@ -42,10 +42,10 @@ export function CarouselNavButtons({
       <button
         type="button"
         onClick={onNext}
-        className={`cursor-pointer outline-0 justify-center items-center text-xl duration-100 ease-in-out flex absolute shadow rounded-[50%] top-2/4 right-0 bg-white w-6 h-6 leading-6 -mt-3 translate-x-2/4 transition-all duration-300 ease-in-out z-10 ${
+        className={`cursor-pointer outline-0 justify-center items-center text-xl duration-100 ease-in-out flex absolute shadow rounded-[50%] border-[none] top-2/4 right-0 bg-white w-6 h-6 leading-6 -mt-3 translate-x-2/4 transition-all duration-300 z-[5] ${
           showNext
             ? "opacity-100 scale-100 group-hover/carousel:scale-[1.75]"
-            : "opacity-0 scale-0 pointer-events-none"
+            : "opacity-0 scale-0 pointer-events-none invisible"
         }`}
         role="button"
         tabIndex={showNext ? 0 : -1}

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { LayoutWithChat } from "@/components/chat-widget/layout-with-chat";
 
 export const metadata: Metadata = {
   title: {
@@ -16,7 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <LayoutWithChat>{children}</LayoutWithChat>
+      </body>
     </html>
   );
 }

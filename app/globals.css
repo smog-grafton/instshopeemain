@@ -462,4 +462,18 @@ body {
     background: #bbb;
     border-radius: 3px;
   }
+
+  /* Product detail section */
+  @keyframes HjzSc9 {
+    0% {
+      background-position:
+        50%,
+        100% 0;
+    }
+    to {
+      background-position:
+        50%,
+        -100% 0;
+    }
+  }
 }

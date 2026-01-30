@@ -1,0 +1,57 @@
+"use client";
+
+import { useState } from "react";
+import { IconMinus, IconPlus } from "./icons";
+
+interface ProductQuantityProps {
+  initialQuantity: number;
+  inStock: boolean;
+}
+
+export function ProductQuantity({ initialQuantity, inStock }: ProductQuantityProps) {
+  const [quantity, setQuantity] = useState(initialQuantity);
+  const min = 1;
+
+  return (
+    <section className="flex items-center text-neutral-500 mt-4">
+      <h2 className="text-neutral-500 capitalize w-24 shrink-0 items-center font-normal mr-2.5">
+        Quantity
+      </h2>
+      <div className="flex items-center">
+        <div className="mr-4">
+          <div className="items-center flex bg-white">
+            <button
+              type="button"
+              aria-label="Decrease"
+              className="[appearance:auto] tracking-[0] outline-0 justify-center items-center w-8 h-8 text-sm font-light leading-none transition-colors duration-100 ease-in-out flex rounded-sm border border-solid border-black/9 focus-visible:shadow-sm first:rounded-tr-none first:rounded-br-none disabled:opacity-50 disabled:cursor-not-allowed text-black/80 hover:bg-black/5 disabled:hover:bg-transparent"
+              disabled={quantity <= min}
+              onClick={() => setQuantity((q) => Math.max(min, q - 1))}
+            >
+              <IconMinus />
+            </button>
+            <input
+              type="text"
+              role="spinbutton"
+              aria-live="assertive"
+              aria-valuenow={quantity}
+              aria-valuemin={min}
+              value={quantity}
+              readOnly
+              className="py-px tracking-[0] outline-0 justify-center items-center transition-colors duration-100 ease-in-out flex border-y border-solid text-center w-12 h-8 text-base font-normal border-x-0 cursor-default text-black/80 border-black/9 focus-visible:shadow-sm"
+            />
+            <button
+              type="button"
+              aria-label="Increase"
+              className="[appearance:auto] tracking-[0] outline-0 justify-center items-center w-8 h-8 text-sm font-light leading-none transition-colors duration-100 ease-in-out flex rounded-sm border border-solid border-black/9 focus-visible:shadow-sm last:rounded-tl-none last:rounded-bl-none disabled:opacity-50 disabled:cursor-not-allowed text-black/80 hover:bg-black/5 disabled:hover:bg-transparent [&_svg]:fill-current"
+              disabled={!inStock}
+              onClick={() => setQuantity((q) => q + 1)}
+            >
+              <IconPlus />
+            </button>
+          </div>
+        </div>
+        <div>{inStock ? "IN STOCK" : "OUT OF STOCK"}</div>
+      </div>
+    </section>
+  );
+}
