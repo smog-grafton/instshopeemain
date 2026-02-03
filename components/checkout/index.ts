@@ -5,3 +5,4 @@ export {
   CheckoutProductsAndSummary,
   type ShopGroup,
 } from "./checkout-products-summary";
+export { CheckoutContent } from "./checkout-content";
