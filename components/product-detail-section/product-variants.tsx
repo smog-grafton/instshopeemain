@@ -14,11 +14,36 @@ const SIZE_BTN =
 interface ProductVariantsProps {
   colors: ProductDetailSectionData["colors"];
   sizes: string[];
+  /** Controlled: selected color index */
+  selectedColorIndex?: number;
+  /** Controlled: selected size index (null = none) */
+  selectedSizeIndex?: number | null;
+  onColorSelect?: (index: number) => void;
+  onSizeSelect?: (index: number | null) => void;
 }
 
-export function ProductVariants({ colors, sizes }: ProductVariantsProps) {
-  const [selectedColorIndex, setSelectedColorIndex] = useState(0);
-  const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(null);
+export function ProductVariants({
+  colors,
+  sizes,
+  selectedColorIndex: controlledColor,
+  selectedSizeIndex: controlledSize,
+  onColorSelect,
+  onSizeSelect,
+}: ProductVariantsProps) {
+  const [internalColor, setInternalColor] = useState(0);
+  const [internalSize, setInternalSize] = useState<number | null>(null);
+
+  const selectedColorIndex = onColorSelect != null ? (controlledColor ?? 0) : internalColor;
+  const selectedSizeIndex = onSizeSelect != null ? (controlledSize ?? null) : internalSize;
+
+  const handleColor = (i: number) => {
+    if (onColorSelect) onColorSelect(i);
+    else setInternalColor(i);
+  };
+  const handleSize = (i: number | null) => {
+    if (onSizeSelect) onSizeSelect(i);
+    else setInternalSize(i);
+  };
 
   return (
     <div className="text-neutral-800 items-center flex -ml-1 -mt-1 pt-1 px-1 pb-4">
@@ -36,7 +61,7 @@ export function ProductVariants({ colors, sizes }: ProductVariantsProps) {
                   className={`${VARIANT_BTN} ${selectedColorIndex === i ? "text-red-500 border-red-500" : ""}`}
                   aria-label={color.label}
                   aria-pressed={selectedColorIndex === i}
-                  onClick={() => setSelectedColorIndex(i)}
+                  onClick={() => handleColor(i)}
                 >
                   <Image
                     src={color.imagePath}
@@ -66,7 +91,7 @@ export function ProductVariants({ colors, sizes }: ProductVariantsProps) {
                   className={`${SIZE_BTN} ${selectedSizeIndex === i ? "text-red-500 border-red-500" : ""}`}
                   aria-label={size}
                   aria-pressed={selectedSizeIndex === i}
-                  onClick={() => setSelectedSizeIndex(i)}
+                  onClick={() => handleSize(selectedSizeIndex === i ? null : i)}
                 >
                   <span className="[-webkit-line-clamp:2] text-ellipsis [word-break:break-word] [display:-webkit-box] overflow-x-hidden overflow-y-hidden">
                     {size}

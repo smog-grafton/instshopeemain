@@ -1,19 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { FlipDigit } from "./flip-digit";
 
-/** Deep discount branding icon (original URL verbatim until assets are downloaded). */
 const DEEP_DISCOUNT_ICON_URL =
   "https://proxy.extractcss.dev/https://down-my.img.susercontent.com/file/my-11134258-820li-mjxjt0sfsmis42";
-/** Clock icon (original URL verbatim). */
 const CLOCK_ICON_URL =
   "https://proxy.extractcss.dev/https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/productdetailspage/26cb3f2fda38eb6ddcc1.svg";
 
 interface LowerPricesBannerProps {
-  /** Headline text, e.g. "Lower prices today!" */
   headline?: string;
-  /** Countdown end time; default: now + 2 days */
   endDate?: Date;
 }
 
@@ -52,37 +48,52 @@ function CountdownDigits({
   );
 }
 
+/**
+ * Countdown: displays REMAINING time until end.
+ * Formula: remaining = endTime - now (decreases every second).
+ * Never use (now - endTime) — that would be elapsed and would increase.
+ */
 export function LowerPricesBanner({
   headline = "Lower prices today!",
   endDate,
 }: LowerPricesBannerProps) {
-  const [end] = useState<Date>(() => {
-    if (endDate) return endDate;
-    const d = new Date();
-    d.setDate(d.getDate() + 2);
-    return d;
-  });
-
+  const endMsRef = useRef<number | null>(null);
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
+    if (endMsRef.current === null) {
+      const end = endDate ?? (() => {
+        const d = new Date();
+        d.setDate(d.getDate() + 2);
+        return d;
+      })();
+      endMsRef.current = end.getTime();
+    }
+
     const tick = () => {
-      const now = new Date();
-      const diff = end.getTime() - now.getTime();
-      if (diff <= 0) {
+      const endMs = endMsRef.current;
+      if (endMs == null) return;
+
+      const nowMs = Date.now();
+      const remainingMs = endMs - nowMs;
+
+      if (remainingMs <= 0) {
         setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
         return;
       }
-      setTimeLeft({
-        hours: Math.floor(diff / (1000 * 60 * 60)),
-        minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
-        seconds: Math.floor((diff % (1000 * 60)) / 1000),
-      });
+
+      const totalSeconds = Math.floor(remainingMs / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
+
+      setTimeLeft({ hours, minutes, seconds });
     };
+
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [end]);
+  }, [endDate]);
 
   return (
     <div

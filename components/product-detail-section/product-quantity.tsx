@@ -4,13 +4,28 @@ import { useState } from "react";
 import { IconMinus, IconPlus } from "./icons";
 
 interface ProductQuantityProps {
-  initialQuantity: number;
+  initialQuantity?: number;
   inStock: boolean;
+  /** Controlled: current quantity */
+  quantity?: number;
+  onQuantityChange?: (q: number) => void;
 }
 
-export function ProductQuantity({ initialQuantity, inStock }: ProductQuantityProps) {
-  const [quantity, setQuantity] = useState(initialQuantity);
+export function ProductQuantity({
+  initialQuantity = 1,
+  inStock,
+  quantity: controlledQty,
+  onQuantityChange,
+}: ProductQuantityProps) {
+  const [internalQty, setInternalQty] = useState(initialQuantity);
   const min = 1;
+  const quantity =
+    onQuantityChange != null ? (controlledQty ?? initialQuantity) : internalQty;
+  const setQuantity = (q: number | ((prev: number) => number)) => {
+    const next = typeof q === "function" ? q(quantity) : q;
+    if (onQuantityChange) onQuantityChange(next);
+    else setInternalQty(next);
+  };
 
   return (
     <section className="flex items-center text-neutral-500 mt-4">

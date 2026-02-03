@@ -53,13 +53,14 @@ interface FlipDigitProps {
 }
 
 /**
- * Slot-machine style digit: vertical strip of 0–9, translateY scrolls so the
- * current value is in view. Digit slides up from bottom, pauses, then slides
- * up and out as the next slides in.
+ * Slot-machine style digit for countdown: strip is 9 at top, 8, 7, … 0 at bottom.
+ * When the value decreases (e.g. 5 → 4), the strip moves up so the current digit
+ * (5) goes up and out and the next digit (4) rises from below into view.
  */
 export function FlipDigit({ value }: FlipDigitProps) {
   const v = Math.max(0, Math.min(9, value));
-  const translateY = -v * DIGIT_HEIGHT_PX;
+  const slotIndex = 9 - v;
+  const translateY = -slotIndex * DIGIT_HEIGHT_PX;
 
   return (
     <div
@@ -82,7 +83,7 @@ export function FlipDigit({ value }: FlipDigitProps) {
             style={{ height: DIGIT_HEIGHT_PX }}
           >
             <svg
-              viewBox={DIGIT_PATHS[i].viewBox}
+              viewBox={DIGIT_PATHS[9 - i].viewBox}
               role="img"
               className="align-baseline inline fill-white stroke-white w-4 h-3.5 overflow-visible -translate-x-2/4 -translate-y-2/4 left-2/4 top-2/4 absolute"
             >
@@ -90,7 +91,7 @@ export function FlipDigit({ value }: FlipDigitProps) {
                 fillRule="evenodd"
                 strokeLinecap="round"
                 strokeWidth=".945"
-                d={DIGIT_PATHS[i].path}
+                d={DIGIT_PATHS[9 - i].path}
               />
             </svg>
           </div>

@@ -21,16 +21,21 @@ const nextConfig: NextConfig = {
         hostname: "down-my.img.susercontent.com",
         pathname: "/**",
       },
-          {
-            protocol: "https",
-            hostname: "cf.shopee.com.my",
-            pathname: "/**",
-          },
-          {
-            protocol: "https",
-            hostname: "deo.shopeemobile.com",
-            pathname: "/**",
-          },
+      {
+        protocol: "https",
+        hostname: "cf.shopee.com.my",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "maps.googleapis.com",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "maps.gstatic.com",
+        pathname: "/**",
+      },
     ],
   },
 };

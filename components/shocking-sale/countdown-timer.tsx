@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { DigitFlip } from "./digit-flip";
+import { useState, useEffect, useRef } from "react";
+import { FlipDigit } from "@/components/product-detail-section/flip-digit";
 
 interface CountdownTimerProps {
   countdown: {
@@ -11,43 +11,46 @@ interface CountdownTimerProps {
   };
 }
 
-// Functional countdown timer with flip-style animation
+/**
+ * Countdown timer: displays REMAINING time until a fixed end time.
+ * Formula: remaining = endTime - now (so remaining DECREASES every second).
+ * Never use (now - endTime) — that would be elapsed and would increase.
+ */
 export function CountdownTimer({ countdown }: CountdownTimerProps) {
-  // Calculate end time from initial countdown
-  const getEndTime = () => {
-    const now = new Date();
-    const totalSeconds =
-      countdown.hours * 3600 + countdown.minutes * 60 + countdown.seconds;
-    return new Date(now.getTime() + totalSeconds * 1000);
-  };
-
-  const [endTime] = useState(() => getEndTime());
-  const [timeLeft, setTimeLeft] = useState({
-    hours: countdown.hours,
-    minutes: countdown.minutes,
-    seconds: countdown.seconds,
-  });
+  const endTimeMsRef = useRef<number | null>(null);
+  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      const difference = endTime.getTime() - now.getTime();
+    if (endTimeMsRef.current === null) {
+      const totalMs =
+        (countdown.hours * 3600 + countdown.minutes * 60 + countdown.seconds) * 1000;
+      endTimeMsRef.current = Date.now() + totalMs;
+    }
 
-      if (difference <= 0) {
+    const tick = () => {
+      const endMs = endTimeMsRef.current;
+      if (endMs == null) return;
+
+      const nowMs = Date.now();
+      const remainingMs = endMs - nowMs;
+
+      if (remainingMs <= 0) {
         setTimeLeft({ hours: 0, minutes: 0, seconds: 0 });
-        clearInterval(interval);
         return;
       }
 
-      const hours = Math.floor(difference / (1000 * 60 * 60));
-      const minutes = Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((difference % (1000 * 60)) / 1000);
+      const totalSeconds = Math.floor(remainingMs / 1000);
+      const hours = Math.floor(totalSeconds / 3600);
+      const minutes = Math.floor((totalSeconds % 3600) / 60);
+      const seconds = totalSeconds % 60;
 
       setTimeLeft({ hours, minutes, seconds });
-    }, 1000);
+    };
 
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [endTime]);
+  }, [countdown.hours, countdown.minutes, countdown.seconds]);
 
   const hoursStr = timeLeft.hours.toString().padStart(2, "0");
   const minutesStr = timeLeft.minutes.toString().padStart(2, "0");
@@ -55,61 +58,21 @@ export function CountdownTimer({ countdown }: CountdownTimerProps) {
 
   return (
     <div
-      className="[backface-visibility:hidden] text-black cursor-default items-center flex scale-[0.84]"
+      className="[backface-visibility:hidden] text-white cursor-default items-center flex shrink-0 gap-0.5"
       aria-label={`ending in ${timeLeft.hours} hours ${timeLeft.minutes} minutes ${timeLeft.seconds} seconds`}
       tabIndex={0}
     >
-      <div className="box-content text-center bg-black justify-around min-w-5 h-4 text-xl leading-5 flex overflow-x-hidden overflow-y-hidden mb-1 px-[3px] py-px rounded-sm">
-        <DigitFlip
-          value={parseInt(hoursStr[0])}
-          animationName="hour-ten"
-          duration={360000}
-        />
-        <DigitFlip
-          value={parseInt(hoursStr[1])}
-          animationName="hour-digit"
-          duration={36000}
-        />
+      <div className="box-content text-center bg-black justify-around min-w-5 h-4 text-xl leading-5 flex overflow-x-hidden overflow-y-hidden px-[3px] py-px">
+        <FlipDigit value={parseInt(hoursStr[0], 10)} />
+        <FlipDigit value={parseInt(hoursStr[1], 10)} />
       </div>
-      <div className="text-center [background-position-y:3px] flex-col w-[3px] h-4 text-xl flex mx-0.5 opacity-0">
-        <div className="w-full h-3/6 relative">
-          <span className="bg-current w-[3px] h-[3px] absolute rounded-[100%] left-0 top-[10%] flex" />
-        </div>
-        <div className="w-full h-3/6 relative">
-          <span className="bg-current w-[3px] h-[3px] absolute rounded-[100%] left-0 top-[10%] flex" />
-        </div>
+      <div className="box-content text-center bg-black justify-around min-w-5 h-4 text-xl leading-5 flex overflow-x-hidden overflow-y-hidden px-[3px] py-px">
+        <FlipDigit value={parseInt(minutesStr[0], 10)} />
+        <FlipDigit value={parseInt(minutesStr[1], 10)} />
       </div>
-      <div className="box-content text-center bg-black justify-around min-w-5 h-4 text-xl leading-5 flex overflow-x-hidden overflow-y-hidden mb-1 px-[3px] py-px rounded-sm">
-        <DigitFlip
-          value={parseInt(minutesStr[0])}
-          animationName="minute-ten"
-          duration={3600}
-        />
-        <DigitFlip
-          value={parseInt(minutesStr[1])}
-          animationName="minute-digit"
-          duration={600}
-        />
-      </div>
-      <div className="text-center [background-position-y:3px] flex-col w-[3px] h-4 text-xl flex mx-0.5 opacity-0">
-        <div className="w-full h-3/6 relative">
-          <span className="bg-current w-[3px] h-[3px] absolute rounded-[100%] left-0 top-[10%] flex" />
-        </div>
-        <div className="w-full h-3/6 relative">
-          <span className="bg-current w-[3px] h-[3px] absolute rounded-[100%] left-0 top-[10%] flex" />
-        </div>
-      </div>
-      <div className="box-content text-center bg-black justify-around min-w-5 h-4 text-xl leading-5 flex overflow-x-hidden overflow-y-hidden mb-1 px-[3px] py-px rounded-sm">
-        <DigitFlip
-          value={parseInt(secondsStr[0])}
-          animationName="second-ten"
-          duration={60}
-        />
-        <DigitFlip
-          value={parseInt(secondsStr[1])}
-          animationName="second-digit"
-          duration={60}
-        />
+      <div className="box-content text-center bg-black justify-around min-w-5 h-4 text-xl leading-5 flex overflow-x-hidden overflow-y-hidden px-[3px] py-px">
+        <FlipDigit value={parseInt(secondsStr[0], 10)} />
+        <FlipDigit value={parseInt(secondsStr[1], 10)} />
       </div>
     </div>
   );

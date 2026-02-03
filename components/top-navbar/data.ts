@@ -14,6 +14,8 @@ export interface UserData {
 }
 
 export interface NavbarConfig {
+  /** First left link (e.g. "Seller Centre" or "Shopee Home"). If omitted, sellerCentreUrl is used with label "Seller Centre". */
+  firstLeftLink?: { label: string; href: string };
   sellerCentreUrl: string;
   downloadUrl: string;
   helpUrl: string;
@@ -42,8 +44,13 @@ export const mockNavbarConfig: NavbarConfig = {
   ],
   user: {
     username: "smogcoders",
-    avatarUrl:
-      "https://proxy.extractcss.dev/https://down-my.img.susercontent.com/file/my-11134226-820l6-mj5a4a9mul1h55_tn",
+    avatarUrl: "/images/common/user/account/smogcoders-avatar.png",
   },
   currentLanguage: "English",
+};
+
+/** Config for shop/mall pages: "Shopee Home" as first link, same right section. */
+export const mockShopNavbarConfig: NavbarConfig = {
+  ...mockNavbarConfig,
+  firstLeftLink: { label: "Shopee Home", href: "/" },
 };

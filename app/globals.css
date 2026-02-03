@@ -463,6 +463,19 @@ body {
     border-radius: 3px;
   }
 
+  /* 3-dot wobble loader (infinite scroll) */
+  @keyframes movement {
+    0% {
+      transform: translateY(2px);
+    }
+    50% {
+      transform: translateY(-2px);
+    }
+    to {
+      transform: translateY(2px);
+    }
+  }
+
   /* Product detail section */
   @keyframes HjzSc9 {
     0% {
@@ -474,6 +487,18 @@ body {
       background-position:
         50%,
         -100% 0;
+    }
+  }
+
+  /* Cart dropdown popover */
+  @keyframes popover-enter-animation {
+    from {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
     }
   }
 }

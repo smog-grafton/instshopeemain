@@ -6,15 +6,19 @@ interface LeftSectionProps {
 }
 
 export function LeftSection({ config }: LeftSectionProps) {
+  const firstLink = config.firstLeftLink ?? {
+    label: "Seller Centre",
+    href: config.sellerCentreUrl,
+  };
+  const isExternal = firstLink.href.startsWith("http") || firstLink.href.startsWith("//");
   return (
     <div className="items-center flex">
       <a
-        href={config.sellerCentreUrl}
-        target="_blank"
-        rel="noopener noreferrer"
+        href={firstLink.href}
+        {...(isExternal ? { target: "_blank", rel: "noopener noreferrer" } : {})}
         className="text-white outline-0 text-sm font-light no-underline relative p-1 focus-visible:before:content-[''] focus-visible:before:outline-2 focus-visible:before:outline-solid focus-visible:before:w-full focus-visible:before:h-full focus-visible:before:absolute focus-visible:before:p-0 focus-visible:before:rounded-sm focus-visible:before:left-0 focus-visible:before:top-0 focus-visible:before:outline-black/87 hover:cursor-pointer hover:text-white/70"
       >
-        Seller Centre
+        {firstLink.label}
       </a>
       <div
         className="outline-0 flex relative ml-2.5 focus-visible:before:content-[''] focus-visible:before:outline-2 focus-visible:before:outline-solid focus-visible:before:w-[calc(100%+theme(width[0.5]))] focus-visible:before:h-[calc(100%+theme(height[0.5]))] focus-visible:before:absolute focus-visible:before:-m-px focus-visible:before:p-px focus-visible:before:rounded-sm focus-visible:before:-left-px focus-visible:before:-top-px focus-visible:before:outline-black/87 after:content-[''] after:[border-left-style:solid] after:[border-right-style:solid] after:w-0 after:h-4 after:absolute after:border-x after:-left-1.5 after:top-[calc(50%-theme(inset.2))] after:border-x-white/22"

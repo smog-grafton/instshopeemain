@@ -30,6 +30,15 @@ export interface ProductDetailSectionData {
   sizes: string[];
   quantity: number;
   inStock: boolean;
+  /** For add-to-cart; when set, Add to cart is enabled */
+  slug?: string;
+  imageSrc?: string;
+  /** Unit price (number) for cart */
+  price?: number;
+  /** Shop info for grouping cart items */
+  shopId?: string;
+  shopName?: string;
+  shopSlug?: string;
 }
 
 /** Single stat row in the shop profile (e.g. Ratings, Response Rate). */

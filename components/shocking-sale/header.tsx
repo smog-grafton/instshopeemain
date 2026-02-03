@@ -21,6 +21,9 @@ export function ShockingSaleHeader({ config }: ShockingSaleHeaderProps) {
             unoptimized
           />
         </div>
+        <span className="shrink-0 text-black/80 uppercase ml-1.5 mr-3 text-sm">
+          ends in
+        </span>
         <CountdownTimer countdown={config.countdown} />
       </div>
       <Link

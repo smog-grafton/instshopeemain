@@ -1,7 +1,7 @@
 import { Logo } from "./logo";
 import { SearchBar } from "./search-bar";
 import { SearchSuggestions } from "./search-suggestions";
-import { CartButton } from "./cart-button";
+import { CartButtonWithDropdown } from "./cart-button-with-dropdown";
 import { mockHeaderConfig } from "./data";
 
 export function HeaderWithSearch() {
@@ -16,7 +16,7 @@ export function HeaderWithSearch() {
           <SearchBar config={mockHeaderConfig} />
           <SearchSuggestions suggestions={mockHeaderConfig.searchSuggestions} />
         </div>
-        <CartButton itemCount={mockHeaderConfig.cartItemCount} />
+        <CartButtonWithDropdown />
       </div>
     </div>
   );
