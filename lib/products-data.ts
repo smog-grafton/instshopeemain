@@ -320,6 +320,74 @@ export function getProductsByShopSlug(
   return MOCK_PRODUCTS.filter((p) => p.shopId === shop.id).slice(0, limit);
 }
 
+/** Sort option for shop "All Products" listing. */
+export type ShopAllProductsSort =
+  | "popular"
+  | "latest"
+  | "top_sales"
+  | "price_asc"
+  | "price_desc";
+
+/**
+ * Get paginated products for shop "All Products" section.
+ * Sort: popular (default), latest, top_sales, price_asc, price_desc.
+ */
+export function getShopAllProductsPaginated(
+  shopSlug: string,
+  page: number,
+  perPage: number,
+  sort: ShopAllProductsSort = "popular"
+): { products: ProductRecord[]; total: number } {
+  const shop = getShopBySlug(shopSlug);
+  if (!shop) return { products: [], total: 0 };
+  let list = MOCK_PRODUCTS.filter((p) => p.shopId === shop.id);
+  const total = list.length;
+  if (sort === "latest") {
+    list = [...list].reverse();
+  } else if (sort === "top_sales") {
+    list = [...list].sort((a, b) => b.soldCount - a.soldCount);
+  } else if (sort === "price_asc") {
+    list = [...list].sort((a, b) => a.price - b.price);
+  } else if (sort === "price_desc") {
+    list = [...list].sort((a, b) => b.price - a.price);
+  }
+  const start = (page - 1) * perPage;
+  const products = list.slice(start, start + perPage);
+  return { products, total };
+}
+
+/**
+ * Get products for a shop collection / product line (e.g. "root-booster-line").
+ * In e-commerce, a "line" or "collection" is a curated set of related products (same brand/benefit).
+ * Returns up to limit; mock uses offset so collection shows different products from top products when possible.
+ * Replace with API (e.g. shopCollection=246436636) later.
+ */
+export function getProductsByShopCollection(
+  shopSlug: string,
+  collectionSlug: string,
+  limit = 6
+): ProductRecord[] {
+  const shop = getShopBySlug(shopSlug);
+  if (!shop) return [];
+  const all = MOCK_PRODUCTS.filter((p) => p.shopId === shop.id);
+  if (collectionSlug === "root-booster-line") {
+    if (all.length > limit) {
+      return all.slice(6, 6 + limit);
+    }
+    return all.slice(0, limit);
+  }
+  if (collectionSlug === "new-root-treatment") {
+    if (all.length >= 12 + limit) {
+      return all.slice(12, 12 + limit);
+    }
+    if (all.length > 12) {
+      return all.slice(12);
+    }
+    return all.slice(0, limit);
+  }
+  return all.slice(0, limit);
+}
+
 export function getCategoryLabel(slug: string): string {
   return CATEGORY_SLUG_TO_LABEL[slug] ?? slug;
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { AuthProvider } from "@/components/auth/auth-context";
 import { LayoutWithChat } from "@/components/chat-widget/layout-with-chat";
 
 export const metadata: Metadata = {
@@ -18,7 +19,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <LayoutWithChat>{children}</LayoutWithChat>
+        <AuthProvider>
+          <LayoutWithChat>{children}</LayoutWithChat>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -1,12 +1,23 @@
+"use client";
+
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/auth/auth-context";
 
 const MENU_ITEMS = [
   { label: "My Account", href: "/user/account/profile" },
   { label: "My Purchase", href: "/user/purchase" },
-  { label: "Logout", href: "/logout" },
 ] as const;
 
 export function UserDropdown() {
+  const router = useRouter();
+  const { logout } = useAuth();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+  };
+
   return (
     <div
       className="relative z-[500] overflow-visible"
@@ -31,6 +42,14 @@ export function UserDropdown() {
             <span className="rounded-sm">{item.label}</span>
           </Link>
         ))}
+        <button
+          type="button"
+          onClick={handleLogout}
+          role="menuitem"
+          className="text-black/87 text-sm leading-5 py-1.5 px-0 m-0 border-0 bg-transparent overflow-visible -m-1 rounded-sm p-1 text-left appearance-none cursor-pointer hover:bg-black/[0.04] w-full"
+        >
+          <span className="rounded-sm">Logout</span>
+        </button>
       </div>
     </div>
   );

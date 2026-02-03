@@ -1,6 +1,10 @@
+"use client";
+
+import Link from "next/link";
 import { LanguageSelector } from "./language-selector";
 import { UserMenu } from "./user-menu";
 import { NotificationTrigger } from "./notification-dropdown/notification-trigger";
+import { useAuth } from "@/components/auth/auth-context";
 import type { NavbarConfig } from "./data";
 
 interface RightSectionProps {
@@ -8,6 +12,8 @@ interface RightSectionProps {
 }
 
 export function RightSection({ config }: RightSectionProps) {
+  const { isLoggedIn, user: authUser } = useAuth();
+
   return (
     <ul className="items-center h-9 flex">
       <li className="justify-center items-center flex relative select-none text-white cursor-pointer after:hidden before:hidden hover:text-white/70 peer/0">
@@ -40,7 +46,33 @@ export function RightSection({ config }: RightSectionProps) {
         </span>
       </a>
       <LanguageSelector currentLanguage={config.currentLanguage} />
-      <UserMenu user={config.user} />
+      {isLoggedIn && authUser ? (
+        <UserMenu
+          user={{
+            username: authUser.username,
+            avatarUrl: authUser.avatarUrl,
+          }}
+        />
+      ) : (
+        <>
+          <li className="justify-center items-center flex relative pl-2.5 select-none text-white cursor-pointer after:content-[''] after:[border-left-style:solid] after:[border-right-style:solid] after:w-0 after:h-4 after:absolute after:border-x after:-left-1.5 after:top-[calc(50%-theme(inset.2))] after:border-x-white/22 before:hidden hover:text-white/70">
+            <Link
+              href="/login"
+              className="text-white outline-0 text-sm font-light no-underline relative p-1 hover:cursor-pointer hover:text-white/70"
+            >
+              Log In
+            </Link>
+          </li>
+          <li className="justify-center items-center flex relative pl-2.5 select-none text-white cursor-pointer after:content-[''] after:[border-left-style:solid] after:[border-right-style:solid] after:w-0 after:h-4 after:absolute after:border-x after:-left-1.5 after:top-[calc(50%-theme(inset.2))] after:border-x-white/22 before:hidden hover:text-white/70">
+            <Link
+              href="/register"
+              className="text-white outline-0 text-sm font-light no-underline relative p-1 hover:cursor-pointer hover:text-white/70"
+            >
+              Sign Up
+            </Link>
+          </li>
+        </>
+      )}
     </ul>
   );
 }

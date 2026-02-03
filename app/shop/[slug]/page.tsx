@@ -4,6 +4,9 @@ import { ShopProfileSection, getMockShopProfile } from "@/components/shop-profil
 import { ShopNavigationBar, getMockShopNav } from "@/components/shop-navigation";
 import { ShopVouchersSection, getMockShopVouchers } from "@/components/shop-vouchers";
 import { ShopTopProductsSection, getShopTopProducts } from "@/components/shop-top-products";
+import { ShopRootBoosterLineSection, getRootBoosterLineProducts } from "@/components/shop-root-booster-line";
+import { ShopNewRootTreatmentSection, getNewRootTreatmentProducts } from "@/components/shop-new-root-treatment";
+import { ShopAllProductsSection } from "@/components/shop-all-products";
 import { SiteFooter } from "@/components/site-footer";
 
 interface ShopPageProps {
@@ -36,6 +39,9 @@ export default async function ShopPage({ params }: ShopPageProps) {
         <ShopVouchersSection vouchers={getMockShopVouchers(slug)} />
         <div className="mt-4 px-[30px] pb-5 pt-5">
           <ShopTopProductsSection shopSlug={slug} products={getShopTopProducts(slug)} />
+          <ShopRootBoosterLineSection shopSlug={slug} products={getRootBoosterLineProducts(slug)} />
+          <ShopNewRootTreatmentSection products={getNewRootTreatmentProducts(slug)} />
+          <ShopAllProductsSection shopSlug={slug} />
         </div>
       </main>
 
