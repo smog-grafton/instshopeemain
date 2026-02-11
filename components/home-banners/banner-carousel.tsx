@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import type { BannerItem } from "./data";
+import { isBackendImage } from "@/lib/utils";
 
 interface BannerCarouselProps {
   banners: BannerItem[];
@@ -83,6 +84,13 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
                       height={240}
                       className="inline h-60 w-full rounded-sm align-bottom object-cover"
                       priority={index >= totalSlides && index < totalSlides + 2}
+                      unoptimized={isBackendImage(banner.imageSrc)}
+                      onError={(e) => {
+                        console.error(`Failed to load banner image: ${banner.imageSrc}`);
+                        // Hide broken image
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                      }}
                     />
                   </a>
                 </div>

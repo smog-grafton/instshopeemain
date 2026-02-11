@@ -18,10 +18,14 @@ import {
 import { SiteFooter } from "@/components/site-footer";
 import { IconArrowRight } from "@/components/product-detail-section/icons";
 import {
-  getProductBySlug,
-  getShopById,
-  getCategoryLabel,
-} from "@/lib/products-data";
+  getProductBySlug as getProductBySlugApi,
+  getShopBySlug as getShopBySlugApi,
+  getShopVouchers as getShopVouchersApi,
+  getProductReviews,
+  getRelatedProducts,
+} from "@/lib/api-client";
+import { getCategoryLabel } from "@/lib/products-data";
+import { formatCompact, formatPrice } from "@/lib/utils";
 
 interface ProductPageProps {
   params: Promise<{ slug: string }>;
@@ -29,45 +33,186 @@ interface ProductPageProps {
 
 export default async function ProductPage({ params }: ProductPageProps) {
   const { slug } = await params;
-  const product = getProductBySlug(slug);
-  if (!product) notFound();
+  let product, reviews, sameShopProducts, recommendedProducts, shopProfile, shopVouchers;
+  try {
+    [product, reviews, sameShopProducts, recommendedProducts] = await Promise.all([
+      getProductBySlugApi(slug),
+      getProductReviews(slug, { page: 1, per_page: 10 }).catch(() => null),
+      getRelatedProducts(slug, { type: "same_shop", limit: 10 }).catch(() => null),
+      getRelatedProducts(slug, { type: "recommended", limit: 40 }).catch(() => null),
+    ]);
+    
+    // Fetch shop vouchers
+    if (product.shopSlug) {
+      try {
+        shopVouchers = await getShopVouchersApi(product.shopSlug);
+      } catch {
+        shopVouchers = null;
+      }
+    }
+    
+    // Fetch shop profile
+    if (product.shopSlug) {
+      try {
+        shopProfile = await getShopBySlugApi(product.shopSlug);
+      } catch {
+        shopProfile = null;
+      }
+    }
+  } catch (error) {
+    notFound();
+  }
 
-  const shop = getShopById(product.shopId) ?? {
-    id: "unknown",
-    name: "Shop",
-    slug: "shop",
+  const shop = {
+    id: product.shopId,
+    name: product.shopName,
+    slug: product.shopSlug || "shop",
   };
   const categoryLabel = getCategoryLabel(product.categorySlug);
 
+  // Generate category URL in new format: {slug}-cat.{id}
+  // The categorySlug from API is already slugified, so we just need to ensure it's lowercase
+  const categoryUrl = product.categoryId && product.categorySlug
+    ? `/${product.categorySlug.toLowerCase()}-cat.${product.categoryId}`
+    : product.categorySlug
+    ? `/m/${product.categorySlug}` // Fallback to old format
+    : '/';
+
   const breadcrumbLinks = [
     { href: "/", label: "Shopee" },
-    { href: `/m/${product.categorySlug}`, label: categoryLabel },
+    { href: categoryUrl, label: categoryLabel },
   ];
 
+  // Transform colors and sizes from API
+  const colors = (product.colors || []).map((c) => ({
+    label: c.label,
+    imagePath: c.imagePath || `/images/home/mall/products/1.jpeg`,
+  }));
+  const sizes = product.sizes || [];
+
+  // Transform shop vouchers (get from shop if available)
+  const shopVoucherList = shopVouchers && shopVouchers.length > 0
+    ? shopVouchers.map((v) => ({
+        offer: v.title,
+        minSpend: v.description.includes('Min. Spend') 
+          ? v.description.split('Min. Spend ')[1]?.split(' ')[0] || v.description
+          : v.description,
+        validTill: v.validTill || new Date().toLocaleDateString('en-GB'),
+        brand: product.shopName,
+        isWelcomeVoucher: v.tag === 'Shop Welcome Voucher',
+      }))
+    : defaultProductDetailData.shopVoucherList;
+  const shopVoucherBadges = shopVoucherList.slice(0, 2).map((v) => v.offer || "RM1 OFF");
+
+  // Transform images for gallery
+  const productImages = product.images && product.images.length > 0
+    ? product.images.map((img) => ({
+        imagePath: img.imagePath || null,
+        imagePathWebp: img.imagePathWebp || null,
+        isThumbnail: img.isThumbnail || false,
+      }))
+    : undefined;
+
+  // Use first product image as imageSrc if available, otherwise use thumbnail_url
+  const productImageSrc = productImages && productImages.length > 0 && productImages[0]?.imagePath
+    ? productImages[0].imagePath
+    : product.imageSrc;
+
+  const currencySymbol = product.currencySymbol ?? "RM";
   const productDetailData = {
     ...defaultProductDetailData,
     title: product.title,
     slug: product.slug,
-    imageSrc: product.imageSrc,
+    imageSrc: productImageSrc,
     price: product.price,
-     shopId: shop.id,
-     shopName: shop.name,
-     shopSlug: shop.slug,
-    priceMin: product.price.toFixed(2),
-    priceMax: product.price.toFixed(2),
-    originalMin: product.originalPrice?.toFixed(2) ?? product.price.toFixed(2),
-    originalMax: product.originalPrice?.toFixed(2) ?? product.price.toFixed(2),
+    shopId: shop.id,
+    shopName: shop.name,
+    shopSlug: shop.slug,
+    priceMin: formatPrice(currencySymbol, product.price),
+    priceMax: formatPrice(currencySymbol, product.price),
+    originalMin: formatPrice(currencySymbol, product.originalPrice ?? product.price),
+    originalMax: formatPrice(currencySymbol, product.originalPrice ?? product.price),
     discountPercent:
       product.originalPrice != null
         ? Math.round((1 - product.price / product.originalPrice) * 100)
         : 0,
-    sold:
-      product.soldCount >= 1000
-        ? `${(product.soldCount / 1000).toFixed(1)}k`
-        : String(product.soldCount),
+    sold: formatCompact(product.soldCount),
+    rating: product.rating,
+    ratingsCount: product.ratingsCount || 0,
+    favoriteCount: product.favoriteCount || 0,
+    inStock: product.inStock ?? true,
+    shippingText: product.shippingText || defaultProductDetailData.shippingText,
+    shippingSubtext: product.shippingSubtext || defaultProductDetailData.shippingSubtext,
+    guaranteeText: product.guaranteeText || defaultProductDetailData.guaranteeText,
+    colors: colors.length > 0 ? colors : defaultProductDetailData.colors,
+    sizes: sizes.length > 0 ? sizes : defaultProductDetailData.sizes,
+    shopVoucherBadges,
+    shopVoucherList,
+    images: productImages,
+    promotionEndsAt: product.promotionEndsAt ?? undefined,
+    currencySymbol: currencySymbol,
   };
 
-  const shopProfileData = {
+  const chatProductContext = {
+    id: product.id,
+    title: product.title,
+    image: productImageSrc,
+    price: formatPrice(currencySymbol, product.price),
+    originalPrice: product.originalPrice ? formatPrice(currencySymbol, product.originalPrice) : undefined,
+    href: `/product/${product.slug}`,
+    badges: [
+      "Inquired",
+      product.soldCount ? `${formatCompact(product.soldCount)} sold` : "",
+    ].filter(Boolean),
+  };
+
+  // Transform specifications
+  const specifications = product.specifications || [];
+  const productSpecsDescriptionData = {
+    specifications: specifications.length > 0 ? specifications.map((spec) => ({
+      label: spec.label,
+      value: spec.value || undefined,
+      categoryBreadcrumbs: spec.categoryBreadcrumbs || undefined,
+    })) : defaultProductSpecsDescriptionData.specifications,
+    description: product.description || defaultProductSpecsDescriptionData.description,
+  };
+
+  // Transform reviews
+  const productReviewsSectionData = reviews ? {
+    overallScore: reviews.overallScore,
+    filterChips: defaultProductReviewsSectionData.filterChips, // Keep filter chips as is
+    reviews: reviews.reviews.map((r) => ({
+      username: r.username,
+      rating: r.rating,
+      date: r.date,
+      variation: r.variation,
+      attributes: r.attributes,
+      comment: r.comment,
+      media: r.media.map((m) => ({
+        type: m.type as "image" | "video",
+        src: m.src,
+        duration: m.duration,
+        poster: m.poster,
+      })),
+      helpfulCount: r.helpfulCount,
+    })),
+  } : defaultProductReviewsSectionData;
+
+  // Shop profile data
+  const shopProfileData = shopProfile ? {
+    shopName: shopProfile.name,
+    activeText: "Active Recently", // Can be enhanced later
+    shopHref: `/shop/${shopProfile.slug}`,
+    profileImagePath: shopProfile.profileImageUrl || defaultShopProfileData.profileImagePath,
+    stats: [
+      { label: "Ratings", value: String(shopProfile.stats?.ratings || 0) },
+      { label: "Response Rate", value: `${shopProfile.stats?.responseRate || 0}%` },
+      { label: "Joined", value: shopProfile.stats?.joined || "Recently" },
+      { label: "Products", value: String(shopProfile.stats?.products || 0), href: `/shop/${shopProfile.slug}#product_list` },
+      { label: "Response Time", value: shopProfile.stats?.responseTime || "within hours" },
+      { label: "Follower", value: String(shopProfile.stats?.followers || 0) },
+    ],
+  } : {
     ...defaultShopProfileData,
     shopName: shop.name,
     shopHref: `/shop/${shop.slug}`,
@@ -104,15 +249,15 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </span>
               </div>
               <ProductDetailSection data={productDetailData} />
-              <ShopProfile data={shopProfileData} />
+              <ShopProfile data={shopProfileData} vendorId={shop.id} productContext={chatProductContext} />
               <div className="flex gap-0 w-full">
                 <div className="flex-1 min-w-0">
-                  <ProductSpecsDescription data={defaultProductSpecsDescriptionData} />
-                  <ProductReviewsSection data={defaultProductReviewsSectionData} />
-                  <FromTheSameShop />
-                  <YouMayAlsoLike />
+                  <ProductSpecsDescription data={productSpecsDescriptionData} />
+                  <ProductReviewsSection data={productReviewsSectionData} productSlug={slug} />
+                  <FromTheSameShop shopSlug={shop.slug} products={sameShopProducts?.products || []} />
+                  <YouMayAlsoLike products={recommendedProducts?.products || []} />
                 </div>
-                <ShopVouchersSidebar voucherList={defaultProductDetailData.shopVoucherList} />
+                <ShopVouchersSidebar voucherList={shopVoucherList} />
               </div>
             </div>
           </div>

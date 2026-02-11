@@ -3,10 +3,17 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/components/cart";
+import { formatPrice } from "@/lib/utils";
+
+interface CartFooterProps {
+  selectedItems?: Set<string>;
+  onSelectAll?: () => void;
+  onDeleteSelected?: () => void;
+}
 
 /** Sticky checkout summary footer at the bottom of the cart page. */
-export function CartFooter() {
-  const { items } = useCart();
+export function CartFooter({ selectedItems, onSelectAll, onDeleteSelected }: CartFooterProps) {
+  const { items, removeItem } = useCart();
 
   const grandTotal = items.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -85,7 +92,7 @@ export function CartFooter() {
         </button>
       </div>
       <div className="col-span-1 col-start-3 flex items-center justify-end pr-7 text-[16px] font-medium text-[#d0d0d0]">
-        -RM0.00
+        -{formatPrice(items[0]?.currencySymbol, 0)}
       </div>
 
       {/* dashed divider */}
@@ -95,24 +102,63 @@ export function CartFooter() {
       <div className="col-span-3 col-start-1 flex w-full items-center py-3">
         <h3 className="sr-only">cart_accessibility_footer_checkout_row</h3>
         <div className="flex min-w-[58px] flex-row-reverse px-3 pl-5">
-          <label className="flex max-w-[400px] cursor-default items-center text-xs font-light text-black/60">
+          <label className="flex max-w-[400px] cursor-pointer items-center text-xs font-light text-black/60">
             <input
               type="checkbox"
+              checked={
+                items.length > 0 &&
+                selectedItems !== undefined &&
+                selectedItems.size === items.length
+              }
+              onChange={onSelectAll}
               aria-label="Click here to select all products"
               className="sr-only"
             />
-            <span className="h-4 w-4 flex-shrink-0 rounded-[2px] border border-black/20 shadow-[rgba(0,0,0,0.02)_0px_2px_0px_0px_inset]" />
+            <span
+              className={`h-4 w-4 flex-shrink-0 rounded-[2px] border shadow-[rgba(0,0,0,0.02)_0px_2px_0px_0px_inset] ${
+                items.length > 0 &&
+                selectedItems !== undefined &&
+                selectedItems.size === items.length
+                  ? "border-[#ee4d2d] bg-[#ee4d2d]"
+                  : "border-black/20 bg-white"
+              }`}
+            >
+              {items.length > 0 &&
+                selectedItems !== undefined &&
+                selectedItems.size === items.length && (
+                  <svg
+                    className="h-full w-full text-white"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                )}
+            </span>
           </label>
         </div>
         <button
           type="button"
-          className="border-0 bg-transparent text-[16px] text-black/80"
+          onClick={onSelectAll}
+          className="border-0 bg-transparent text-[16px] text-black/80 hover:text-[#ee4d2d]"
         >
           Select All ({totalItems})
         </button>
         <button
           type="button"
-          className="mx-2 border-0 bg-transparent text-[16px] text-black/80"
+          onClick={onDeleteSelected}
+          disabled={
+            selectedItems === undefined ||
+            selectedItems.size === 0 ||
+            items.length === 0
+          }
+          className="mx-2 border-0 bg-transparent text-[16px] text-black/80 hover:text-[#ee4d2d] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Delete
         </button>
@@ -131,7 +177,7 @@ export function CartFooter() {
                 Total ({totalItems} item{totalItems === 1 ? "" : "s"}):
               </div>
               <div className="ml-1 text-[24px] leading-7 text-[#ee4d2d]">
-                RM{grandTotal.toFixed(2)}
+                {formatPrice(items[0]?.currencySymbol, grandTotal)}
               </div>
             </div>
           </div>

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { FlashSaleGridProduct } from "./data";
+import { isBackendImage } from "@/lib/utils";
 
 const BADGE_IMAGES: Record<NonNullable<FlashSaleGridProduct["badge"]>, string> = {
   choice: "/images/common/choice.png",
@@ -149,14 +150,22 @@ export function FlashSaleProductCard({ product, className = "" }: FlashSaleProdu
               </div>
             )}
             <div className="z-[2] w-full h-full absolute left-0 top-0">
-              <Image
-                src={product.imageSrc}
-                alt={product.name}
-                width={288}
-                height={288}
-                className="w-full h-full object-contain"
-                unoptimized
-              />
+              {product.imageSrc && isBackendImage(product.imageSrc) ? (
+                <img
+                  src={product.imageSrc}
+                  alt={product.name}
+                  className="w-full h-full object-contain"
+                />
+              ) : (
+                <Image
+                  src={product.imageSrc || "/images/stores/products/1.webp"}
+                  alt={product.name}
+                  width={288}
+                  height={288}
+                  className="w-full h-full object-contain"
+                  unoptimized
+                />
+              )}
             </div>
             <div className="z-[1] absolute left-0 bottom-0 w-full h-8 flex items-end">
               <Image

@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { CategoryItem as CategoryItemType } from "./data";
+import { isBackendImage } from "@/lib/utils";
 
 interface CategoryItemProps {
   category: CategoryItemType;
@@ -24,6 +25,7 @@ export function CategoryItem({ category }: CategoryItemProps) {
               className="inline align-bottom object-contain max-h-full"
               src={category.imageSrc}
               alt={category.label}
+              unoptimized={isBackendImage(category.imageSrc)}
             />
           </div>
           <div className="text-center w-11/12 flex-1 flex items-start justify-center px-1 pt-1">

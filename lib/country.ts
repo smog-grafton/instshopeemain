@@ -18,7 +18,10 @@ export interface CountryContext {
 export async function getCountryContext(): Promise<CountryContext> {
   const headersList = await headers();
   const countryCode = headersList.get("x-country-code") || "DEFAULT";
-  const frontendDomain = headersList.get("x-frontend-domain") || "localhost:3000";
+  const frontendDomain =
+    headersList.get("x-frontend-domain") ||
+    headersList.get("host") ||
+    "";
 
   return {
     code: countryCode,
@@ -31,9 +34,13 @@ export async function getCountryContext(): Promise<CountryContext> {
  * This should eventually be fetched from Laravel API or a config file
  */
 export const DOMAIN_COUNTRY_MAP: Record<string, string> = {
-  "localhost:3000": "DEFAULT",
-  // Production domains will be added here:
-  // "instshopee.my": "MY",
-  // "instshopee.co.th": "TH",
-  // "instshopee.co.id": "ID",
+  ...(() => {
+    const raw = process.env.NEXT_PUBLIC_DOMAIN_COUNTRY_MAP;
+    if (!raw) return {};
+    try {
+      return JSON.parse(raw) as Record<string, string>;
+    } catch {
+      return {};
+    }
+  })(),
 };

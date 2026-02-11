@@ -1,27 +1,50 @@
 "use client";
 
 import Image from "next/image";
-
-const FLOATING_PROMO_IMAGE = "/images/home/floating/ordernow.gif";
-const WIDTH = 90;
-const HEIGHT = 96;
+import { useEffect, useState } from "react";
+import { getUiBlocks, type ApiUiBlock } from "@/lib/api-client";
 
 export function FloatingPromo() {
+  const [block, setBlock] = useState<ApiUiBlock | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchBlock() {
+      try {
+        const blocks = await getUiBlocks({ key: "floating_promo" });
+        if (blocks.length > 0) {
+          setBlock(blocks[0]);
+        }
+      } catch (error) {
+        console.error("Failed to load floating promo:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchBlock();
+  }, []);
+
+  if (loading || !block || !block.imageSrc) {
+    return null;
+  }
+
   return (
     <div
-      className="fixed right-24 bottom-20 z-[1000] cursor-default"
+      className="fixed right-24 bottom-20 z-[1000] cursor-pointer"
       role="img"
       aria-label="Promotional banner"
     >
-      <Image
-        src={FLOATING_PROMO_IMAGE}
-        alt="Banner"
-        width={WIDTH}
-        height={HEIGHT}
-        loading="lazy"
-        className="inline h-24 w-[90px] align-bottom text-black/80"
-        unoptimized
-      />
+      <a href={block.href} className="block">
+        <Image
+          src={block.imageSrc}
+          alt={block.title || "Promotional banner"}
+          width={90}
+          height={96}
+          loading="lazy"
+          className="inline h-24 w-[90px] align-bottom text-black/80"
+          unoptimized
+        />
+      </a>
     </div>
   );
 }

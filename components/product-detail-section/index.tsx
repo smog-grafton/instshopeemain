@@ -63,6 +63,7 @@ export function ProductDetailSection({ data: dataOverride }: ProductDetailSectio
         shopId: data.shopId,
         shopName: data.shopName,
         shopSlug: data.shopSlug,
+        currencySymbol: data.currencySymbol,
       });
       setShowToast(true);
       if (thenNavigate) router.push(data.slug ? `/checkout?from=buynow&slug=${encodeURIComponent(data.slug)}` : "/checkout?from=cart");
@@ -95,8 +96,12 @@ export function ProductDetailSection({ data: dataOverride }: ProductDetailSectio
     <>
       <section className="bg-white shadow-sm rounded-[3px] flex mt-5 relative">
         <section className="shrink-0 w-96 p-4">
-          <ProductGallery productTitle={data.title} />
-          <ProductShareFavorite favoriteCount={data.favoriteCount} />
+          <ProductGallery productTitle={data.title} images={data.images} />
+          <ProductShareFavorite 
+            productSlug={data.slug || ''} 
+            favoriteCount={data.favoriteCount} 
+            productTitle={data.title}
+          />
         </section>
         <section className="flex flex-[auto] grow shrink-0 w-0">
           <div className="flex-col flex-[auto] w-full pl-5 pr-9 pt-5">
@@ -106,7 +111,12 @@ export function ProductDetailSection({ data: dataOverride }: ProductDetailSectio
               ratingsCount={data.ratingsCount}
               sold={data.sold}
             />
-            <LowerPricesBanner headline="Lower prices today!" />
+            {data.discountPercent > 0 && (
+              <LowerPricesBanner
+                headline="Lower prices today!"
+                endDate={data.promotionEndsAt ? new Date(data.promotionEndsAt) : undefined}
+              />
+            )}
             <ProductPriceBlock
               priceMin={data.priceMin}
               priceMax={data.priceMax}

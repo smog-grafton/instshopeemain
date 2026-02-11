@@ -3,10 +3,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
-import {
-  categoryMallStoreLogos,
-  CATEGORY_MALL_SEE_ALL_HREF,
-} from "./data";
+import { getMallStores, type ApiMallStore } from "@/lib/api-client";
+import { CATEGORY_MALL_SEE_ALL_HREF } from "./data";
 
 const COLUMN_WIDTH_PX = 200;
 const COLS_VISIBLE = 6;
@@ -17,15 +15,13 @@ const ROW_HEIGHT_PX = Math.round(COLUMN_WIDTH_PX * 0.5625);
 const CAROUSEL_HEIGHT_PX = ROW_HEIGHT_PX * ROWS;
 
 /** Pairs stores into columns: [col0: [s0,s1], col1: [s2,s3], ...] then See All as last column. */
-function buildColumns() {
-  const columns: (typeof categoryMallStoreLogos)[number][][] = [];
-  for (let i = 0; i < categoryMallStoreLogos.length; i += CELLS_PER_COLUMN) {
-    columns.push(categoryMallStoreLogos.slice(i, i + CELLS_PER_COLUMN));
+function buildColumns(stores: ApiMallStore[]) {
+  const columns: ApiMallStore[][] = [];
+  for (let i = 0; i < stores.length; i += CELLS_PER_COLUMN) {
+    columns.push(stores.slice(i, i + CELLS_PER_COLUMN));
   }
   return columns;
 }
-
-const COLUMNS = buildColumns();
 
 function StoreLogoCell({ href, logoUrl, alt }: { href: string; logoUrl: string; alt: string }) {
   return (
@@ -77,6 +73,8 @@ export function StoreLogosCarousel() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [showPrev, setShowPrev] = useState(false);
   const [showNext, setShowNext] = useState(true);
+  const [stores, setStores] = useState<ApiMallStore[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const handleScroll = () => {
     if (scrollRef.current) {
@@ -85,6 +83,20 @@ export function StoreLogosCarousel() {
       setShowNext(scrollLeft < scrollWidth - clientWidth - 10);
     }
   };
+
+  useEffect(() => {
+    async function fetchStores() {
+      try {
+        const mallStores = await getMallStores();
+        setStores(mallStores);
+      } catch (error) {
+        console.error("Failed to fetch mall stores:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchStores();
+  }, []);
 
   useEffect(() => {
     const check = () => {
@@ -101,7 +113,7 @@ export function StoreLogosCarousel() {
       clearTimeout(t);
       window.removeEventListener("resize", check);
     };
-  }, []);
+  }, [stores]);
 
   const scrollLeft = () => {
     scrollRef.current?.scrollBy({ left: -COLUMN_WIDTH_PX * COLS_VISIBLE, behavior: "smooth" });
@@ -111,7 +123,14 @@ export function StoreLogosCarousel() {
     scrollRef.current?.scrollBy({ left: COLUMN_WIDTH_PX * COLS_VISIBLE, behavior: "smooth" });
   };
 
-  const totalWidth = (COLUMNS.length + 1) * COLUMN_WIDTH_PX;
+  const columns = buildColumns(stores);
+  const totalWidth = (columns.length + 1) * COLUMN_WIDTH_PX; // +1 for See All
+
+  if (loading) {
+    return (
+      <div className="py-8 text-center text-gray-500">Loading mall stores...</div>
+    );
+  }
 
   return (
     <div className="relative w-full overflow-visible [font-family:Roboto,SHPBurmese,SHPKhmer,Helvetica_Neue,Helvetica,Arial,sans-serif] text-sm leading-tight text-black/80">
@@ -147,19 +166,19 @@ export function StoreLogosCarousel() {
             className="flex h-full list-none flex-nowrap gap-0 p-0"
             style={{ width: totalWidth }}
           >
-            {COLUMNS.map((cells, colIndex) => (
+            {columns.map((cells: ApiMallStore[], colIndex: number) => (
               <li
                 key={colIndex}
                 className="float-left h-full shrink-0 overflow-x-hidden touch-pan-y snap-start"
                 style={{ width: COLUMN_WIDTH_PX }}
               >
                 <div className="h-full overflow-x-hidden overflow-y-hidden">
-                  {cells.map((store) => (
+                  {cells.map((store: ApiMallStore) => (
                     <StoreLogoCell
                       key={store.id}
                       href={store.href}
                       logoUrl={store.logoUrl}
-                      alt={store.id}
+                      alt={store.name}
                     />
                   ))}
                 </div>

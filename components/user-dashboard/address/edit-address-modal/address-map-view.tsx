@@ -23,18 +23,47 @@ export function AddressMapView({
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [marker, setMarker] = useState<google.maps.Marker | null>(null);
+  const isMountedRef = useRef(true);
 
   // Initialize Google Maps
   useEffect(() => {
-    if (!mapRef.current || !isInteractive) return;
+    if (!isInteractive) return;
+
+    isMountedRef.current = true;
+    let retryCount = 0;
+    const maxRetries = 10;
+    let timeoutId: NodeJS.Timeout | null = null;
 
     const initMap = async () => {
+      // Check if component is still mounted
+      if (!isMountedRef.current) {
+        return;
+      }
+
+      // Wait for ref to be available
+      if (!mapRef.current) {
+        retryCount++;
+        if (retryCount < maxRetries) {
+          // Retry after a short delay
+          timeoutId = setTimeout(initMap, 100);
+          return;
+        } else {
+          console.error("Map ref is null after max retries");
+          return;
+        }
+      }
+
       try {
         // Load Google Maps API using shared loader
         const { loadGoogleMapsAPI } = await import("@/lib/google-maps-loader");
         await loadGoogleMapsAPI();
 
-        const mapInstance = new google.maps.Map(mapRef.current!, {
+        // Check if component is still mounted and ref is still available
+        if (!isMountedRef.current || !mapRef.current) {
+          return;
+        }
+
+        const mapInstance = new google.maps.Map(mapRef.current, {
           center: location || DEFAULT_MAP_CENTER,
           zoom: DEFAULT_MAP_ZOOM,
           disableDefaultUI: true,
@@ -54,6 +83,11 @@ export function AddressMapView({
           ],
         });
 
+        // Final check before setting state
+        if (!isMountedRef.current) {
+          return;
+        }
+
         setMap(mapInstance);
 
         // Create marker
@@ -71,7 +105,9 @@ export function AddressMapView({
           },
         });
 
-        setMarker(markerInstance);
+        if (isMountedRef.current) {
+          setMarker(markerInstance);
+        }
       } catch (error) {
         console.error("Error initializing map:", error);
       }
@@ -80,16 +116,29 @@ export function AddressMapView({
     initMap();
 
     return () => {
-      marker?.setMap(null);
-      setMarker(null);
+      isMountedRef.current = false;
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      if (marker) {
+        marker.setMap(null);
+        setMarker(null);
+      }
+      if (map) {
+        setMap(null);
+      }
     };
-  }, [isInteractive]);
+  }, [isInteractive, location]);
 
   // Update map center and marker when location changes
   useEffect(() => {
-    if (map && marker && location) {
-      map.setCenter(location);
-      marker.setPosition(location);
+    if (map && marker && location && isMountedRef.current) {
+      try {
+        map.setCenter(location);
+        marker.setPosition(location);
+      } catch (error) {
+        console.error("Error updating map location:", error);
+      }
     }
   }, [location, map, marker]);
 

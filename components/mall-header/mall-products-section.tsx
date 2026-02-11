@@ -4,10 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CarouselNavButtons } from "@/components/shocking-sale/carousel-nav-buttons";
+import { getRecommendedProducts, type ApiProduct } from "@/lib/api-client";
 import type { MallProduct } from "./data";
 
 interface MallProductsSectionProps {
-  products: MallProduct[];
+  products?: MallProduct[];
 }
 
 interface MallProductItemProps {
@@ -70,10 +71,38 @@ function MallSeeAllItem() {
   );
 }
 
-export function MallProductsSection({ products }: MallProductsSectionProps) {
+export function MallProductsSection({ products: productsProp }: MallProductsSectionProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showPrev, setShowPrev] = useState(false);
   const [showNext, setShowNext] = useState(true);
+  const [products, setProducts] = useState<MallProduct[]>(productsProp || []);
+  const [loading, setLoading] = useState(!productsProp);
+
+  useEffect(() => {
+    if (productsProp) {
+      setProducts(productsProp);
+      return;
+    }
+
+    async function fetchProducts() {
+      try {
+        const apiProducts = await getRecommendedProducts(15);
+        const transformed: MallProduct[] = apiProducts.map((p, i) => ({
+          id: i + 1,
+          name: p.title,
+          imageSrc: p.imageSrc,
+          href: `/product/${p.slug}`,
+        }));
+        setProducts(transformed);
+      } catch (error) {
+        console.error("Failed to fetch mall products:", error);
+        setProducts([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProducts();
+  }, [productsProp]);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -116,6 +145,12 @@ export function MallProductsSection({ products }: MallProductsSectionProps) {
 
   const columnCount = Math.ceil((products.length + 1) / 2);
   const containerWidth = `${columnCount * 208}px`;
+
+  if (loading) {
+    return (
+      <div className="py-8 text-center text-gray-500">Loading mall products...</div>
+    );
+  }
 
   return (
     <div className="[overflow:unset] bg-white w-[50rem] inline-block align-top">

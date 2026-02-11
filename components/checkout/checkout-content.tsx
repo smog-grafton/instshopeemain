@@ -15,6 +15,13 @@ import {
   type StoredAddress,
 } from "@/lib/address-storage";
 import {
+  getAddresses,
+  createAddress,
+  updateAddress,
+  type ApiAddress,
+} from "@/lib/api-client";
+import { useAuth } from "@/components/auth/auth-context";
+import {
   CheckoutProductsAndSummary,
   type ShopGroup,
 } from "@/components/checkout/checkout-products-summary";
@@ -33,9 +40,12 @@ export function CheckoutContent() {
   const [storedAddress, setStoredAddressState] = useState<StoredAddress | null>(
     null
   );
+  const [apiAddresses, setApiAddresses] = useState<ApiAddress[]>([]);
+  const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [showAddressBookModal, setShowAddressBookModal] = useState(false);
   const [showEditAddressModal, setShowEditAddressModal] = useState(false);
   const { items } = useCart();
+  const { isLoggedIn } = useAuth();
 
   const groups: ShopGroup[] = useMemo(
     () =>
@@ -58,13 +68,62 @@ export function CheckoutContent() {
   );
 
   useEffect(() => {
-    const ok = hasStoredAddress();
-    setHasAddress(ok);
-    if (ok) {
-      const addr = getStoredAddress();
-      if (addr) setStoredAddressState(addr);
+    async function loadAddresses() {
+      if (isLoggedIn) {
+        try {
+          setLoadingAddresses(true);
+          const addresses = await getAddresses();
+          setApiAddresses(addresses);
+          if (addresses.length > 0) {
+            const defaultAddr = addresses.find(a => a.setAsDefault) || addresses[0];
+            const stored: StoredAddress = {
+              region: defaultAddr.region,
+              fullName: defaultAddr.fullName,
+              phoneNumber: defaultAddr.phoneNumber,
+              stateArea: defaultAddr.stateArea,
+              postalCode: defaultAddr.postalCode,
+              unitNo: defaultAddr.unitNo,
+              streetAddress: defaultAddr.streetAddress,
+              labelAs: defaultAddr.labelAs,
+              setAsDefault: defaultAddr.setAsDefault,
+            };
+            setStoredAddressState(stored);
+            setStoredAddress(stored);
+            setHasAddress(true);
+          } else {
+            // Check localStorage as fallback
+            const ok = hasStoredAddress();
+            setHasAddress(ok);
+            if (ok) {
+              const addr = getStoredAddress();
+              if (addr) setStoredAddressState(addr);
+            }
+          }
+        } catch (error) {
+          console.error("Failed to load addresses:", error);
+          // Don't show error to user, just fallback to localStorage
+          const ok = hasStoredAddress();
+          setHasAddress(ok);
+          if (ok) {
+            const addr = getStoredAddress();
+            if (addr) setStoredAddressState(addr);
+          }
+        } finally {
+          setLoadingAddresses(false);
+        }
+      } else {
+        // Not logged in, use localStorage
+        const ok = hasStoredAddress();
+        setHasAddress(ok);
+        if (ok) {
+          const addr = getStoredAddress();
+          if (addr) setStoredAddressState(addr);
+        }
+        setLoadingAddresses(false);
+      }
     }
-  }, []);
+    loadAddresses();
+  }, [isLoggedIn]);
 
   const handleCloseModal = () => {
     if (from === "cart") {
@@ -102,12 +161,61 @@ export function CheckoutContent() {
     setAsDefault: addr.setAsDefault,
   });
 
-  const handleSubmitAddress = (values: NewAddressFormValues) => {
-    const addr = addressPayload(values);
-    setStoredAddress(addr);
-    setStoredAddressState(addr);
-    setHasAddress(true);
-    setShowEditAddressModal(false);
+  const handleSubmitAddress = async (values: NewAddressFormValues) => {
+    try {
+      if (isLoggedIn) {
+        const addrData = {
+          full_name: values.fullName,
+          phone: values.phoneNumber,
+          line1: values.streetAddress,
+          line2: values.unitNo || undefined,
+          city: values.stateArea.split(',')[0] || values.stateArea, // Use first part as city
+          state: values.stateArea,
+          postal_code: values.postalCode || undefined,
+          is_default: values.setAsDefault,
+          region: values.region,
+          label_as: values.labelAs,
+        };
+        const apiAddr = await createAddress(addrData);
+        const stored: StoredAddress = {
+          region: apiAddr.region,
+          fullName: apiAddr.fullName,
+          phoneNumber: apiAddr.phoneNumber,
+          stateArea: apiAddr.stateArea,
+          postalCode: apiAddr.postalCode,
+          unitNo: apiAddr.unitNo,
+          streetAddress: apiAddr.streetAddress,
+          labelAs: apiAddr.labelAs,
+          setAsDefault: apiAddr.setAsDefault,
+        };
+        setStoredAddressState(stored);
+        setStoredAddress(stored); // Also store in localStorage as fallback
+        // Reload addresses
+        try {
+          const addresses = await getAddresses();
+          setApiAddresses(addresses);
+        } catch (err) {
+          console.error("Failed to reload addresses:", err);
+        }
+      } else {
+        // Not logged in, use localStorage
+        const addr = addressPayload(values);
+        setStoredAddress(addr);
+        setStoredAddressState(addr);
+      }
+      
+      // Close modals and update state
+      setHasAddress(true);
+      setShowEditAddressModal(false);
+    } catch (error) {
+      console.error("Failed to save address:", error);
+      // Fallback to localStorage
+      const addr = addressPayload(values);
+      setStoredAddress(addr);
+      setStoredAddressState(addr);
+      setHasAddress(true);
+      setShowEditAddressModal(false);
+    }
   };
 
   const showModal = hasAddress === false;
@@ -128,13 +236,13 @@ export function CheckoutContent() {
       <TopNavbar />
       <CheckoutHeader />
 
-      {showModal && (
+      {(showModal || loadingAddresses) && (
         <NewAddressModal
           open={true}
-          onClose={handleCloseModal}
+          onClose={loadingAddresses ? () => {} : handleCloseModal}
           onSubmit={handleSubmitAddress}
           isFirstAddress={true}
-          subtitle="To place order, please add a delivery address"
+          subtitle={loadingAddresses ? "Loading addresses..." : "To place order, please add a delivery address"}
         />
       )}
 

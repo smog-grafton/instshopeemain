@@ -2,7 +2,8 @@ export interface TopProduct {
   id: string;
   name: string;
   monthlySales: string;
-  imageId: number;
+  imageId?: number; // Optional for backward compatibility
+  imageSrc?: string; // Actual product image from API
   href: string;
 }
 
@@ -11,10 +12,21 @@ function imagePath(imageId: number, ext: "webp" | "jpeg"): string {
 }
 
 export function getTopProductImageSrc(product: TopProduct): { src: string; fallback?: string } {
-  if (product.imageId >= 16) {
-    return { src: imagePath(product.imageId, "jpeg") };
+  // Use actual product imageSrc if available, otherwise fallback to mock imageId
+  if (product.imageSrc) {
+    return { src: product.imageSrc };
   }
-  return { src: imagePath(product.imageId, "webp"), fallback: imagePath(product.imageId, "jpeg") };
+  
+  // Fallback to mock images for backward compatibility
+  if (product.imageId) {
+    if (product.imageId >= 16) {
+      return { src: imagePath(product.imageId, "jpeg") };
+    }
+    return { src: imagePath(product.imageId, "webp"), fallback: imagePath(product.imageId, "jpeg") };
+  }
+  
+  // Ultimate fallback
+  return { src: imagePath(1, "webp"), fallback: imagePath(1, "jpeg") };
 }
 
 export const topProductsData: TopProduct[] = [

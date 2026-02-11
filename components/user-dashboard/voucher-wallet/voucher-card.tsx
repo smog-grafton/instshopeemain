@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { VoucherItem } from "./data";
+import { isBackendImage } from "@/lib/utils";
 
 interface VoucherCardProps {
   item: VoucherItem;
@@ -43,6 +44,7 @@ export function VoucherCard({ item }: VoucherCardProps) {
                       width={56}
                       height={56}
                       className="object-cover w-14 h-14 rounded-full"
+                      unoptimized={isBackendImage(item.logoImage)}
                     />
                   </div>
                 </div>

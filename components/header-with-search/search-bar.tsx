@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import type { HeaderConfig } from "./data";
+import { searchAutocomplete, type AutocompleteSuggestion } from "@/lib/api-client";
 
 interface SearchBarProps {
   config: HeaderConfig;
@@ -15,20 +16,54 @@ const SHOP_ICON_SRC = "/images/profile/shop/shop.svg";
 export function SearchBar({ config }: SearchBarProps) {
   const [query, setQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const [liveSuggestions, setLiveSuggestions] = useState<AutocompleteSuggestion[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Filter suggestions based on current query.
+  // Fetch live suggestions from backend when user types
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    if (!query.trim()) {
+      setLiveSuggestions([]);
+      return;
+    }
+
+    debounceTimerRef.current = setTimeout(async () => {
+      setLoadingSuggestions(true);
+      try {
+        const response = await searchAutocomplete({ keyword: query.trim(), limit: 8 });
+        setLiveSuggestions(response.suggestions);
+      } catch (error) {
+        console.error("Failed to fetch live suggestions:", error);
+        setLiveSuggestions([]);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    }, 300); // 300ms debounce
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [query]);
+
+  // Combine trending suggestions (when empty) with live suggestions (when typing)
   const filteredSuggestions = useMemo(() => {
-    const keywords = config.searchSuggestions;
     if (!query.trim()) {
       // Show top few trending searches when there is no input.
-      return keywords.slice(0, 8);
+      return config.searchSuggestions.slice(0, 8);
     }
-    const lower = query.toLowerCase();
-    return keywords
-      .filter((item) => item.keyword.toLowerCase().includes(lower))
-      .slice(0, 8);
-  }, [config.searchSuggestions, query]);
+    // When typing, use live suggestions from backend
+    return liveSuggestions.map((s) => ({
+      keyword: s.keyword,
+      href: s.href,
+    }));
+  }, [config.searchSuggestions, query, liveSuggestions]);
 
   const showDropdown =
     isFocused && (query.trim().length > 0 || filteredSuggestions.length > 0);
@@ -103,40 +138,71 @@ export function SearchBar({ config }: SearchBarProps) {
             </Link>
           )}
 
-          {/* When typing: Search "query" Shops */}
+          {/* When typing: Show live search results */}
           {query.trim() && (
-            <Link
-              href={{
-                pathname: "/search",
-                query: { keyword: query.trim(), type: "shop" },
-              }}
-              className="flex items-center px-3 py-2 hover:bg-neutral-50 no-underline text-sm text-black"
-            >
-              <Image
-                src={SHOP_ICON_SRC}
-                alt="Search shops"
-                width={14}
-                height={14}
-                className="w-3.5 h-3.5 mr-2"
-              />
-              <span className="text-xs uppercase text-black/50 mr-2">
-                Search &quot;{query.trim()}&quot; Shops
-              </span>
-            </Link>
+            <>
+              {/* Search "query" Products */}
+              <Link
+                href={`/search?keyword=${encodeURIComponent(query.trim())}`}
+                className="flex items-center px-3 py-2 hover:bg-neutral-50 no-underline text-sm text-black"
+              >
+                <span className="text-xs uppercase text-black/50 mr-2">
+                  Search &quot;{query.trim()}&quot; Products
+                </span>
+              </Link>
+              {/* Search "query" Shops */}
+              <Link
+                href={{
+                  pathname: "/search",
+                  query: { keyword: query.trim(), type: "shop" },
+                }}
+                className="flex items-center px-3 py-2 hover:bg-neutral-50 no-underline text-sm text-black"
+              >
+                <Image
+                  src={SHOP_ICON_SRC}
+                  alt="Search shops"
+                  width={14}
+                  height={14}
+                  className="w-3.5 h-3.5 mr-2"
+                />
+                <span className="text-xs uppercase text-black/50 mr-2">
+                  Search &quot;{query.trim()}&quot; Shops
+                </span>
+              </Link>
+            </>
+          )}
+
+          {/* Loading indicator */}
+          {loadingSuggestions && query.trim() && (
+            <div className="px-3 py-2 text-xs text-black/40">
+              Searching...
+            </div>
           )}
 
           {/* Keyword suggestions */}
-          {filteredSuggestions.map((item, index) => (
-            <Link
-              key={index}
-              href={
-                item.href || `/search?keyword=${encodeURIComponent(item.keyword)}`
-              }
-              className="block px-3 py-2 hover:bg-neutral-50 no-underline text-sm text-black/80"
-            >
-              {item.keyword}
-            </Link>
-          ))}
+          {!loadingSuggestions && filteredSuggestions.map((item, index) => {
+            const liveSuggestion = liveSuggestions.find(s => s.keyword === item.keyword);
+            return (
+              <Link
+                key={`${item.keyword}-${index}`}
+                href={
+                  item.href || `/search?keyword=${encodeURIComponent(item.keyword)}`
+                }
+                className="flex items-center px-3 py-2 hover:bg-neutral-50 no-underline text-sm text-black/80"
+              >
+                {liveSuggestion?.type === 'shop' && (
+                  <Image
+                    src={SHOP_ICON_SRC}
+                    alt="Shop"
+                    width={14}
+                    height={14}
+                    className="w-3.5 h-3.5 mr-2"
+                  />
+                )}
+                {item.keyword}
+              </Link>
+            );
+          })}
 
           {!filteredSuggestions.length && !query.trim() && (
             <div className="px-3 py-2 text-xs text-black/40">

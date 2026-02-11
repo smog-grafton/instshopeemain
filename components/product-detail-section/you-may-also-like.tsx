@@ -3,11 +3,48 @@
 import Link from "next/link";
 import { DailyDiscoverCard } from "@/components/daily-discover/daily-discover-card";
 import { dailyDiscoverProducts } from "@/components/daily-discover/data";
+import type { DailyDiscoverProduct } from "@/components/daily-discover/data";
+import type { ApiProduct } from "@/lib/api-client";
+import { formatPrice } from "@/lib/utils";
 
 const YOU_MAY_ALSO_LIKE_COUNT = 40;
-const YOU_MAY_ALSO_LIKE_PRODUCTS = dailyDiscoverProducts.slice(0, YOU_MAY_ALSO_LIKE_COUNT);
 
-export function YouMayAlsoLike() {
+interface YouMayAlsoLikeProps {
+  products?: ApiProduct[];
+}
+
+export function YouMayAlsoLike({ products }: YouMayAlsoLikeProps) {
+  // Transform API products to DailyDiscoverProduct format
+  const displayProducts: DailyDiscoverProduct[] = products && products.length > 0
+    ? products.slice(0, YOU_MAY_ALSO_LIKE_COUNT).map((p, index) => {
+        const discountPercent = p.originalPrice != null && p.originalPrice > 0
+          ? Math.round((1 - p.price / p.originalPrice) * 100)
+          : 0;
+        const badgeKeys = ["shopee-lagi-murah", "cod", "mall", "new-arrival", "preferred", "sea-shipping"] as const;
+        const badges = (p.textBadges ?? [])
+          .map((b) => typeof b === "string" && badgeKeys.includes(b.toLowerCase() as typeof badgeKeys[number]) ? b.toLowerCase() as typeof badgeKeys[number] : null)
+          .filter((b): b is (typeof badgeKeys)[number] => b != null);
+        return {
+          id: p.slug,
+          slug: p.slug,
+          title: p.title,
+          discountPercent,
+          price: formatPrice(p.currencySymbol, p.price),
+          originalPrice: p.originalPrice ? formatPrice(p.currencySymbol, p.originalPrice) : undefined,
+          imageSrc: p.imageSrc,
+          imageIndex: (index % 7) + 1,
+          sold: p.soldCount >= 1000 ? `${(p.soldCount / 1000).toFixed(1)}k+` : String(p.soldCount),
+          soldCount: String(p.soldCount),
+          rating: p.rating,
+          location: p.location,
+          href: `/product/${p.slug}`,
+          findSimilarHref: "#",
+          hasVideo: false,
+          badges,
+          promotionLabel: p.promotionLabel ?? undefined,
+        };
+      })
+    : dailyDiscoverProducts.slice(0, YOU_MAY_ALSO_LIKE_COUNT);
   return (
     <section
       className="w-full pt-6"
@@ -17,7 +54,7 @@ export function YouMayAlsoLike() {
         You May Also Like
       </h2>
       <div className="grid grid-cols-5 gap-x-2 gap-y-2">
-        {YOU_MAY_ALSO_LIKE_PRODUCTS.map((product) => (
+        {displayProducts.map((product) => (
           <div key={product.id} className="min-w-0">
             <DailyDiscoverCard product={product} variant="fromSameShop" />
           </div>

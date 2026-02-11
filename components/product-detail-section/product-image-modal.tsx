@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { isBackendImage } from "@/lib/utils";
 
 const SLIDER_LEFT = "/images/sliders/left.svg";
 const SLIDER_RIGHT = "/images/sliders/right.svg";
@@ -48,6 +49,9 @@ export function ProductImageModal({
   const goPrev = () => setCurrentIndex((i) => (i - 1 + count) % count);
   const goNext = () => setCurrentIndex((i) => (i + 1) % count);
 
+  // Check if image is from external backend
+  const isExternalImage = (src: string) => isBackendImage(src);
+
   if (!open || count === 0) return null;
 
   const mainSrc = imageSources[currentIndex] ?? imageSources[0];
@@ -74,6 +78,7 @@ export function ProductImageModal({
               height={480}
               className="max-h-[52vh] w-auto max-w-full object-contain"
               sizes="50vw"
+              unoptimized={isExternalImage(mainSrc)}
             />
           </div>
           {/* Inverted-rectangle arrows: taller than wide, darker bg */}
@@ -129,6 +134,7 @@ export function ProductImageModal({
                     height={72}
                     className="absolute inset-0 h-full w-full object-contain object-center"
                     sizes="72px"
+                    unoptimized={isExternalImage(src)}
                   />
                 </div>
                 {currentIndex === i && (

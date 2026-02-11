@@ -3,17 +3,59 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlashSaleProductCard } from "./flash-sale-product-card";
 import { WobbleLoader } from "./wobble-loader";
-import { flashSaleGridProducts, type FlashSaleGridProduct } from "./data";
+import type { FlashSaleGridProduct } from "./data";
+import type { ApiShockingSaleProduct } from "@/lib/api-client";
 
 const ROWS_BEFORE_LOADER = 4;
 const PRODUCTS_PER_ROW = 4;
 const INITIAL_VISIBLE = ROWS_BEFORE_LOADER * PRODUCTS_PER_ROW; // 16
 
-export function ProductGridWithLoader() {
+interface ProductGridWithLoaderProps {
+  products?: ApiShockingSaleProduct[];
+}
+
+function transformApiProduct(p: ApiShockingSaleProduct): FlashSaleGridProduct {
+  // Use originalPrice from API if available, otherwise calculate from discount
+  const priceNum = parseFloat(p.price);
+  let originalPrice: string;
+  
+  if (p.originalPrice) {
+    // Backend provides originalPrice
+    originalPrice = typeof p.originalPrice === 'string' ? p.originalPrice : p.originalPrice.toFixed(2);
+  } else if (p.discount > 0) {
+    // Calculate from discount if originalPrice not provided
+    originalPrice = (priceNum / (1 - p.discount / 100)).toFixed(2);
+  } else {
+    // No discount, original price equals current price
+    originalPrice = p.price;
+  }
+
+  // Map badge - filter out "top-picks" as it's not in the type
+  let badge: "choice" | "preferred" | "mall" | undefined = undefined;
+  if (p.badge === "choice" || p.badge === "preferred" || p.badge === "mall") {
+    badge = p.badge;
+  }
+
+  return {
+    id: p.id,
+    name: p.name,
+    imageSrc: p.imageSrc || "",
+    originalPrice,
+    price: p.price,
+    discount: p.discount,
+    rating: 4.5, // Default rating, can be enhanced later
+    status: p.status,
+    statusValue: p.statusValue,
+    badge,
+    href: p.href,
+  };
+}
+
+export function ProductGridWithLoader({ products = [] }: ProductGridWithLoaderProps) {
   const [visibleCount, setVisibleCount] = useState(INITIAL_VISIBLE);
   const [isLoading, setIsLoading] = useState(false);
   const loaderRef = useRef<HTMLDivElement>(null);
-  const allProducts = flashSaleGridProducts;
+  const allProducts = products.map(transformApiProduct);
   const hasMore = visibleCount < allProducts.length;
 
   const loadMore = useCallback(() => {

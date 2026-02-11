@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { mockUserProfile } from "./data";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { getUserProfile, updateProfile } from "@/lib/api-client";
+import type { ApiUserProfile } from "@/lib/api-client";
 
 function HelpIcon() {
   return (
@@ -55,14 +57,65 @@ const YEARS = Array.from({ length: 80 }, (_, i) => CURRENT_YEAR - 79 + i).revers
 type Gender = "male" | "female" | "other" | null;
 
 export function ProfileForm() {
-  const [name, setName] = useState(mockUserProfile.name);
-  const [gender, setGender] = useState<Gender>(mockUserProfile.gender);
-  const [date, setDate] = useState<number | "">(mockUserProfile.dateOfBirth.date ?? "");
-  const [month, setMonth] = useState<number | "">(mockUserProfile.dateOfBirth.month ?? "");
-  const [year, setYear] = useState<number | "">(mockUserProfile.dateOfBirth.year ?? "");
+  const [userProfile, setUserProfile] = useState<ApiUserProfile | null>(null);
+  const [name, setName] = useState("");
+  const [gender, setGender] = useState<Gender>(null);
+  const [date, setDate] = useState<number | "">("");
+  const [month, setMonth] = useState<number | "">("");
+  const [year, setYear] = useState<number | "">("");
+
+  useEffect(() => {
+    async function loadProfile() {
+      try {
+        const profile = await getUserProfile();
+        setUserProfile(profile);
+        setName(profile.name);
+        setGender(profile.gender);
+        setDate(profile.dateOfBirth.date ?? "");
+        setMonth(profile.dateOfBirth.month ?? "");
+        setYear(profile.dateOfBirth.year ?? "");
+      } catch (error) {
+        console.error("Failed to load user profile:", error);
+      }
+    }
+    loadProfile();
+  }, []);
+
+  const [saving, setSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setSaveMessage(null);
+    try {
+      await updateProfile({
+        name,
+        gender,
+        date: date === "" ? null : Number(date),
+        month: month === "" ? null : Number(month),
+        year: year === "" ? null : Number(year),
+      });
+      setSaveMessage("Profile updated successfully!");
+      // Reload profile to get updated data
+      const profile = await getUserProfile();
+      setUserProfile(profile);
+      setName(profile.name);
+      setGender(profile.gender);
+      setDate(profile.dateOfBirth.date ?? "");
+      setMonth(profile.dateOfBirth.month ?? "");
+      setYear(profile.dateOfBirth.year ?? "");
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      setSaveMessage("Failed to update profile. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
-    <form>
+    <form onSubmit={handleSubmit}>
       <table className="indent-[initial] border-zinc-500 border-spacing-0 w-[602px]">
         <tbody>
           <tr>
@@ -77,7 +130,7 @@ export function ProfileForm() {
                     type="text"
                     placeholder=""
                     className="leading-4 outline-0 grow shrink-0 basis-[0%] p-3 border-0 placeholder:pl-[3px] placeholder:text-black/26 read-only:text-black/26"
-                    value={mockUserProfile.username}
+                    value={userProfile?.username || ""}
                     readOnly
                   />
                 </div>
@@ -111,14 +164,14 @@ export function ProfileForm() {
               <label>Email</label>
             </td>
             <td className="w-96 pl-5 pb-8">
-              <div className="items-center flex">
-                <div className="text-zinc-800 text-sm">{mockUserProfile.emailMasked}</div>
-                <button
-                  type="button"
-                  className="[appearance:auto] cursor-pointer text-sky-700 capitalize outline-0 text-sm underline border-0"
+              <div className="items-center flex gap-2">
+                <div className="text-zinc-800 text-sm">{userProfile?.emailMasked || ""}</div>
+                <Link
+                  href="/user/account/email"
+                  className="[appearance:auto] cursor-pointer text-sky-700 capitalize outline-0 text-sm underline border-0 hover:text-sky-800"
                 >
-                  change
-                </button>
+                  Change
+                </Link>
               </div>
             </td>
           </tr>
@@ -127,16 +180,16 @@ export function ProfileForm() {
               <label>Phone Number</label>
             </td>
             <td className="w-96 pl-5 pb-8">
-              <div className="items-center flex">
+              <div className="items-center flex gap-2">
                 <div className="text-zinc-800 text-sm">
-                  {mockUserProfile.phoneNumber ?? ""}
+                  {userProfile?.phoneNumber ? userProfile.phoneNumber : "—"}
                 </div>
-                <button
-                  type="button"
-                  className="[appearance:auto] cursor-pointer text-sky-700 capitalize outline-0 text-sm underline border-0"
+                <Link
+                  href="/user/account/phone"
+                  className="[appearance:auto] cursor-pointer text-sky-700 capitalize outline-0 text-sm underline border-0 hover:text-sky-800"
                 >
-                  Add
-                </button>
+                  {userProfile?.phoneNumber ? "Change" : "Add"}
+                </Link>
               </div>
             </td>
           </tr>
@@ -251,13 +304,21 @@ export function ProfileForm() {
               <label></label>
             </td>
             <td className="w-96 pl-5 pb-8">
-              <button
-                type="submit"
-                className="[appearance:auto] text-ellipsis [-webkit-line-clamp:1] capitalize cursor-pointer flex-col justify-center items-center text-sm shadow-sm rounded-sm border-0 inline-flex min-w-16 max-w-56 h-10 px-5 text-white outline-0 relative bg-red-500 focus-visible:before:content-[''] focus-visible:before:outline-2 focus-visible:before:outline-solid focus-visible:before:w-[calc(100%+8px)] focus-visible:before:h-[calc(100%+8px)] focus-visible:before:absolute focus-visible:before:-m-1 focus-visible:before:p-1 focus-visible:before:rounded-sm focus-visible:before:-left-1 focus-visible:before:-top-1 focus-visible:before:outline-black/87 hover:bg-red-500 active:bg-red-500 active:shadow-inner"
-                aria-disabled={false}
-              >
-                save
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="[appearance:auto] text-ellipsis [-webkit-line-clamp:1] capitalize cursor-pointer flex-col justify-center items-center text-sm shadow-sm rounded-sm border-0 inline-flex min-w-16 max-w-56 h-10 px-5 text-white outline-0 relative bg-red-500 focus-visible:before:content-[''] focus-visible:before:outline-2 focus-visible:before:outline-solid focus-visible:before:w-[calc(100%+8px)] focus-visible:before:h-[calc(100%+8px)] focus-visible:before:absolute focus-visible:before:-m-1 focus-visible:before:p-1 focus-visible:before:rounded-sm focus-visible:before:-left-1 focus-visible:before:-top-1 focus-visible:before:outline-black/87 hover:bg-red-500 active:bg-red-500 active:shadow-inner disabled:opacity-50 disabled:cursor-not-allowed"
+                  aria-disabled={saving}
+                >
+                  {saving ? "Saving..." : "save"}
+                </button>
+                {saveMessage && (
+                  <span className={`text-sm ${saveMessage.includes("success") ? "text-green-600" : "text-red-600"}`}>
+                    {saveMessage}
+                  </span>
+                )}
+              </div>
             </td>
           </tr>
         </tbody>

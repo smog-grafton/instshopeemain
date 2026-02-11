@@ -8,23 +8,34 @@ interface CategoryPageProps {
   params: Promise<{ category: string }>;
 }
 
-/** Parse legacy category param (e.g. "Mobile-Accessories-cat.11000979") to slug "mobile-accessories". */
-function categoryParamToSlug(category: string): string | undefined {
-  const match = category.match(/^(.+)-cat\./);
-  if (!match) return undefined;
-  const part = match[1];
-  if (!part) return undefined;
-  return part
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "");
+/** Parse category URL format: {slug}-cat.{id} (e.g. "mobile-accessories-cat.11000979") */
+function parseCategoryUrl(category: string): { categoryId: number | null; categorySlug: string | null } {
+  const match = category.match(/^(.+)-cat\.(\d+)$/);
+  if (match && match[2]) {
+    const categoryId = parseInt(match[2], 10);
+    if (!isNaN(categoryId)) {
+      return { categoryId, categorySlug: null };
+    }
+  }
+  
+  // Fallback: try to extract slug for backward compatibility
+  const slugMatch = category.match(/^(.+)-cat\./);
+  if (slugMatch && slugMatch[1]) {
+    const slug = slugMatch[1]
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, "")
+      .replace(/\s+/g, "-")
+      .replace(/-+/g, "-")
+      .replace(/^-|-$/g, "");
+    return { categoryId: null, categorySlug: slug };
+  }
+  
+  return { categoryId: null, categorySlug: null };
 }
 
 export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category } = await params;
-  const categorySlug = categoryParamToSlug(category);
+  const { categoryId, categorySlug } = parseCategoryUrl(category);
 
   return (
     <div className="min-h-screen bg-[rgb(245,245,245)]">
@@ -34,7 +45,10 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         <div className="rounded-sm bg-white shadow-sm">
           <CategoryMallSection />
         </div>
-        <CategoryProductListing categorySlug={categorySlug ?? undefined} />
+        <CategoryProductListing 
+          categoryId={categoryId ?? undefined} 
+          categorySlug={categorySlug ?? undefined} 
+        />
       </div>
       <SiteFooter />
     </div>

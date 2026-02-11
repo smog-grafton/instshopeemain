@@ -1,33 +1,15 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { CartItem } from "@/components/cart";
+import { useCart } from "@/components/cart";
 import { CheckoutErrorModal } from "./checkout-error-modal";
-import { placeOrderMock, type PaymentMethodKey } from "@/lib/orders-mock";
 import type { StoredAddress } from "@/lib/address-storage";
-
-const PAYMENT_CRYPTO: Record<
-  string,
-  { label: string; address: string; logo: string }
-> = {
-  "usdt-tron": {
-    label: "USDT (Tron)",
-    address: "3CW7Rysm74F8Hx6tvQmN77XjoWLovyzBY8",
-    logo: "/images/common/gateways/tron.png",
-  },
-  btc: {
-    label: "BTC",
-    address: "3CW7Rysm74F8Hx6tvQmN77XjoWLovyzBY8",
-    logo: "/images/common/gateways/bitcoin-btc-logo.png",
-  },
-  "usdt-eth": {
-    label: "USD Tether",
-    address: "0xc992A8609887e99CD51cf50a6aBe8e15951EcAaA",
-    logo: "/images/common/gateways/tether-usdt-logo.png",
-  },
-};
+import { getPaymentMethods, type ApiPaymentMethod } from "@/lib/api-client";
+import { placeOrder, type PaymentMethodKey } from "@/lib/api-client-orders";
+import { formatPrice } from "@/lib/utils";
 
 const SHOP_ICON_PATH =
   "M1.95 6.6c.156.804.7 1.867 1.357 1.867.654 0 1.43 0 1.43-.933h.932s0 .933 1.155.933c1.176 0 1.15-.933 1.15-.933h.984s-.027.933 1.148.933c1.157 0 1.15-.933 1.15-.933h.94s0 .933 1.43.933c1.368 0 1.356-1.867 1.356-1.867H1.95zm11.49-4.666H3.493L2.248 5.667h12.437L13.44 1.934zM2.853 14.066h11.22l-.01-4.782c-.148.02-.295.042-.465.042-.7 0-1.436-.324-1.866-.86-.376.53-.88.86-1.622.86-.667 0-1.255-.417-1.64-.86-.39.443-.976.86-1.643.86-.74 0-1.246-.33-1.623-.86-.43.536-1.195.86-1.895.86-.152 0-.297-.02-.436-.05l-.018 4.79zM14.996 12.2v.933L14.984 15H1.94l-.002-1.867V8.84C1.355 8.306 1.003 7.456 1 6.6L2.87 1h11.193l1.866 5.6c0 .943-.225 1.876-.934 2.39v3.21z";
@@ -66,7 +48,35 @@ export function CheckoutProductsAndSummary({
     null
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [paymentMethods, setPaymentMethods] = useState<ApiPaymentMethod[]>([]);
+  const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
+  const [placing, setPlacing] = useState(false);
+  // Payment evidence for manual payment methods
+  const [accountHolderName, setAccountHolderName] = useState("");
+  const [transactionScreenshot, setTransactionScreenshot] = useState<string | null>(null);
+  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
   const router = useRouter();
+  const { items: cartItems, clearCart } = useCart();
+
+  // Get currency symbol from first item in cart (assuming all items use same currency)
+  // Fallback to first group item if cartItems not available
+  const currencySymbol = cartItems[0]?.currencySymbol || groups[0]?.items[0]?.currencySymbol || "RM";
+
+  useEffect(() => {
+    async function fetchPaymentMethods() {
+      try {
+        const methods = await getPaymentMethods();
+        setPaymentMethods(methods.filter(m => m.enabledForCheckout));
+      } catch (error) {
+        console.error("Failed to fetch payment methods:", error);
+        // Set empty array on error
+        setPaymentMethods([]);
+      } finally {
+        setLoadingPaymentMethods(false);
+      }
+    }
+    fetchPaymentMethods();
+  }, []);
 
   const copyAddress = useCallback(async (address: string) => {
     try {
@@ -75,6 +85,16 @@ export function CheckoutProductsAndSummary({
       // ignore
     }
   }, []);
+
+  const handleScreenshotUpload = async (file: File) => {
+    setScreenshotFile(file);
+    // Convert to base64 for now (in production, upload to server first)
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setTransactionScreenshot(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handlePlaceOrder = async () => {
     // 1) Client-side validations
@@ -86,6 +106,20 @@ export function CheckoutProductsAndSummary({
     if (!selectedPayment) {
       setErrorMessage("Please select payment option");
       return;
+    }
+
+    // Validate payment evidence for manual payment methods
+    const manualPaymentMethods: PaymentMethodKey[] = ['usdt-tron', 'btc', 'usdt-eth', 'online-banking'];
+    const isManualPayment = manualPaymentMethods.includes(selectedPayment);
+    if (isManualPayment) {
+      if (!accountHolderName.trim()) {
+        setErrorMessage("Please provide the account holder name who made the payment.");
+        return;
+      }
+      if (!transactionScreenshot) {
+        setErrorMessage("Please upload a screenshot of the transaction as proof of payment.");
+        return;
+      }
     }
 
     // 2) Build order item snapshots from cart groups
@@ -103,31 +137,44 @@ export function CheckoutProductsAndSummary({
       }))
     );
 
-    // 3) Call mock order API
+    // 3) Call real order API (requires auth)
+    setPlacing(true);
+    setErrorMessage(null);
     try {
-      const result = await placeOrderMock({
+      // Prepare payment evidence for manual payment methods
+      const paymentEvidence = isManualPayment ? {
+        accountHolderName: accountHolderName.trim(),
+        transactionScreenshot: transactionScreenshot!,
+      } : undefined;
+
+      const result = await placeOrder({
         items: itemSnapshots,
         address: {
           fullName: address.fullName,
           phoneNumber: address.phoneNumber,
           stateArea: address.stateArea,
           postalCode: address.postalCode,
-          unitNo: address.unitNo,
+          unitNo: address.unitNo ?? undefined,
           streetAddress: address.streetAddress,
-          labelAs: address.labelAs,
+          labelAs: address.labelAs ?? undefined,
         },
         paymentMethod: selectedPayment,
         merchandiseSubtotal,
         shippingSubtotal,
         shippingDiscount,
         totalPayment,
+        paymentEvidence,
       });
 
-      // 4) Navigate to purchases page, highlighting the new order.
+      clearCart();
       router.push(`/user/purchase?orderId=${encodeURIComponent(result.order.id)}`);
     } catch (error) {
-      console.error("Failed to place mock order", error);
-      setErrorMessage("Something went wrong while placing your order. Please try again.");
+      console.error("Failed to place order", error);
+      setErrorMessage(
+        error instanceof Error ? error.message : "Something went wrong while placing your order. Please try again."
+      );
+    } finally {
+      setPlacing(false);
     }
   };
 
@@ -206,13 +253,13 @@ export function CheckoutProductsAndSummary({
                       </span>
                     </div>
                     <div className="flex flex-[2_1_0%] items-center justify-end overflow-hidden text-ellipsis">
-                      RM{item.price.toFixed(2)}
+                      {formatPrice(item.currencySymbol || currencySymbol, item.price)}
                     </div>
                     <div className="flex flex-[2_1_0%] items-center justify-end overflow-hidden text-ellipsis">
                       {item.quantity}
                     </div>
                     <div className="flex flex-[2_1_0%] font-medium items-center justify-end overflow-hidden text-ellipsis">
-                      RM{total.toFixed(2)}
+                      {formatPrice(item.currencySymbol || currencySymbol, total)}
                     </div>
                   </div>
                 );
@@ -286,8 +333,8 @@ export function CheckoutProductsAndSummary({
                 height={13}
                 className="align-text-bottom shrink-0 border-0"
               />
-              <span className="text-black/26 line-through">RM2.65</span>
-              <span>RM0.00</span>
+              <span className="text-black/26 line-through">{formatPrice(currencySymbol, 2.65)}</span>
+              <span>{formatPrice(currencySymbol, 0)}</span>
               <span className="text-black/54 text-xs leading-4">(incl. SST)</span>
             </div>
           </div>
@@ -318,7 +365,7 @@ export function CheckoutProductsAndSummary({
             Order Total ({totalItems} Item{totalItems !== 1 ? "s" : ""}):
           </h3>
           <div className="text-[#ee4d2d] text-xl font-medium min-w-[100px] h-10 py-0 px-[25px] pl-2.5 flex items-center justify-end">
-            RM{merchandiseSubtotal.toFixed(2)}
+            {formatPrice(currencySymbol, merchandiseSubtotal)}
           </div>
         </div>
       </div>
@@ -379,7 +426,7 @@ export function CheckoutProductsAndSummary({
             </div>
           </div>
           <div className="flex">
-            <div className="text-[#d0d0d0] pr-3 font-medium">[-RM0.00]</div>
+            <div className="text-[#d0d0d0] pr-3 font-medium">[{formatPrice(currencySymbol, 0, true)}]</div>
             <label className="opacity-35 cursor-not-allowed text-black/54 text-xs font-light flex items-center max-w-[400px] relative">
               <input
                 type="checkbox"
@@ -403,113 +450,153 @@ export function CheckoutProductsAndSummary({
             <div className="text-[#222] text-lg flex-[0_0_200px]">
               Payment Method
             </div>
-            <div
-              role="radiogroup"
-              className="flex flex-wrap gap-x-2 gap-y-2 mt-2.5"
-            >
-              <button
-                type="button"
-                role="radio"
-                aria-label="Voucher"
-                aria-checked={selectedPayment === "voucher"}
-                className={`${payBtnBase} ${selectedPayment === "voucher" ? "border-[#ee4d2d]" : "border-black/[0.09]"}`}
-                onClick={() => setSelectedPayment("voucher")}
-              >
-                <Image
-                  src="/images/svgs/cart/coupon.svg"
-                  alt=""
-                  width={20}
-                  height={20}
-                  className="shrink-0"
-                />
-                Voucher
-              </button>
-              <button
-                type="button"
-                role="radio"
-                aria-label="Online Banking"
-                aria-checked={selectedPayment === "online-banking"}
-                className={`${payBtnBase} ${selectedPayment === "online-banking" ? "border-[#ee4d2d]" : "border-black/[0.09]"}`}
-                onClick={() => setSelectedPayment("online-banking")}
-              >
-                Online Banking
-              </button>
-              <button
-                type="button"
-                role="radio"
-                aria-label="Credit / Debit Card"
-                aria-checked={selectedPayment === "card"}
-                className={`${payBtnBase} ${selectedPayment === "card" ? "border-[#ee4d2d]" : "border-black/[0.09]"}`}
-                onClick={() => setSelectedPayment("card")}
-              >
-                Credit / Debit Card
-              </button>
-              <button
-                type="button"
-                role="radio"
-                aria-label="Cash Payment at Physical Stores"
-                aria-checked={selectedPayment === "cash"}
-                className={`${payBtnBase} ${selectedPayment === "cash" ? "border-[#ee4d2d]" : "border-black/[0.09]"}`}
-                onClick={() => setSelectedPayment("cash")}
-              >
-                Cash Payment at Physical Stores
-              </button>
-              <button
-                type="button"
-                role="radio"
-                aria-label="Google Pay"
-                aria-checked={selectedPayment === "google-pay"}
-                className={`${payBtnBase} ${selectedPayment === "google-pay" ? "border-[#ee4d2d]" : "border-black/[0.09]"}`}
-                onClick={() => setSelectedPayment("google-pay")}
-              >
-                Google Pay
-              </button>
-              {(["usdt-tron", "btc", "usdt-eth"] as const).map((key) => {
-                const item = PAYMENT_CRYPTO[key];
-                return (
-                  <button
-                    key={key}
-                    type="button"
-                    role="radio"
-                    aria-label={item.label}
-                    aria-checked={selectedPayment === key}
-                    className={`${payBtnBase} ${selectedPayment === key ? "border-[#ee4d2d]" : "border-black/[0.09]"}`}
-                    onClick={() => setSelectedPayment(key)}
-                  >
-                    <Image
-                      src={item.logo}
-                      alt=""
-                      width={20}
-                      height={20}
-                      className="shrink-0 object-contain"
-                    />
-                    <span>{item.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-            {selectedPayment &&
-              PAYMENT_CRYPTO[selectedPayment] && (
-                <div className="mt-3 p-3 rounded-[2px] border border-black/10 bg-black/[0.02] text-[13px]">
-                  <div className="text-black/70 mb-1">
-                    {PAYMENT_CRYPTO[selectedPayment].label} deposit address:
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <code className="flex-1 min-w-0 break-all font-mono text-[12px] text-black/87 bg-white px-2 py-1 rounded border border-black/10">
-                      {PAYMENT_CRYPTO[selectedPayment].address}
-                    </code>
+            {loadingPaymentMethods ? (
+              <div className="py-4 text-center text-gray-500 text-sm">Loading payment methods...</div>
+            ) : (
+              <>
+                <div
+                  role="radiogroup"
+                  className="flex flex-wrap gap-x-2 gap-y-2 mt-2.5"
+                >
+                  {paymentMethods.map((method) => (
                     <button
+                      key={method.key}
                       type="button"
-                      className="shrink-0 px-2 py-1 rounded border border-black/20 bg-white text-[12px] text-black/80 hover:bg-black/5"
-                      onClick={() =>
-                        copyAddress(PAYMENT_CRYPTO[selectedPayment].address)
-                      }
+                      role="radio"
+                      aria-label={method.name}
+                      aria-checked={selectedPayment === method.key}
+                      className={`${payBtnBase} ${selectedPayment === method.key ? "border-[#ee4d2d]" : "border-black/[0.09]"}`}
+                      onClick={() => setSelectedPayment(method.key as PaymentMethodKey)}
                     >
-                      Copy
+                      {method.logoUrl && (
+                        <Image
+                          src={method.logoUrl}
+                          alt=""
+                          width={20}
+                          height={20}
+                          className="shrink-0 object-contain"
+                        />
+                      )}
+                      {method.key === "voucher" && !method.logoUrl && (
+                        <Image
+                          src="/images/svgs/cart/coupon.svg"
+                          alt=""
+                          width={20}
+                          height={20}
+                          className="shrink-0"
+                        />
+                      )}
+                      <span>{method.name}</span>
                     </button>
-                  </div>
+                  ))}
                 </div>
-              )}
+                {selectedPayment && paymentMethods.find(m => m.key === selectedPayment && m.type === "manual" && m.config?.address) && (
+                  <div className="mt-3 p-4 rounded-[2px] border border-black/10 bg-black/[0.02] text-[13px] space-y-3">
+                    <div>
+                      <div className="text-black/70 mb-1 font-medium">
+                        {paymentMethods.find(m => m.key === selectedPayment)?.name} deposit address:
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <code className="flex-1 min-w-0 break-all font-mono text-[12px] text-black/87 bg-white px-2 py-1 rounded border border-black/10">
+                          {paymentMethods.find(m => m.key === selectedPayment)?.config?.address}
+                        </code>
+                        <button
+                          type="button"
+                          className="shrink-0 px-2 py-1 rounded border border-black/20 bg-white text-[12px] text-black/80 hover:bg-black/5"
+                          onClick={() => {
+                            const addr = paymentMethods.find(m => m.key === selectedPayment)?.config?.address;
+                            if (addr) copyAddress(addr);
+                          }}
+                        >
+                          Copy
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="border-t border-black/10 pt-3 space-y-3">
+                      <div className="text-black/70 font-medium mb-2">
+                        Payment Evidence Required:
+                      </div>
+                      
+                      <div>
+                        <label className="block text-black/70 mb-1 text-[12px]">
+                          Account Holder Name <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={accountHolderName}
+                          onChange={(e) => setAccountHolderName(e.target.value)}
+                          placeholder="Enter the name of the account holder who made the payment"
+                          className="w-full px-3 py-2 border border-black/20 rounded bg-white text-[13px] focus:outline-none focus:border-[#ee4d2d]"
+                        />
+                        <p className="text-[11px] text-black/50 mt-1">
+                          The name must match the account used for the transaction
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-black/70 mb-1 text-[12px]">
+                          Transaction Screenshot <span className="text-red-500">*</span>
+                        </label>
+                        <div className="flex items-start gap-2">
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                if (file.size > 5 * 1024 * 1024) {
+                                  setErrorMessage("Screenshot must be less than 5MB");
+                                  return;
+                                }
+                                handleScreenshotUpload(file);
+                              }
+                            }}
+                            className="hidden"
+                            id="transaction-screenshot"
+                          />
+                          <label
+                            htmlFor="transaction-screenshot"
+                            className="px-3 py-2 border border-black/20 rounded bg-white text-[12px] text-black/80 hover:bg-black/5 cursor-pointer"
+                          >
+                            {transactionScreenshot ? "Change Screenshot" : "Upload Screenshot"}
+                          </label>
+                          {transactionScreenshot && (
+                            <div className="flex-1">
+                              <div className="relative inline-block">
+                                <img
+                                  src={transactionScreenshot}
+                                  alt="Transaction screenshot"
+                                  className="max-w-[200px] max-h-[150px] border border-black/10 rounded"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setTransactionScreenshot(null);
+                                    setScreenshotFile(null);
+                                  }}
+                                  className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs"
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-black/50 mt-1">
+                          Upload a clear screenshot showing the transaction details (max 5MB)
+                        </p>
+                      </div>
+                      
+                      <div className="bg-yellow-50 border border-yellow-200 rounded p-2 text-[11px] text-yellow-800">
+                        <strong>Important:</strong> Your order will be pending until admin confirms the payment. 
+                        Please ensure the screenshot clearly shows the transaction ID and amount.
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
 
@@ -523,7 +610,7 @@ export function CheckoutProductsAndSummary({
               Merchandise Subtotal
             </h3>
             <span className="text-[14px] text-black/65 min-w-[70px] text-right">
-              RM{merchandiseSubtotal.toFixed(2)}
+              {formatPrice(currencySymbol, merchandiseSubtotal)}
             </span>
           </div>
           <div className="flex items-center justify-end gap-x-6 min-h-10">
@@ -531,7 +618,7 @@ export function CheckoutProductsAndSummary({
               Shipping Subtotal (excl. sst)
             </h3>
             <span className="text-[14px] text-black/65 min-w-[70px] text-right">
-              RM{shippingSubtotal.toFixed(2)}
+              {formatPrice(currencySymbol, shippingSubtotal)}
             </span>
           </div>
           <div className="flex items-center justify-end gap-x-6 min-h-10">
@@ -545,7 +632,7 @@ export function CheckoutProductsAndSummary({
               </span>
             </h3>
             <span className="text-[14px] text-black/65 min-w-[70px] text-right">
-              RM0.00
+              {formatPrice(currencySymbol, 0)}
             </span>
           </div>
           <div className="flex items-center justify-end gap-x-6 min-h-10">
@@ -553,7 +640,7 @@ export function CheckoutProductsAndSummary({
               Shipping Discount Subtotal
             </h3>
             <span className="text-[14px] text-[#ee4d2d] min-w-[70px] text-right">
-              -RM{shippingDiscount.toFixed(2)}
+              {formatPrice(currencySymbol, shippingDiscount, true)}
             </span>
           </div>
           <div className="flex items-center justify-end gap-x-6 min-h-[50px]">
@@ -561,7 +648,7 @@ export function CheckoutProductsAndSummary({
               Total Payment:
             </h3>
             <span className="text-[#ee4d2d] text-[28px] font-medium min-w-[90px] text-right">
-              RM{totalPayment.toFixed(2)}
+              {formatPrice(currencySymbol, totalPayment)}
             </span>
           </div>
           <div className="flex justify-end items-center mt-1 mb-1 min-h-[12px] text-[12px] text-black/54 gap-1">
@@ -577,10 +664,11 @@ export function CheckoutProductsAndSummary({
             <div className="flex-1" />
             <button
               type="button"
-              className="flex items-center justify-center w-[210px] h-10 py-3 px-3.5 rounded-[2px] border border-black/[0.09] bg-[#ee4d2d] text-white text-base font-normal cursor-pointer shadow-[0_1px_1px_rgba(0,0,0,0.03)]"
+              disabled={placing}
+              className="flex items-center justify-center w-[210px] h-10 py-3 px-3.5 rounded-[2px] border border-black/[0.09] bg-[#ee4d2d] text-white text-base font-normal cursor-pointer shadow-[0_1px_1px_rgba(0,0,0,0.03)] disabled:opacity-70 disabled:cursor-not-allowed"
               onClick={handlePlaceOrder}
             >
-              Place Order
+              {placing ? "Placing…" : "Place Order"}
             </button>
           </div>
         </div>

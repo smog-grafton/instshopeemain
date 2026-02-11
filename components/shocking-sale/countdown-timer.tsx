@@ -9,19 +9,27 @@ interface CountdownTimerProps {
     minutes: number;
     seconds: number;
   };
+  endsAt?: string | null; // ISO 8601 timestamp from backend
 }
 
 /**
  * Countdown timer: displays REMAINING time until a fixed end time.
  * Formula: remaining = endTime - now (so remaining DECREASES every second).
- * Never use (now - endTime) — that would be elapsed and would increase.
+ * Uses endsAt timestamp from backend if provided, otherwise falls back to countdown values.
  */
-export function CountdownTimer({ countdown }: CountdownTimerProps) {
+export function CountdownTimer({ countdown, endsAt }: CountdownTimerProps) {
   const endTimeMsRef = useRef<number | null>(null);
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
   useEffect(() => {
-    if (endTimeMsRef.current === null) {
+    // If endsAt timestamp is provided, use it directly
+    if (endsAt) {
+      const endTime = new Date(endsAt).getTime();
+      if (!isNaN(endTime)) {
+        endTimeMsRef.current = endTime;
+      }
+    } else if (endTimeMsRef.current === null) {
+      // Fallback: calculate end time from countdown values
       const totalMs =
         (countdown.hours * 3600 + countdown.minutes * 60 + countdown.seconds) * 1000;
       endTimeMsRef.current = Date.now() + totalMs;
@@ -50,7 +58,7 @@ export function CountdownTimer({ countdown }: CountdownTimerProps) {
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [countdown.hours, countdown.minutes, countdown.seconds]);
+  }, [countdown.hours, countdown.minutes, countdown.seconds, endsAt]);
 
   const hoursStr = timeLeft.hours.toString().padStart(2, "0");
   const minutesStr = timeLeft.minutes.toString().padStart(2, "0");

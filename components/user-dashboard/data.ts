@@ -72,14 +72,3 @@ export const SIDEBAR_NAV: NavItem[] = [
     iconPath: COIN_ICON,
   },
 ];
-
-export const mockUserProfile: UserProfile = {
-  username: "smogcoders",
-  name: "smog",
-  email: "sm*********@gmail.com",
-  emailMasked: "sm*********@gmail.com",
-  phoneNumber: null,
-  avatarUrl: "/images/common/user/account/smogcoders-avatar.png",
-  gender: null,
-  dateOfBirth: { date: null, month: null, year: null },
-};

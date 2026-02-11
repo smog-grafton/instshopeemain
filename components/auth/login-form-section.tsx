@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "./auth-context";
-import { checkCredentials } from "@/lib/auth";
+import { loginWithEmailPassword, getGoogleAuthRedirectUrl } from "@/lib/api-client";
 
 const BACKGROUND_IMAGE = "/images/auth/background.png";
 const FACEBOOK_ICON = "/images/auth/facebook.png";
@@ -13,23 +13,62 @@ const GOOGLE_ICON = "/images/auth/google.png";
 
 export function LoginFormSection() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login: setAuthLoggedIn } = useAuth();
   const [loginKey, setLoginKey] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const canSubmit = Boolean(loginKey.trim() && password.trim());
+  
+  // Get redirect URL from query parameter
+  const nextUrl = searchParams.get('next') || '/';
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!canSubmit) return;
-    if (checkCredentials(loginKey, password)) {
-      setAuthLoggedIn();
-      router.push("/");
-      return;
+    setLoading(true);
+    try {
+      // For now we log in using email; later we can support username/phone lookup.
+      const result = await loginWithEmailPassword(loginKey, password);
+      const apiUser = result.user;
+      setAuthLoggedIn({
+        user: {
+          id: apiUser.id,
+          name: apiUser.name,
+          username: apiUser.username ?? apiUser.email,
+          avatarUrl: apiUser.avatarUrl ?? null,
+          email: apiUser.email,
+          role: apiUser.role,
+          countryId: apiUser.countryId ?? null,
+        },
+      });
+      
+      // Redirect to next URL or home
+      if (nextUrl && nextUrl !== '/') {
+        // If nextUrl is external (seller portal), use window.location
+        if (nextUrl.startsWith('http://') || nextUrl.startsWith('https://')) {
+          window.location.href = nextUrl;
+        } else {
+          router.push(nextUrl);
+        }
+      } else {
+        router.push("/");
+      }
+    } catch (err: any) {
+      setError(err?.message || "Invalid email or password.");
+    } finally {
+      setLoading(false);
     }
-    setError("Invalid email/username or password.");
+  };
+
+  const handleGoogleLogin = () => {
+    const url = getGoogleAuthRedirectUrl();
+    if (typeof window !== "undefined") {
+      window.location.href = url;
+    }
   };
 
   return (
@@ -245,7 +284,7 @@ export function LoginFormSection() {
 
                   <button
                     type="submit"
-                    disabled={!canSubmit}
+                    disabled={!canSubmit || loading}
                     className="flex h-10 w-full min-w-[140px] cursor-pointer items-center justify-center rounded-sm border-0 px-2.5 py-0 text-sm font-normal uppercase text-white outline-none disabled:cursor-not-allowed disabled:opacity-70"
                     style={{
                       width: "100%",
@@ -256,7 +295,7 @@ export function LoginFormSection() {
                       font: '14px Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif',
                     }}
                   >
-                    Log In
+                    {loading ? "Logging in…" : "Log In"}
                   </button>
                 </form>
 
@@ -319,7 +358,9 @@ export function LoginFormSection() {
                   >
                     <button
                       type="button"
-                      className="flex flex-1 items-center justify-center rounded-sm border border-black/26 bg-white px-2 py-0 text-sm text-black/87 outline-none cursor-pointer appearance-none"
+                      disabled
+                      title="Facebook login coming soon"
+                      className="flex flex-1 items-center justify-center rounded-sm border border-black/10 bg-white px-2 py-0 text-sm text-black/40 outline-none cursor-not-allowed appearance-none"
                       style={{
                         flex: "1 1 0%",
                         margin: "5px",
@@ -342,10 +383,11 @@ export function LoginFormSection() {
                           className="h-[22px] w-[22px] shrink-0"
                         />
                       </div>
-                      <span className="ml-1">Facebook</span>
+                      <span className="ml-1">Facebook (coming soon)</span>
                     </button>
                     <button
                       type="button"
+                      onClick={handleGoogleLogin}
                       className="flex flex-1 items-center justify-center rounded-sm border border-black/26 bg-white px-2 py-0 text-sm text-black/87 outline-none cursor-pointer appearance-none"
                       style={{
                         flex: "1 1 0%",

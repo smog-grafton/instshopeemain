@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ProductBadge } from "./product-badge";
 import type { ShockingSaleProduct } from "./data";
+import { isBackendImage } from "@/lib/utils";
 
 interface ProductItemProps {
   product: ShockingSaleProduct;
@@ -12,7 +13,12 @@ interface ProductItemProps {
 const DEFAULT_IMAGE = "/images/home/shocking/default.jpeg";
 
 export function ProductItem({ product }: ProductItemProps) {
+  // Use backend image if available, otherwise fallback to default
+  // Only use DEFAULT_IMAGE if imageSrc is empty/null/undefined
   const imageSrc = product.imageSrc || DEFAULT_IMAGE;
+  
+  // Check if image is from external backend
+  const isExternalImage = isBackendImage(imageSrc);
 
   const getStatusText = () => {
     switch (product.status) {
@@ -112,14 +118,22 @@ export function ProductItem({ product }: ProductItemProps) {
                 {/* Product Image */}
                 <div className="z-[2] w-full h-full absolute left-0 top-0">
                   <div className="transition-opacity duration-200 z-[2] w-full h-full absolute left-0 top-0">
-                    <Image
-                      src={imageSrc}
-                      alt={product.name}
-                      width={208}
-                      height={176}
-                      className="w-full h-full object-contain"
-                      unoptimized
-                    />
+                    {isExternalImage ? (
+                      <img
+                        src={imageSrc}
+                        alt={product.name}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <Image
+                        src={imageSrc}
+                        alt={product.name}
+                        width={208}
+                        height={176}
+                        className="w-full h-full object-contain"
+                        unoptimized
+                      />
+                    )}
                   </div>
                 </div>
               </div>

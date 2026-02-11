@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import { FilterFunnelIcon } from "./icons";
 import {
   SHIPPED_FROM_OPTIONS,
@@ -41,19 +42,92 @@ function useCheckboxSet(initial: string[] = []) {
 }
 
 export function SearchFilterSidebar() {
-  const [shippedFrom, shippedFromActions] = useCheckboxSet([]);
-  const [shippingOption, shippingOptionActions] = useCheckboxSet([]);
-  const [shopType, shopTypeActions] = useCheckboxSet([]);
-  const [servicePromotion, servicePromotionActions] = useCheckboxSet([]);
-  const [byCategory, byCategoryActions] = useCheckboxSet([]);
-  const [brand, brandActions] = useCheckboxSet([]);
-  const [paymentOption, paymentOptionActions] = useCheckboxSet([]);
-  const [conditions, conditionsActions] = useCheckboxSet([]);
-  const [rating, setRating] = useState<number | null>(null);
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  
+  // Initialize filters from URL params
+  const getInitialFilters = useCallback(() => {
+    const shippedFromParam = searchParams.get("shipped_from");
+    const shippingOptionParam = searchParams.get("shipping_option");
+    const shopTypeParam = searchParams.get("shop_type");
+    const servicePromotionParam = searchParams.get("service_promotion");
+    const categoryParam = searchParams.get("category");
+    const brandParam = searchParams.get("brand");
+    const paymentOptionParam = searchParams.get("payment_option");
+    const conditionsParam = searchParams.get("conditions");
+    const ratingParam = searchParams.get("rating");
+    const minPriceParam = searchParams.get("min_price");
+    const maxPriceParam = searchParams.get("max_price");
+
+    return {
+      shippedFrom: shippedFromParam ? shippedFromParam.split(",") : [],
+      shippingOption: shippingOptionParam ? shippingOptionParam.split(",") : [],
+      shopType: shopTypeParam ? shopTypeParam.split(",") : [],
+      servicePromotion: servicePromotionParam ? servicePromotionParam.split(",") : [],
+      byCategory: categoryParam ? categoryParam.split(",") : [],
+      brand: brandParam ? brandParam.split(",") : [],
+      paymentOption: paymentOptionParam ? paymentOptionParam.split(",") : [],
+      conditions: conditionsParam ? conditionsParam.split(",") : [],
+      rating: ratingParam ? parseFloat(ratingParam) : null,
+      minPrice: minPriceParam || "",
+      maxPrice: maxPriceParam || "",
+    };
+  }, [searchParams]);
+
+  const initialFilters = getInitialFilters();
+  const [shippedFrom, shippedFromActions] = useCheckboxSet(initialFilters.shippedFrom);
+  const [shippingOption, shippingOptionActions] = useCheckboxSet(initialFilters.shippingOption);
+  const [shopType, shopTypeActions] = useCheckboxSet(initialFilters.shopType);
+  const [servicePromotion, servicePromotionActions] = useCheckboxSet(initialFilters.servicePromotion);
+  const [byCategory, byCategoryActions] = useCheckboxSet(initialFilters.byCategory);
+  const [brand, brandActions] = useCheckboxSet(initialFilters.brand);
+  const [paymentOption, paymentOptionActions] = useCheckboxSet(initialFilters.paymentOption);
+  const [conditions, conditionsActions] = useCheckboxSet(initialFilters.conditions);
+  const [rating, setRating] = useState<number | null>(initialFilters.rating);
+  const [minPrice, setMinPrice] = useState(initialFilters.minPrice);
+  const [maxPrice, setMaxPrice] = useState(initialFilters.maxPrice);
+
+  // Update URL when filters change
+  const updateURL = useCallback(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    // Remove filter params
+    ["shipped_from", "shipping_option", "shop_type", "service_promotion", "category", "brand", "payment_option", "conditions", "rating", "min_price", "max_price"].forEach(key => {
+      params.delete(key);
+    });
+
+    // Add active filters
+    if (shippedFrom.size > 0) params.set("shipped_from", Array.from(shippedFrom).join(","));
+    if (shippingOption.size > 0) params.set("shipping_option", Array.from(shippingOption).join(","));
+    if (shopType.size > 0) params.set("shop_type", Array.from(shopType).join(","));
+    if (servicePromotion.size > 0) params.set("service_promotion", Array.from(servicePromotion).join(","));
+    if (byCategory.size > 0) params.set("category", Array.from(byCategory).join(","));
+    if (brand.size > 0) params.set("brand", Array.from(brand).join(","));
+    if (paymentOption.size > 0) params.set("payment_option", Array.from(paymentOption).join(","));
+    if (conditions.size > 0) params.set("conditions", Array.from(conditions).join(","));
+    if (rating !== null) params.set("rating", String(rating));
+    if (minPrice) params.set("min_price", minPrice);
+    if (maxPrice) params.set("max_price", maxPrice);
+
+    router.push(`/search?${params.toString()}`);
+  }, [shippedFrom, shippingOption, shopType, servicePromotion, byCategory, brand, paymentOption, conditions, rating, minPrice, maxPrice, searchParams, router]);
+
+  // Update URL when filters change (debounced) - but not on initial mount
+  const isInitialMount = useRef(true);
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    const timer = setTimeout(() => {
+      updateURL();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [updateURL]);
 
   const handlePriceApply = useCallback((min: string, max: string) => {
-    // TODO: wire to URL or filter state when backend is ready
-    console.log("Apply price range:", { min, max });
+    setMinPrice(min);
+    setMaxPrice(max);
   }, []);
 
   const handleClearAll = useCallback(() => {
@@ -66,6 +140,8 @@ export function SearchFilterSidebar() {
     paymentOptionActions.clear();
     conditionsActions.clear();
     setRating(null);
+    setMinPrice("");
+    setMaxPrice("");
   }, [
     shippedFromActions,
     shippingOptionActions,
@@ -114,7 +190,7 @@ export function SearchFilterSidebar() {
         onToggle={servicePromotionActions.toggle}
       />
 
-      <PriceRangeField onApply={handlePriceApply} />
+      <PriceRangeField onApply={handlePriceApply} initialMin={minPrice} initialMax={maxPrice} />
 
       <FilterGroupWithMore
         legend="By Category"

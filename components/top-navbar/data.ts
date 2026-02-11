@@ -10,7 +10,7 @@ export interface SocialLink {
 
 export interface UserData {
   username: string;
-  avatarUrl: string;
+  avatarUrl: string | null;
 }
 
 export interface NavbarConfig {
@@ -25,8 +25,10 @@ export interface NavbarConfig {
   currentLanguage: string;
 }
 
+const sellerCentreUrl = process.env.NEXT_PUBLIC_SELLER_CENTRE_URL || "/portal";
+
 export const mockNavbarConfig: NavbarConfig = {
-  sellerCentreUrl: "//seller.shopee.com.my",
+  sellerCentreUrl,
   downloadUrl: "/web/",
   helpUrl: "https://help.shopee.com.my/my/s",
   notificationsUrl: "/user/notifications/order",
@@ -43,8 +45,8 @@ export const mockNavbarConfig: NavbarConfig = {
     },
   ],
   user: {
-    username: "smogcoders",
-    avatarUrl: "/images/common/user/account/smogcoders-avatar.png",
+    username: "User",
+    avatarUrl: null as string | null,
   },
   currentLanguage: "English",
 };

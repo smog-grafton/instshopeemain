@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useRef, useState } from "react";
 import type { UserData } from "./data";
 import { UserDropdown } from "./user-dropdown";
+import { isBackendImage } from "@/lib/utils";
 
 interface UserMenuTriggerProps {
   user: UserData;
@@ -76,13 +77,18 @@ export function UserMenuTrigger({ user }: UserMenuTriggerProps) {
                   </g>
                 </svg>
               </div>
-              <Image
-                src={user.avatarUrl}
-                alt={user.username}
-                width={24}
-                height={24}
-                className="align-baseline w-full h-full absolute rounded-[50%] left-0 top-0 focus-visible:outline-0 focus-visible:shadow-[0_0_0_10px_#fff,0_0_0_12px_#000000de]"
-              />
+              {user.avatarUrl ? (
+                <Image
+                  src={user.avatarUrl}
+                  alt={user.username}
+                  width={24}
+                  height={24}
+                  className="align-baseline w-full h-full absolute rounded-[50%] left-0 top-0 object-cover focus-visible:outline-0 focus-visible:shadow-[0_0_0_10px_#fff,0_0_0_12px_#000000de]"
+                  unoptimized={isBackendImage(user.avatarUrl)}
+                />
+              ) : (
+                <div className="absolute inset-0 rounded-[50%] bg-zinc-300 animate-pulse" aria-hidden />
+              )}
             </div>
             <div className="text-ellipsis max-w-36 overflow-x-hidden overflow-y-hidden pl-1.5">
               {user.username}

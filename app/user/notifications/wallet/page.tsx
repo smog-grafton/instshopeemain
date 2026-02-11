@@ -1,15 +1,52 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { UserDashboardLayout } from "@/components/user-dashboard";
 import {
   WalletUpdateCard,
   WalletUpdatesEmpty,
-  MOCK_WALLET_UPDATES,
+  type WalletUpdateItem,
 } from "@/components/user-dashboard/wallet-updates";
+import { getNotifications, type ApiNotification } from "@/lib/api-client";
 
-/** Set to false to show empty state instead of mock wallet updates. */
-const SHOW_MOCK_WALLET_UPDATES = true;
+function transformApiNotificationToWalletUpdate(n: ApiNotification): WalletUpdateItem {
+  // Try to extract type from message or title
+  let type: "top_up" | "refund" | "cashback" | "withdrawal" | "payment" = "payment";
+  const lowerMessage = (n.message || n.title).toLowerCase();
+  if (lowerMessage.includes("top-up") || lowerMessage.includes("top up")) type = "top_up";
+  else if (lowerMessage.includes("refund")) type = "refund";
+  else if (lowerMessage.includes("cashback")) type = "cashback";
+  else if (lowerMessage.includes("withdrawal")) type = "withdrawal";
+
+  return {
+    id: n.id,
+    title: n.title,
+    message: n.message || n.title,
+    type,
+    timeAgo: new Date(n.createdAt).toLocaleString(),
+    href: "#",
+  };
+}
 
 export default function UserNotificationsWalletPage() {
-  const items = SHOW_MOCK_WALLET_UPDATES ? MOCK_WALLET_UPDATES : [];
+  const [items, setItems] = useState<WalletUpdateItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchNotifications() {
+      try {
+        const notifications = await getNotifications("wallet");
+        const transformed = notifications.map(transformApiNotificationToWalletUpdate);
+        setItems(transformed);
+      } catch (error) {
+        console.error("Failed to fetch wallet notifications:", error);
+        setItems([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchNotifications();
+  }, []);
 
   return (
     <UserDashboardLayout>
@@ -25,7 +62,9 @@ export default function UserNotificationsWalletPage() {
                   Notifications about your wallet and payments
                 </div>
               </div>
-              {items.length === 0 ? (
+              {loading ? (
+                <div className="py-8 text-center text-gray-500">Loading wallet updates...</div>
+              ) : items.length === 0 ? (
                 <WalletUpdatesEmpty />
               ) : (
                 <div className="py-6 px-8 flex flex-col gap-3">

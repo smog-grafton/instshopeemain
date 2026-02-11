@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { StoredAddress } from "@/lib/address-storage";
 import { EditAddressModal, type EditAddressFormValues } from "@/components/user-dashboard/address/edit-address-modal";
+import { getAddresses, updateAddress, type ApiAddress } from "@/lib/api-client";
+import { useAuth } from "@/components/auth/auth-context";
 
 interface CheckoutAddressBookModalProps {
   open: boolean;
@@ -26,6 +28,27 @@ export function CheckoutAddressBookModal({
   onAddNew,
 }: CheckoutAddressBookModalProps) {
   const [showEditModal, setShowEditModal] = useState(false);
+  const [apiAddresses, setApiAddresses] = useState<ApiAddress[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { isLoggedIn } = useAuth();
+
+  useEffect(() => {
+    if (open && isLoggedIn) {
+      async function loadAddresses() {
+        try {
+          const addresses = await getAddresses();
+          setApiAddresses(addresses);
+        } catch (error) {
+          console.error("Failed to load addresses:", error);
+        } finally {
+          setLoading(false);
+        }
+      }
+      loadAddresses();
+    } else {
+      setLoading(false);
+    }
+  }, [open, isLoggedIn]);
 
   if (!open) return null;
 
@@ -35,10 +58,40 @@ export function CheckoutAddressBookModal({
     setShowEditModal(true);
   };
 
-  const handleEditSubmit = (values: EditAddressFormValues) => {
-    console.log("Edited address:", values);
-    onEditSubmit?.(values);
-    setShowEditModal(false);
+  const handleEditSubmit = async (values: EditAddressFormValues) => {
+    try {
+      if (isLoggedIn && address) {
+        // Find the address ID from API addresses
+        const apiAddr = apiAddresses.find(a => 
+          a.fullName === address.fullName && 
+          a.phoneNumber === address.phoneNumber
+        );
+        if (apiAddr) {
+          await updateAddress(apiAddr.id, {
+            full_name: values.fullName,
+            phone: values.phoneNumber,
+            line1: values.streetAddress,
+            line2: values.unitNo || undefined,
+            city: values.stateArea.split(',')[0] || values.stateArea,
+            state: values.stateArea,
+            postal_code: values.postalCode || undefined,
+            is_default: values.setAsDefault,
+          });
+          // Reload addresses
+          try {
+            const addresses = await getAddresses();
+            setApiAddresses(addresses);
+          } catch (err) {
+            console.error("Failed to reload addresses:", err);
+          }
+        }
+      }
+      onEditSubmit?.(values);
+      setShowEditModal(false);
+    } catch (error) {
+      console.error("Failed to update address:", error);
+      // Don't close modal on error
+    }
   };
 
   return (
@@ -73,44 +126,55 @@ export function CheckoutAddressBookModal({
         <div className="flex-1 overflow-y-auto px-6 py-4">
           <div className="mb-3 text-sm text-black/80">Malaysia</div>
 
-          <div className="border border-black/10 rounded-[3px] p-4 flex flex-col gap-2">
-            <div className="flex items-start gap-2">
-              <div className="mt-0.5">
-                <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-[#ee4d2d]">
-                  <span className="h-2.5 w-2.5 rounded-full bg-[#ee4d2d]" />
-                </span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center text-[14px] font-medium text-black/87">
-                  <span className="truncate">{address.fullName}</span>
-                  <span className="mx-2 text-black/20">|</span>
-                  <span className="truncate text-black/80">
-                    {phoneDisplay}
-                  </span>
-                </div>
-                <div className="mt-1 text-[13px] text-black/80">
-                  {address.streetAddress}
-                  {address.unitNo ? `, ${address.unitNo}` : ""}
-                </div>
-                <div className="text-[13px] text-black/80">
-                  {address.stateArea}
-                  {address.postalCode ? `, ${address.postalCode}` : ""}
-                </div>
-                {address.setAsDefault && (
-                  <div className="mt-2 inline-flex rounded-[1px] border border-[#ee4d2d] px-1.5 py-0.5 text-[11px] text-[#ee4d2d]">
-                    Default
+          {loading ? (
+            <div className="py-4 text-center text-gray-500 text-sm">Loading addresses...</div>
+          ) : (
+            <>
+              {(isLoggedIn ? apiAddresses : [address]).map((addr, index) => {
+                const addrId = isLoggedIn ? (addr as ApiAddress).id : `stored-${index}-${(addr as StoredAddress).fullName}`;
+                return (
+                <div key={addrId} className="border border-black/10 rounded-[3px] p-4 flex flex-col gap-2 mb-3">
+                  <div className="flex items-start gap-2">
+                    <div className="mt-0.5">
+                      <span className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-[#ee4d2d]">
+                        <span className="h-2.5 w-2.5 rounded-full bg-[#ee4d2d]" />
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center text-[14px] font-medium text-black/87">
+                        <span className="truncate">{addr.fullName}</span>
+                        <span className="mx-2 text-black/20">|</span>
+                        <span className="truncate text-black/80">
+                          {addr.phoneNumber}
+                        </span>
+                      </div>
+                      <div className="mt-1 text-[13px] text-black/80">
+                        {addr.streetAddress}
+                        {addr.unitNo ? `, ${addr.unitNo}` : ""}
+                      </div>
+                      <div className="text-[13px] text-black/80">
+                        {addr.stateArea}
+                        {addr.postalCode ? `, ${addr.postalCode}` : ""}
+                      </div>
+                      {addr.setAsDefault && (
+                        <div className="mt-2 inline-flex rounded-[1px] border border-[#ee4d2d] px-1.5 py-0.5 text-[11px] text-[#ee4d2d]">
+                          Default
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className="ml-2 border-0 bg-transparent p-0 text-[13px] text-[#0055aa] cursor-pointer"
+                      onClick={handleEdit}
+                    >
+                      Edit
+                    </button>
                   </div>
-                )}
-              </div>
-              <button
-                type="button"
-                className="ml-2 border-0 bg-transparent p-0 text-[13px] text-[#0055aa] cursor-pointer"
-                onClick={handleEdit}
-              >
-                Edit
-              </button>
-            </div>
-          </div>
+                </div>
+                );
+              })}
+            </>
+          )}
         </div>
 
         <div className="border-t border-black/10 px-6 py-3 flex justify-end">

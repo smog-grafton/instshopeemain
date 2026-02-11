@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "./cart-context";
+import { formatPrice } from "@/lib/utils";
 
 interface CartDropdownProps {
   isOpen: boolean;
@@ -83,7 +84,7 @@ export function CartDropdown({
                   </div>
                   <div className="flex-1 min-w-0" />
                   <div className="flex items-center shrink-0 ml-10">
-                    <span className="text-[rgb(238,77,45)]">RM{Number(item.price).toFixed(2)}</span>
+                    <span className="text-[rgb(238,77,45)]">{formatPrice(item.currencySymbol, item.price)}</span>
                   </div>
                 </div>
               </div>

@@ -4,11 +4,12 @@ import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { UserDashboardLayout } from "@/components/user-dashboard";
+import { formatPrice } from "@/lib/utils";
 import {
-  loadOrders,
+  getOrders,
   type OrderRecord,
   type OrderStatus,
-} from "@/lib/orders-mock";
+} from "@/lib/api-client-orders";
 
 const NO_ORDER_IMAGE = "/images/common/user/account/no-order.png";
 
@@ -54,7 +55,19 @@ export function PurchaseContent() {
   const [orders, setOrders] = useState<OrderRecord[]>([]);
 
   useEffect(() => {
-    setOrders(loadOrders());
+    let mounted = true;
+    getOrders()
+      .then((data) => {
+        if (mounted) {
+          setOrders(data);
+        }
+      })
+      .catch(() => {
+        if (mounted) setOrders([]);
+      });
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const filteredOrders = useMemo(() => {
@@ -184,7 +197,7 @@ export function PurchaseContent() {
                                   Total Payment
                                 </div>
                                 <div className="text-base text-[#ee4d2d] font-medium">
-                                  RM{order.totalPayment.toFixed(2)}
+                                  {formatPrice(order.currencySymbol || "RM", order.totalPayment)}
                                 </div>
                               </div>
                             </div>

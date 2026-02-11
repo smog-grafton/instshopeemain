@@ -53,7 +53,7 @@ export function FlashSaleHeaderBar({ config }: FlashSaleHeaderBarProps) {
         aria-label={`ending in ${config.countdown.hours} hours ${config.countdown.minutes} minutes ${config.countdown.seconds} seconds`}
         tabIndex={0}
       >
-        <CountdownTimer countdown={config.countdown} />
+        <CountdownTimer countdown={config.countdown} endsAt={config.endsAt} />
       </div>
       {/* Right dashes — inline and close to content (two dashes with small gap) */}
       <span className="shrink-0 flex items-center gap-0.5 mx-1.5" aria-hidden>

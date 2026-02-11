@@ -7,7 +7,6 @@ export const SIMULATED_BUYER = {
   email: "smogcoders@gmail.com",
   password: "98@Akiibu21@98",
   username: "smogcoders",
-  avatarUrl: "/images/common/user/account/smogcoders-avatar.png",
 } as const;
 
 export function checkCredentials(emailOrUsername: string, password: string): boolean {

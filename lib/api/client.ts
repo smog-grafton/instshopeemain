@@ -14,7 +14,7 @@
  * ```
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_LARAVEL_API_URL || "http://localhost:8000/api";
+const API_BASE_URL = (process.env.NEXT_PUBLIC_LARAVEL_API_URL ?? "").replace(/\/+$/, "");
 
 export interface ApiResponse<T = unknown> {
   data?: T;
@@ -42,6 +42,13 @@ class ApiClient {
     countryCode?: string,
     frontendDomain?: string
   ): Promise<ApiResponse<T>> {
+    if (!this.baseURL) {
+      throw {
+        message: "NEXT_PUBLIC_LARAVEL_API_URL is not configured.",
+        status: 500,
+      } as ApiError;
+    }
+
     const url = `${this.baseURL}${endpoint}`;
 
     const headers: Record<string, string> = {

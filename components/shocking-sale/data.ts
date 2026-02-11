@@ -15,6 +15,7 @@ export interface ShockingSaleConfig {
   titleImageUrl?: string;
   seeAllHref: string;
   promotionId: string;
+  endsAt?: string; // ISO 8601 timestamp
   countdown: {
     hours: number;
     minutes: number;

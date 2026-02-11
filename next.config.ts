@@ -1,5 +1,22 @@
 import type { NextConfig } from "next";
 
+const laravelApiUrl = process.env.NEXT_PUBLIC_LARAVEL_API_URL;
+const laravelApiPattern = (() => {
+  if (!laravelApiUrl) return null;
+
+  try {
+    const parsed = new URL(laravelApiUrl);
+    return {
+      protocol: parsed.protocol.replace(":", "") as "http" | "https",
+      hostname: parsed.hostname,
+      port: parsed.port || undefined,
+      pathname: "/**",
+    };
+  } catch {
+    return null;
+  }
+})();
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   compress: true,
@@ -36,6 +53,7 @@ const nextConfig: NextConfig = {
         hostname: "maps.gstatic.com",
         pathname: "/**",
       },
+      ...(laravelApiPattern ? [laravelApiPattern] : []),
     ],
   },
 };

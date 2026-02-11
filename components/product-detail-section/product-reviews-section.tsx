@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { ReviewCard } from "./review-card";
 import { ReviewMediaLightbox } from "./review-media-lightbox";
+import { LeaveReviewModal } from "./leave-review-modal";
 import type {
   ProductReviewsSectionData,
   ReviewMediaItem,
@@ -53,11 +55,15 @@ const REVIEWS_PER_PAGE = 5;
 
 interface ProductReviewsSectionProps {
   data: ProductReviewsSectionData;
+  /** Product slug for "Leave review" (POST /products/:slug/reviews). When set, the Leave review button is shown. */
+  productSlug?: string;
 }
 
-export function ProductReviewsSection({ data }: ProductReviewsSectionProps) {
+export function ProductReviewsSection({ data, productSlug }: ProductReviewsSectionProps) {
   const { overallScore, filterChips, reviews } = data;
+  const router = useRouter();
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [leaveReviewOpen, setLeaveReviewOpen] = useState(false);
   const [lightboxMedia, setLightboxMedia] = useState<ReviewMediaItem[]>([]);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [activeFilter, setActiveFilter] = useState(0);
@@ -84,10 +90,19 @@ export function ProductReviewsSection({ data }: ProductReviewsSectionProps) {
 
   return (
     <div className="mt-4 rounded-sm bg-white pt-6 px-6 shadow-sm text-sm leading-tight text-black/80">
-      <div className="mb-3.5">
+      <div className="mb-3.5 flex items-center justify-between">
         <div className="relative z-[999] inline-flex">
           <h2 className="capitalize text-lg font-medium text-black/87">Product Ratings</h2>
         </div>
+        {productSlug && (
+          <button
+            type="button"
+            onClick={() => setLeaveReviewOpen(true)}
+            className="rounded border border-red-500 bg-white px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-50"
+          >
+            Leave review
+          </button>
+        )}
       </div>
 
       <div className="bg-white -mt-6">
@@ -210,6 +225,14 @@ export function ProductReviewsSection({ data }: ProductReviewsSectionProps) {
         media={lightboxMedia}
         initialIndex={lightboxIndex}
       />
+      {productSlug && (
+        <LeaveReviewModal
+          open={leaveReviewOpen}
+          onClose={() => setLeaveReviewOpen(false)}
+          productSlug={productSlug}
+          onSuccess={() => router.refresh()}
+        />
+      )}
     </div>
   );
 }

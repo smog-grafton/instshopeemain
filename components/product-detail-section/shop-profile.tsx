@@ -10,6 +10,17 @@ const SHOP_ICON_SRC = "/images/profile/shop/shop.svg";
 
 interface ShopProfileProps {
   data: ShopProfileData;
+  vendorId?: number;
+  productContext?: {
+    id?: number;
+    title: string;
+    image: string;
+    price: string;
+    originalPrice?: string;
+    href?: string;
+    badges?: string[];
+    soldLabel?: string;
+  };
 }
 
 /** Single stat cell: label + value; value can be a link when href is set. */
@@ -53,7 +64,7 @@ function ShopProfileStatItem({
   );
 }
 
-export function ShopProfile({ data }: ShopProfileProps) {
+export function ShopProfile({ data, vendorId, productContext }: ShopProfileProps) {
   const { shopName, activeText, shopHref, profileImagePath, stats } = data;
   const { openChat } = useChat();
 
@@ -97,7 +108,14 @@ export function ShopProfile({ data }: ShopProfileProps) {
             <div className="flex mt-2">
               <button
                 type="button"
-                onClick={openChat}
+                onClick={() =>
+                  openChat({
+                    shopName,
+                    shopSlug: shopHref?.replace("/shop/", ""),
+                    vendorId,
+                    product: productContext,
+                  })
+                }
                 className={`[appearance:auto] text-ellipsis [-webkit-line-clamp:1] cursor-pointer justify-center items-center text-sm rounded-sm inline-flex min-w-16 max-w-48 h-9 px-4 outline-0 relative text-red-500 shadow-sm border border-solid border-red-500 bg-orange-600/10 capitalize mr-2.5 hover:bg-orange-200/18 active:shadow-inner active:bg-orange-900/15 ${buttonFocusRing}`}
               >
                 <img

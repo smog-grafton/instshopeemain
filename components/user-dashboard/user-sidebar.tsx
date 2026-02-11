@@ -3,7 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { SIDEBAR_NAV, mockUserProfile, type NavItem } from "./data";
+import { useEffect, useState } from "react";
+import { SIDEBAR_NAV, type NavItem } from "./data";
+import { getUserProfile } from "@/lib/api-client";
+import type { ApiUserProfile } from "@/lib/api-client";
+import { useAuth } from "@/components/auth/auth-context";
+import { isBackendImage } from "@/lib/utils";
 
 function EditProfileIcon() {
   return (
@@ -101,6 +106,27 @@ function SidebarNavLink({
 
 export function UserSidebar() {
   const pathname = usePathname();
+  const { user: authUser } = useAuth();
+  const [userProfile, setUserProfile] = useState<ApiUserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadProfile() {
+      setLoading(true);
+      try {
+        const profile = await getUserProfile();
+        setUserProfile(profile);
+      } catch (error) {
+        console.error("Failed to load user profile:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadProfile();
+  }, []);
+
+  const displayUsername = loading ? "Loading…" : (userProfile?.username ?? authUser?.username ?? "User");
+  const avatarUrl = authUser?.avatarUrl ?? userProfile?.avatarUrl ?? null;
 
   return (
     <div className="shrink-0 w-44">
@@ -110,18 +136,23 @@ export function UserSidebar() {
             <div className="bg-neutral-100 w-full relative overflow-x-hidden overflow-y-hidden pt-[100%] rounded-[50%]">
               <AvatarPlaceholder />
             </div>
-            <Image
-              src={mockUserProfile.avatarUrl}
-              alt={mockUserProfile.username}
-              width={48}
-              height={48}
-              className="align-baseline w-full h-full absolute rounded-[50%] left-0 top-0 object-cover focus-visible:outline-0 focus-visible:shadow-[0_0_0_10px_#fff,0_0_0_12px_#000000de]"
-            />
+            {avatarUrl ? (
+              <Image
+                src={avatarUrl}
+                alt={displayUsername}
+                width={48}
+                height={48}
+                className="align-baseline w-full h-full absolute rounded-[50%] left-0 top-0 object-cover focus-visible:outline-0 focus-visible:shadow-[0_0_0_10px_#fff,0_0_0_12px_#000000de]"
+                unoptimized={isBackendImage(avatarUrl)}
+              />
+            ) : (
+              <div className="absolute inset-0 rounded-[50%] bg-zinc-200 animate-pulse" aria-hidden />
+            )}
           </div>
         </Link>
         <div className="flex-col flex-1 justify-center flex overflow-x-hidden overflow-y-hidden pl-4 min-w-0">
           <div className="text-zinc-800 text-ellipsis whitespace-nowrap min-h-4 font-semibold overflow-x-hidden overflow-y-hidden mb-1.5">
-            {mockUserProfile.username}
+            {displayUsername}
           </div>
           <div>
             <Link

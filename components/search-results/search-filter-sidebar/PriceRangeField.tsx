@@ -14,11 +14,13 @@ const applyButtonStyles =
 
 interface PriceRangeFieldProps {
   onApply: (min: string, max: string) => void;
+  initialMin?: string;
+  initialMax?: string;
 }
 
-export function PriceRangeField({ onApply }: PriceRangeFieldProps) {
-  const [min, setMin] = useState("");
-  const [max, setMax] = useState("");
+export function PriceRangeField({ onApply, initialMin = "", initialMax = "" }: PriceRangeFieldProps) {
+  const [min, setMin] = useState(initialMin);
+  const [max, setMax] = useState(initialMax);
 
   return (
     <fieldset className={fieldsetStyles}>

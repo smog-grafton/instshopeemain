@@ -9,6 +9,8 @@ import {
   PasswordValidationList,
   isPasswordValid,
 } from "./password-validation";
+import { registerBuyer, getGoogleAuthRedirectUrl } from "@/lib/api-client";
+import { useAuth } from "./auth-context";
 
 const BACKGROUND_IMAGE = "/images/auth/background.png";
 const FACEBOOK_ICON = "/images/auth/facebook.png";
@@ -20,6 +22,7 @@ type SignupStep = 1 | 2 | "success";
 
 export function SignupFormSection() {
   const router = useRouter();
+  const { login: setAuthLoggedIn } = useAuth();
   const [step, setStep] = useState<SignupStep>(1);
   const [phone, setPhone] = useState("");
   const [policyModalOpen, setPolicyModalOpen] = useState(false);
@@ -28,6 +31,8 @@ export function SignupFormSection() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const canProceedStep1 = Boolean(phone.trim());
   const emailsMatch = email.trim() === confirmEmail.trim();
@@ -53,13 +58,47 @@ export function SignupFormSection() {
 
   const handleSignUpSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canSubmitStep2) return;
-    setSignupSuccess(true);
-    setStep("success");
-    // Brief confirmation then redirect
-    setTimeout(() => {
-      router.push("/");
-    }, 1500);
+    setError(null);
+    if (!canSubmitStep2 || loading) return;
+    setLoading(true);
+    registerBuyer({
+      name: email.trim(), // for now we just reuse email; can be extended to full name field later
+      email: email.trim(),
+      password,
+      passwordConfirmation: confirmEmail.trim(),
+    })
+      .then((result) => {
+        const apiUser = result.user;
+        setAuthLoggedIn({
+          user: {
+            id: apiUser.id,
+            name: apiUser.name,
+            username: apiUser.username ?? apiUser.email,
+            avatarUrl: apiUser.avatarUrl ?? null,
+            email: apiUser.email,
+            role: apiUser.role,
+            countryId: apiUser.countryId ?? null,
+          },
+        });
+        setSignupSuccess(true);
+        setStep("success");
+        setTimeout(() => {
+          router.push("/");
+        }, 1500);
+      })
+      .catch((err: any) => {
+        setError(err?.message || "Failed to create account.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  };
+
+  const handleGoogleSignup = () => {
+    const url = getGoogleAuthRedirectUrl();
+    if (typeof window !== "undefined") {
+      window.location.href = url;
+    }
   };
 
   return (
@@ -215,7 +254,9 @@ export function SignupFormSection() {
                       >
                         <button
                           type="button"
-                          className="flex flex-1 items-center justify-center rounded-sm border border-black/26 bg-white px-2 py-0 text-sm text-black/87 outline-none cursor-pointer appearance-none mx-1.5 my-1.5"
+                          disabled
+                          title="Facebook signup coming soon"
+                          className="flex flex-1 items-center justify-center rounded-sm border border-black/10 bg-white px-2 py-0 text-sm text-black/40 outline-none cursor-not-allowed appearance-none mx-1.5 my-1.5"
                           style={{
                             flex: "1 1 0%",
                             paddingRight: "8px",
@@ -234,10 +275,11 @@ export function SignupFormSection() {
                               className="h-[22px] w-[22px] shrink-0"
                             />
                           </div>
-                          <span className="ml-1">Facebook</span>
+                          <span className="ml-1">Facebook (coming soon)</span>
                         </button>
                         <button
                           type="button"
+                          onClick={handleGoogleSignup}
                           className="flex flex-1 items-center justify-center rounded-sm border border-black/26 bg-white px-2 py-0 text-sm text-black/87 outline-none cursor-pointer appearance-none mx-1.5 my-1.5"
                           style={{
                             flex: "1 1 0%",
@@ -444,9 +486,17 @@ export function SignupFormSection() {
                           </div>
                           <PasswordValidationList password={password} />
                         </div>
+                        {error && (
+                          <div
+                            className="text-xs mb-2"
+                            style={{ color: "rgb(255, 66, 79)" }}
+                          >
+                            {error}
+                          </div>
+                        )}
                         <button
                           type="submit"
-                          disabled={!canSubmitStep2}
+                          disabled={!canSubmitStep2 || loading}
                           className="flex h-10 w-full min-w-[140px] cursor-pointer items-center justify-center rounded-sm border-0 px-2.5 py-0 text-sm font-normal uppercase text-white outline-none disabled:cursor-not-allowed disabled:opacity-70"
                           style={{
                             width: "100%",
@@ -458,7 +508,7 @@ export function SignupFormSection() {
                             font: '14px Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif',
                           }}
                         >
-                          Sign Up
+                          {loading ? "Signing up…" : "Sign Up"}
                         </button>
                       </form>
                     </div>

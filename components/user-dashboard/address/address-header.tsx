@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { NewAddressModal, type NewAddressFormValues } from "./new-address-modal";
+import { createAddress } from "@/lib/api-client";
 
 function PlusIcon() {
   return (
@@ -17,15 +18,38 @@ function PlusIcon() {
   );
 }
 
-export function AddressHeader() {
+interface AddressHeaderProps {
+  onAddressAdded?: () => void;
+}
+
+export function AddressHeader({ onAddressAdded }: AddressHeaderProps = {}) {
   const [showAddressModal, setShowAddressModal] = useState(false);
 
   const handleAddAddress = () => setShowAddressModal(true);
 
-  const handleAddressSubmit = (values: NewAddressFormValues) => {
-    console.log("Address submitted:", values);
-    // TODO: API call to save address
-    setShowAddressModal(false);
+  const handleAddressSubmit = async (values: NewAddressFormValues) => {
+    try {
+      await createAddress({
+        full_name: values.fullName,
+        phone: values.phoneNumber,
+        line1: values.streetAddress,
+        line2: values.unitNo || undefined,
+        city: values.stateArea.split(',')[0] || values.stateArea,
+        state: values.stateArea,
+        postal_code: values.postalCode || undefined,
+        is_default: values.setAsDefault,
+        region: values.region,
+        label_as: values.labelAs,
+      });
+      setShowAddressModal(false);
+      // Notify parent to refresh
+      if (onAddressAdded) {
+        onAddressAdded();
+      }
+    } catch (error) {
+      console.error("Failed to save address:", error);
+      alert("Failed to save address. Please try again.");
+    }
   };
 
   return (

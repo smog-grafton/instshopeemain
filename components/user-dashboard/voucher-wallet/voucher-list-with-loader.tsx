@@ -69,6 +69,14 @@ export function VoucherListWithLoader({
     return () => observer.disconnect();
   }, [loadMore]);
 
+  if (baseVouchers.length === 0) {
+    return (
+      <div className="z-0 relative mt-4 py-12 text-center text-black/54">
+        No vouchers yet. Get more from the link above or redeem a code.
+      </div>
+    );
+  }
+
   return (
     <div className="z-0 relative mt-4">
       <div className="flex flex-wrap">
@@ -76,12 +84,14 @@ export function VoucherListWithLoader({
           <VoucherCard key={item.id} item={item} />
         ))}
       </div>
-      <div
-        ref={loaderRef}
-        className="min-h-[60px] flex items-center justify-center py-4 w-full"
-      >
-        <WobbleLoader />
-      </div>
+      {items.length < baseVouchers.length && (
+        <div
+          ref={loaderRef}
+          className="min-h-[60px] flex items-center justify-center py-4 w-full"
+        >
+          <WobbleLoader />
+        </div>
+      )}
     </div>
   );
 }

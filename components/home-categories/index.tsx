@@ -2,13 +2,17 @@
 
 import { CategoryItem } from "./category-item";
 import { CategoryNavButtons } from "./category-nav-buttons";
-import { mockHomeCategoriesConfig } from "./data";
 import { useRef, useState, useEffect } from "react";
+import { getUiBlocks, type ApiUiBlock } from "@/lib/api-client";
+import type { CategoryItem as CategoryItemType } from "./data";
+import { WobbleLoader } from "@/components/common/wobble-loader";
 
 export function HomeCategories() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showPrev, setShowPrev] = useState(false);
   const [showNext, setShowNext] = useState(true);
+  const [categories, setCategories] = useState<CategoryItemType[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -17,6 +21,41 @@ export function HomeCategories() {
       setShowNext(scrollLeft < scrollWidth - clientWidth - 10);
     }
   };
+
+  useEffect(() => {
+    // Fetch categories from backend
+    async function fetchCategories() {
+      try {
+        setLoading(true);
+        const blocks = await getUiBlocks({ key: 'home_categories' });
+        
+        // Transform API blocks to CategoryItem format
+        const transformedCategories: CategoryItemType[] = blocks.map((block) => {
+          // Use categorySlug from API, or extract from href, or generate from label
+          const slug = block.categorySlug || 
+            (block.href.match(/\/m\/([^/]+)/)?.[1]) || 
+            (block.label?.toLowerCase().replace(/\s+/g, '-') || '');
+          
+          return {
+            slug,
+            href: block.href || `/m/${slug}`,
+            imageSrc: block.imageSrc || '/images/home/categories/home/default.webp',
+            webpSrc: block.imageSrc || undefined,
+            label: block.label || block.title || '',
+          };
+        });
+        setCategories(transformedCategories);
+      } catch (error) {
+        console.error('Failed to fetch categories:', error);
+        // Fallback to empty array or mock data if needed
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     // Check initial scroll state after component mounts
@@ -41,7 +80,7 @@ export function HomeCategories() {
       clearTimeout(timeoutId);
       window.removeEventListener("resize", checkScrollState);
     };
-  }, []);
+  }, [categories]);
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
@@ -76,9 +115,15 @@ export function HomeCategories() {
                   onScroll={handleScroll}
                 >
                   <ul className="flex relative flex-col flex-wrap content-start h-[19rem] w-[120%]">
-                    {mockHomeCategoriesConfig.categories.map((category, index) => (
-                      <CategoryItem key={index} category={category} />
-                    ))}
+                    {loading ? (
+                      <li className="w-full text-center py-8 text-gray-500">Loading categories...</li>
+                    ) : categories.length === 0 ? (
+                      <li className="w-full text-center py-8 text-gray-500">No categories available</li>
+                    ) : (
+                      categories.map((category) => (
+                        <CategoryItem key={category.slug} category={category} />
+                      ))
+                    )}
                   </ul>
                 </div>
                 <CategoryNavButtons

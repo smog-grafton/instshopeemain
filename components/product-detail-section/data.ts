@@ -39,6 +39,12 @@ export interface ProductDetailSectionData {
   shopId?: string;
   shopName?: string;
   shopSlug?: string;
+  /** Product images for gallery */
+  images?: Array<{ imagePath: string | null; imagePathWebp: string | null; isThumbnail: boolean }>;
+  /** ISO date string for promotion end (used for discount countdown timer). */
+  promotionEndsAt?: string;
+  /** Currency symbol for display (e.g., "RM", "USD", "IDR") */
+  currencySymbol?: string;
 }
 
 /** Single stat row in the shop profile (e.g. Ratings, Response Rate). */

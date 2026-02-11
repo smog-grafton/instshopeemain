@@ -55,14 +55,8 @@ export function NewAddressForm({
   const [mapLocation, setMapLocation] = useState<MapLocation>(DEFAULT_MAP_CENTER);
   const [showMapSelector, setShowMapSelector] = useState(false);
 
-  // Determine if map should be interactive (when key fields are filled)
-  const isMapInteractive = !!(
-    values.fullName &&
-    values.phoneNumber &&
-    values.stateArea &&
-    values.postalCode &&
-    values.streetAddress
-  );
+  // Map should be interactive by default (always show map)
+  const isMapInteractive = true;
 
   // When editing, keep form in sync with incoming initial values.
   useEffect(() => {
@@ -72,9 +66,15 @@ export function NewAddressForm({
   }, [initialValues]);
 
   const handleSubmit = useCallback(
-    (e: React.FormEvent) => {
+    async (e: React.FormEvent) => {
       e.preventDefault();
-      onSubmit(values);
+      try {
+        await onSubmit(values);
+        // Modal will be closed by parent component
+      } catch (error) {
+        console.error("Failed to submit address:", error);
+        // Don't close modal on error
+      }
     },
     [values, onSubmit]
   );

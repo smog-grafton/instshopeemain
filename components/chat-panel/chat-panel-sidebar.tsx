@@ -132,20 +132,34 @@ export function ChatPanelSidebar({
                 <li key={conv.id}>
                   <button
                     type="button"
-                    className={`w-full px-4 py-3 text-left text-sm transition-colors ${
+                    className={`w-full px-3 py-3 text-left text-sm transition-colors ${
                       selectedId === conv.id
                         ? "bg-red-50 text-red-600"
                         : "hover:bg-neutral-50 text-zinc-800"
                     }`}
                     onClick={() => onSelectConversation(conv.id)}
                   >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="truncate font-medium">{conv.name}</span>
-                      {conv.unread && (
-                        <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />
+                    <div className="flex items-center gap-2">
+                      <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-neutral-200 bg-neutral-100">
+                        <img
+                          src={conv.avatarUrl || "/images/profile/shop/default.webp"}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate font-medium">{conv.name}</span>
+                          <span className="text-[11px] text-neutral-400">{conv.lastMessageAt}</span>
+                        </div>
+                        <div className="truncate text-xs text-neutral-500">{conv.lastMessage}</div>
+                      </div>
+                      {conv.unread && selectedId !== conv.id && (
+                        <span className="shrink-0 rounded-full bg-red-500 px-2 py-0.5 text-[10px] text-white">
+                          New
+                        </span>
                       )}
                     </div>
-                    <div className="truncate text-xs text-neutral-500">{conv.lastMessage}</div>
                   </button>
                 </li>
               ))}

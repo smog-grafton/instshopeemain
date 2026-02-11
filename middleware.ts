@@ -23,13 +23,16 @@ import { NextRequest, NextResponse } from "next/server";
 // Domain to country code mapping
 // This will be replaced with API call or config file later
 // In production, this should fetch from Laravel API or environment config
-const domainCountryMap: Record<string, string> = {
-  "localhost:3000": "DEFAULT",
-  // Add more domains as needed:
-  // "instshopee.my": "MY",
-  // "instshopee.co.th": "TH",
-  // "instshopee.co.id": "ID",
-};
+const domainCountryMap: Record<string, string> = (() => {
+  const raw = process.env.NEXT_PUBLIC_DOMAIN_COUNTRY_MAP;
+  if (!raw) return {};
+
+  try {
+    return JSON.parse(raw) as Record<string, string>;
+  } catch {
+    return {};
+  }
+})();
 
 export function middleware(request: NextRequest) {
   const host = request.headers.get("host") || "";

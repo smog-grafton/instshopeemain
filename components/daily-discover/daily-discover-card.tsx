@@ -105,9 +105,9 @@ export function DailyDiscoverCard({ product, variant = "default" }: DailyDiscove
                 {product.title}
               </div>
               <div className="mt-1 flex h-5 items-center overflow-hidden text-xs">
-                {product.badges.map((badge) => (
+                {(product.badges ?? []).map((badge, badgeIndex) => (
                   <div
-                    key={badge}
+                    key={`${badge}-${badgeIndex}`}
                     className="pointer-events-none relative mr-1 flex max-w-full shrink-0 items-center overflow-hidden rounded-sm px-1 py-0.5 text-ellipsis text-xs leading-4 shadow-[0_0_0_1px_rgba(0,0,0,0.06)]"
                   >
                     <span className={`whitespace-nowrap ${BADGE_COLORS[badge] ?? "text-gray-700"}`}>
@@ -125,7 +125,6 @@ export function DailyDiscoverCard({ product, variant = "default" }: DailyDiscove
             <div className="flex flex-col justify-between">
               <div className="flex items-center">
                 <div className="mr-1 flex max-w-full shrink-0 items-center overflow-hidden font-medium text-red-500">
-                  <span className="mr-px text-xs font-medium leading-4">RM</span>
                   <span className="text-base font-medium leading-5">{product.price}</span>
                 </div>
                 <div className="ml-auto shrink-0 overflow-hidden text-ellipsis whitespace-nowrap text-xs leading-4 text-black/87">

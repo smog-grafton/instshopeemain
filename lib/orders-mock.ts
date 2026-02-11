@@ -96,23 +96,32 @@ function safeParseOrders(raw: string | null): OrderRecord[] {
   }
 }
 
-export function loadOrders(): OrderRecord[] {
-  if (typeof window === "undefined") return [];
-  const raw = window.localStorage.getItem(STORAGE_KEY);
-  return safeParseOrders(raw);
-}
+/**
+ * BACKEND VERSION:
+ * ---------------
+ * In the real backend-backed implementation, these helpers call Laravel HTTP
+ * endpoints instead of touching localStorage. We keep the function names and
+ * types the same so existing components do not need to change.
+ */
 
-export function saveOrders(orders: OrderRecord[]): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
-  } catch {
-    // ignore write errors in mock layer
+const API_BASE = `${process.env.NEXT_PUBLIC_LARAVEL_API_URL}/v1`;
+
+export async function loadOrders(): Promise<OrderRecord[]> {
+  const res = await fetch(`${API_BASE}/orders`, {
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    return [];
   }
+
+  const data = (await res.json()) as { orders?: OrderRecord[] };
+  return Array.isArray(data.orders) ? data.orders : [];
 }
 
-export function getOrderById(id: string): OrderRecord | undefined {
-  return loadOrders().find((o) => o.id === id);
+export async function getOrderById(id: string): Promise<OrderRecord | undefined> {
+  const orders = await loadOrders();
+  return orders.find((o) => o.id === id);
 }
 
 function generateId(prefix: string): string {
@@ -193,42 +202,20 @@ function initialStatusesForMethod(
  *   3. Call out to payment gateway if needed
  *   4. Return JSON shaped like `PlaceOrderResult`
  */
-export async function placeOrderMock(input: PlaceOrderInput): Promise<PlaceOrderResult> {
-  const now = new Date().toISOString();
-  const { orderStatus, paymentStatus } = initialStatusesForMethod(
-    input.paymentMethod
-  );
+export async function placeOrderMock(
+  input: PlaceOrderInput
+): Promise<PlaceOrderResult> {
+  const res = await fetch(`${API_BASE}/orders`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(input),
+  });
 
-  const payment: PaymentRecord = {
-    id: generateId("pay"),
-    method: input.paymentMethod,
-    amount: input.totalPayment,
-    status: paymentStatus,
-    createdAt: now,
-  };
+  if (!res.ok) {
+    throw new Error("Failed to place order");
+  }
 
-  const order: OrderRecord = {
-    id: generateId("ord"),
-    orderNumber: generateOrderNumber(),
-    status: orderStatus,
-    items: input.items,
-    address: input.address,
-    paymentMethod: input.paymentMethod,
-    payments: [payment],
-    merchandiseSubtotal: input.merchandiseSubtotal,
-    shippingSubtotal: input.shippingSubtotal,
-    shippingDiscount: input.shippingDiscount,
-    totalPayment: input.totalPayment,
-    createdAt: now,
-  };
-
-  const existing = loadOrders();
-  existing.unshift(order); // newest first
-  saveOrders(existing);
-
-  // Simulate small network latency
-  await new Promise((resolve) => setTimeout(resolve, 300));
-
-  return { order, primaryPayment: payment };
+  return (await res.json()) as PlaceOrderResult;
 }
 

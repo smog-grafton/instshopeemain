@@ -10,8 +10,8 @@ interface ShockingSaleHeaderProps {
 export function ShockingSaleHeader({ config }: ShockingSaleHeaderProps) {
   return (
     <div className="bg-white justify-between items-center h-8 flex px-5 py-4 border-b border-b-black/5">
-      <div className="flex">
-        <div className="uppercase h-8 leading-8 w-40 mr-3 relative">
+      <div className="flex items-center h-8">
+        <div className="uppercase h-8 leading-8 w-40 mr-3 relative flex items-center">
           <Image
             src="/images/home/shocking/element.svg"
             alt={config.title}
@@ -21,10 +21,12 @@ export function ShockingSaleHeader({ config }: ShockingSaleHeaderProps) {
             unoptimized
           />
         </div>
-        <span className="shrink-0 text-black/80 uppercase ml-1.5 mr-3 text-sm">
+        <span className="shrink-0 text-black/80 uppercase ml-1.5 mr-3 text-sm h-8 flex items-center">
           ends in
         </span>
-        <CountdownTimer countdown={config.countdown} />
+        <div className="h-8 flex items-center">
+          <CountdownTimer countdown={config.countdown} endsAt={config.endsAt} />
+        </div>
       </div>
       <Link
         href={config.seeAllHref}

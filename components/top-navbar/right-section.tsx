@@ -50,7 +50,7 @@ export function RightSection({ config }: RightSectionProps) {
         <UserMenu
           user={{
             username: authUser.username,
-            avatarUrl: authUser.avatarUrl,
+            avatarUrl: authUser.avatarUrl ?? null,
           }}
         />
       ) : (
