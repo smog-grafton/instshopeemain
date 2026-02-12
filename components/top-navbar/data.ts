@@ -25,7 +25,8 @@ export interface NavbarConfig {
   currentLanguage: string;
 }
 
-const sellerCentreUrl = process.env.NEXT_PUBLIC_SELLER_CENTRE_URL || "/portal";
+/** Seller Centre URL: set via NEXT_PUBLIC_SELLER_CENTRE_URL. Never use /portal. LeftSection derives from current host when this is empty. */
+const sellerCentreUrl = process.env.NEXT_PUBLIC_SELLER_CENTRE_URL || "";
 
 export const mockNavbarConfig: NavbarConfig = {
   sellerCentreUrl,

@@ -1,15 +1,40 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { SocialLinks } from "./social-links";
 import { DownloadHoverPopup } from "@/components/download-hover-popup";
 import type { NavbarConfig } from "./data";
+
+/** Seller Centre href: env if set, else https://seller.{current host} (never /portal). */
+function getSellerCentreHref(config: NavbarConfig): string {
+  if (config.sellerCentreUrl && config.sellerCentreUrl !== "/portal") {
+    return config.sellerCentreUrl;
+  }
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    const protocol = window.location.protocol || "https:";
+    return `${protocol}//seller.${host}`;
+  }
+  return process.env.NEXT_PUBLIC_SELLER_CENTRE_URL || "#";
+}
 
 interface LeftSectionProps {
   config: NavbarConfig;
 }
 
 export function LeftSection({ config }: LeftSectionProps) {
+  const [sellerHref, setSellerHref] = useState(() =>
+    config.sellerCentreUrl && config.sellerCentreUrl !== "/portal"
+      ? config.sellerCentreUrl
+      : process.env.NEXT_PUBLIC_SELLER_CENTRE_URL || "#"
+  );
+  useEffect(() => {
+    setSellerHref(getSellerCentreHref(config));
+  }, [config]);
+
   const firstLink = config.firstLeftLink ?? {
     label: "Seller Centre",
-    href: config.sellerCentreUrl,
+    href: sellerHref,
   };
   const isExternal = firstLink.href.startsWith("http") || firstLink.href.startsWith("//");
   return (
