@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { createReview, getStoredToken, uploadReviewMedia, type CreateReviewPayload } from "@/lib/api-client";
+import { createReview, uploadReviewMedia, type CreateReviewPayload } from "@/lib/api-client";
 
 interface LeaveReviewModalProps {
   open: boolean;
@@ -30,7 +30,12 @@ export function LeaveReviewModal({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const isLoggedIn = typeof window !== "undefined" && !!getStoredToken();
+  const isLoggedIn =
+    typeof window !== "undefined" &&
+    !!(
+      (typeof localStorage !== "undefined" && localStorage.getItem("auth_token")) ||
+      (typeof sessionStorage !== "undefined" && sessionStorage.getItem("auth_token"))
+    );
 
   const resetForm = () => {
     setRating(5);
