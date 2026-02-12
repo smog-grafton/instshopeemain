@@ -24,7 +24,7 @@ export default function Home() {
       <HomeCategories />
       <ShockingSale />
       <SkinnyBanner />
-      <div className="w-[1200px] mx-auto mt-5">
+      <div className="w-full max-w-[1200px] mx-auto mt-5 px-3 sm:px-4 md:px-6">
         <div className="bg-white min-h-72">
           <MallHeader config={mockMallHeaderConfig} />
           <div>

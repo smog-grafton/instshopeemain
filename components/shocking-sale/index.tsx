@@ -29,7 +29,7 @@ export function ShockingSale() {
     return (
       <div
         role="main"
-        className="w-[1200px] mx-auto -mt-[25rem]"
+        className="w-full max-w-[1200px] mx-auto px-3 sm:px-4 md:-mt-[25rem]"
       >
         <div className="bg-white min-h-72">
           <div className="py-8 text-center text-gray-500">Loading flash deals...</div>
@@ -68,7 +68,7 @@ export function ShockingSale() {
   return (
     <div
       role="main"
-      className="w-[1200px] mx-auto -mt-[25rem]"
+      className="w-full max-w-[1200px] mx-auto px-3 sm:px-4 md:-mt-[25rem]"
     >
       <div className="bg-white min-h-72">
         <ShockingSaleHeader config={componentConfig} />

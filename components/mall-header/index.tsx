@@ -20,7 +20,7 @@ export function MallHeader({ config }: MallHeaderProps) {
           >
             {config.title}
           </a>
-          <div className="capitalize [border-left-style:solid] flex-1 items-center font-normal flex ml-4 pl-4 border-l border-l-zinc-300">
+          <div className="capitalize [border-left-style:solid] flex-1 items-center font-normal flex flex-wrap gap-2 ml-4 pl-4 border-l border-l-zinc-300">
             {config.features.map((feature, index) => (
               <FeatureBadge
                 key={index}

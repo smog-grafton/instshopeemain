@@ -66,7 +66,7 @@ export function DailyDiscover() {
           ) : (
             <div className="flex flex-wrap content-start gap-0 pt-1.5">
               {products.map((product) => (
-                <div key={product.id} className="w-2/12 p-1.5">
+                <div key={product.id} className="w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/5 xl:w-2/12 p-1.5">
                   <DailyDiscoverCard product={product} />
                 </div>
               ))}

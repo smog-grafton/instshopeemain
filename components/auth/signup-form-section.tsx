@@ -29,6 +29,7 @@ export function SignupFormSection() {
   const [email, setEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -36,9 +37,11 @@ export function SignupFormSection() {
 
   const canProceedStep1 = Boolean(phone.trim());
   const emailsMatch = email.trim() === confirmEmail.trim();
+  const passwordsMatch = password === confirmPassword;
   const canSubmitStep2 =
-    Boolean(email.trim() && confirmEmail.trim() && password.trim()) &&
+    Boolean(email.trim() && confirmEmail.trim() && password.trim() && confirmPassword.trim()) &&
     emailsMatch &&
+    passwordsMatch &&
     isPasswordValid(password);
 
   const handleNext = (e: React.FormEvent) => {
@@ -65,7 +68,7 @@ export function SignupFormSection() {
       name: email.trim(), // for now we just reuse email; can be extended to full name field later
       email: email.trim(),
       password,
-      passwordConfirmation: confirmEmail.trim(),
+      passwordConfirmation: confirmPassword,
     })
       .then((result) => {
         const apiUser = result.user;
@@ -103,27 +106,23 @@ export function SignupFormSection() {
 
   return (
     <>
-      <div className="w-full" style={{ backgroundColor: "rgb(33, 142, 126)" }}>
+      <div className="w-full min-h-screen sm:min-h-0" style={{ backgroundColor: "rgb(33, 142, 126)" }}>
         <div
-          className="mx-auto flex min-h-[600px] w-[1040px] items-center justify-end bg-contain bg-center bg-no-repeat"
+          className="mx-auto flex min-h-[600px] w-full max-w-[1040px] items-center justify-center sm:justify-end bg-contain bg-center bg-no-repeat py-8 px-4 sm:py-0 sm:px-6"
           style={{
             backgroundImage: `url("${BACKGROUND_IMAGE}")`,
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "50% 50%",
-            height: "600px",
-            minHeight: "600px",
-            margin: "0px auto",
-            width: "1040px",
+            minHeight: "min(600px, 100vh)",
           }}
         >
-          <div className="flex w-full justify-between">
-            <div className="flex flex-1 flex-col items-center justify-center" />
-            <div>
+          <div className="flex w-full max-w-[1040px] justify-center sm:justify-end">
+            <div className="hidden sm:block flex-1" aria-hidden />
+            <div className="w-full max-w-[400px] flex justify-center">
               <div
-                className="overflow-hidden rounded bg-white"
+                className="overflow-hidden rounded bg-white w-full max-w-[400px]"
                 style={{
-                  width: "400px",
                   backgroundColor: "rgb(255, 255, 255)",
                   borderRadius: "4px",
                   boxShadow: "rgba(0, 0, 0, 0.14) 0px 3px 10px 0px",
@@ -138,7 +137,7 @@ export function SignupFormSection() {
                       style={{ boxSizing: "border-box" }}
                     >
                       <div
-                        className="flex w-full items-center justify-between px-8 pt-6"
+                        className="flex w-full items-center justify-between px-4 sm:px-8 pt-6"
                         style={{ padding: "22px 30px" }}
                       >
                         <div
@@ -153,7 +152,7 @@ export function SignupFormSection() {
                       </div>
                     </div>
                     <div
-                      className="overflow-hidden px-8 pb-8"
+                      className="overflow-hidden px-4 sm:px-8 pb-8"
                       style={{ padding: "0px 30px 30px" }}
                     >
                       <form onSubmit={handleNext}>
@@ -329,7 +328,7 @@ export function SignupFormSection() {
                 ) : step === "success" ? (
                   <>
                     <div
-                      className="flex min-h-[80px] items-center justify-center box-border px-8 pt-6"
+                      className="flex min-h-[80px] items-center justify-center box-border px-4 sm:px-8 pt-6"
                       style={{ padding: "22px 30px" }}
                     >
                       <div
@@ -348,7 +347,7 @@ export function SignupFormSection() {
                       style={{ boxSizing: "border-box" }}
                     >
                       <div
-                        className="flex w-full items-center justify-between px-8 pt-6"
+                        className="flex w-full items-center justify-between px-4 sm:px-8 pt-6"
                         style={{ padding: "22px 30px" }}
                       >
                         <div
@@ -370,7 +369,7 @@ export function SignupFormSection() {
                       </div>
                     </div>
                     <div
-                      className="overflow-hidden px-8 pb-8"
+                      className="overflow-hidden px-4 sm:px-8 pb-8"
                       style={{ padding: "0px 30px 30px" }}
                     >
                       <form onSubmit={handleSignUpSubmit}>
@@ -453,6 +452,7 @@ export function SignupFormSection() {
                               placeholder="Password"
                               autoComplete="new-password"
                               name="password"
+                              maxLength={128}
                               value={password}
                               onChange={(e) => setPassword(e.target.value)}
                               className="h-4 flex-1 border-0 bg-transparent px-3 py-3 text-sm outline-none text-black/80"
@@ -485,6 +485,42 @@ export function SignupFormSection() {
                             </button>
                           </div>
                           <PasswordValidationList password={password} />
+                        </div>
+                        <div className="mb-3.5">
+                          <div
+                            className="flex h-10 w-full items-center overflow-hidden rounded-sm border shadow-[inset_0_2px_0_0_rgba(0,0,0,0.02)] box-border"
+                            style={{
+                              border:
+                                confirmPassword && !passwordsMatch
+                                  ? "1px solid rgb(255, 66, 79)"
+                                  : "1px solid rgba(0, 0, 0, 0.14)",
+                              borderRadius: "2px",
+                              height: "40px",
+                            }}
+                          >
+                            <input
+                              type={showPassword ? "text" : "password"}
+                              placeholder="Confirm Password"
+                              autoComplete="new-password"
+                              name="confirmPassword"
+                              maxLength={128}
+                              value={confirmPassword}
+                              onChange={(e) => setConfirmPassword(e.target.value)}
+                              className="h-4 flex-1 border-0 bg-transparent px-3 py-3 text-sm outline-none text-black/80"
+                              style={{ padding: "12px" }}
+                            />
+                          </div>
+                          {confirmPassword && !passwordsMatch && (
+                            <div
+                              className="text-xs pt-1"
+                              style={{
+                                color: "rgb(255, 66, 79)",
+                                padding: "4px 0 0",
+                              }}
+                            >
+                              Passwords do not match
+                            </div>
+                          )}
                         </div>
                         {error && (
                           <div

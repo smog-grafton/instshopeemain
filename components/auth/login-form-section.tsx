@@ -73,29 +73,25 @@ export function LoginFormSection() {
 
   return (
     <div
-      className="w-full"
+      className="w-full min-h-screen sm:min-h-0"
       style={{ backgroundColor: "rgb(33, 142, 126)" }}
     >
       <div
-        className="mx-auto flex min-h-[600px] w-[1040px] items-center justify-end bg-contain bg-center bg-no-repeat"
+        className="mx-auto flex min-h-[600px] w-full max-w-[1040px] items-center justify-center sm:justify-end bg-contain bg-center bg-no-repeat py-8 px-4 sm:py-0 sm:px-6"
         style={{
           backgroundImage: `url("${BACKGROUND_IMAGE}")`,
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "50% 50%",
-          height: "600px",
-          minHeight: "600px",
-          margin: "0px auto",
-          width: "1040px",
+          minHeight: "min(600px, 100vh)",
         }}
       >
-        <div className="flex w-full justify-between">
-          <div className="flex flex-1 flex-col items-center justify-center" />
-          <div>
+        <div className="flex w-full max-w-[1040px] justify-center sm:justify-end">
+          <div className="hidden sm:block flex-1" aria-hidden />
+          <div className="w-full max-w-[400px] flex justify-center">
             <div
-              className="overflow-hidden rounded bg-white"
+              className="overflow-hidden rounded bg-white w-full max-w-[400px]"
               style={{
-                width: "400px",
                 backgroundColor: "rgb(255, 255, 255)",
                 borderRadius: "4px",
                 boxShadow: "rgba(0, 0, 0, 0.14) 0px 3px 10px 0px",
@@ -108,7 +104,7 @@ export function LoginFormSection() {
                 style={{ boxSizing: "border-box" }}
               >
                 <div
-                  className="flex w-full items-center justify-between px-8 pt-6"
+                  className="flex w-full items-center justify-between px-4 sm:px-8 pt-6"
                   style={{ padding: "22px 30px" }}
                 >
                   <div
@@ -181,7 +177,7 @@ export function LoginFormSection() {
 
               {/* Form */}
               <div
-                className="overflow-hidden px-8 pb-8"
+                className="overflow-hidden px-4 sm:px-8 pb-8"
                 style={{ padding: "0px 30px 30px" }}
               >
                 <form
@@ -239,7 +235,7 @@ export function LoginFormSection() {
                         placeholder="Password"
                         autoComplete="current-password"
                         name="password"
-                        maxLength={16}
+                        maxLength={128}
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                         className="h-4 flex-1 border-0 bg-transparent px-3 py-3 text-sm outline-none text-black/80"
@@ -440,6 +436,7 @@ export function LoginFormSection() {
                   Sign Up
                 </Link>
               </div>
+            </div>
             </div>
           </div>
         </div>

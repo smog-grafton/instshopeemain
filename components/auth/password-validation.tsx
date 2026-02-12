@@ -20,8 +20,8 @@ export const PASSWORD_RULES: PasswordRule[] = [
   },
   {
     id: "length",
-    label: "8-16 characters",
-    test: (p) => p.length >= 8 && p.length <= 16,
+    label: "8-128 characters",
+    test: (p) => p.length >= 8 && p.length <= 128,
   },
   {
     id: "chars",

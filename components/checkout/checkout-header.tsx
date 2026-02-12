@@ -19,7 +19,7 @@ export function CheckoutHeader() {
             <div className="block relative overflow-hidden w-[8.125rem] h-[46px] fill-[#ee4d2d]">
               <Image
                 src="/images/svgs/header/logo-orange.svg"
-                alt="InstShopee Logo"
+                alt="Shopee Logo"
                 width={130}
                 height={46}
                 className="block w-[8.125rem] h-[46px] object-cover"

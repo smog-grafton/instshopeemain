@@ -72,9 +72,9 @@ export function HeaderWithSearch() {
       className="[font-family:Roboto,SHPBurmese,SHPKhmer,Helvetica_Neue,Helvetica,Arial,文泉驛正黑,WenQuanYi_Zen_Hei,Hiragino_Sans_GB,儷黑_Pro,LiHei_Pro,Heiti_TC,微軟正黑體,Microsoft_JhengHei_UI,Microsoft_JhengHei,sans-serif] text-sm leading-tight text-black/80 z-[300] shadow-sm min-w-[inherit] bg-[#ee4d2d]"
       id="component"
     >
-      <div className="mx-auto justify-between flex pt-4 pb-3 max-w-6xl w-[inherit]">
+      <div className="mx-auto justify-between flex flex-wrap gap-3 pt-4 pb-3 max-w-6xl w-full px-3 sm:px-4">
         <Logo />
-        <div className="flex-col justify-start w-[840px] flex relative pb-2">
+        <div className="flex-col justify-start w-full min-w-0 max-w-[840px] flex-1 flex relative pb-2">
           <SearchBar config={config} />
           <SearchSuggestions suggestions={suggestions} />
         </div>

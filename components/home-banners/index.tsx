@@ -70,10 +70,10 @@ export function HomeBanners() {
     >
       <section
         id="HomePageCarouselBannerSection"
-        className="justify-center min-w-[1200px] flex"
+        className="justify-center w-full max-w-[1200px] mx-auto flex px-3 sm:px-4"
         aria-label="Banner"
       >
-        <div className="w-[1200px] h-60 flex">
+        <div className="w-full max-w-[1200px] h-48 sm:h-60 flex flex-col md:flex-row">
           {mainBanners.length > 0 && <BannerCarousel banners={mainBanners} />}
           {sideBanners.length > 0 && <SideBanners banners={sideBanners} />}
         </div>

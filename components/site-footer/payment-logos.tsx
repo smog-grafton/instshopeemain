@@ -12,7 +12,7 @@ export function PaymentLogos({
   logisticsLogos,
 }: PaymentLogosProps) {
   return (
-    <div className="w-64 p-1.5">
+    <div className="w-full sm:w-48 md:w-64 p-1.5 min-w-0">
       <div className="text-xs font-bold mt-10 mb-5 text-black/87">PAYMENT</div>
       <ul className="flex-wrap list-none flex mb-4">
         {paymentLogos.map((logo, index) => (

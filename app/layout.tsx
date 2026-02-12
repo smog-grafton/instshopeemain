@@ -5,8 +5,8 @@ import { LayoutWithChat } from "@/components/chat-widget/layout-with-chat";
 
 export const metadata: Metadata = {
   title: {
-    default: "InstShopee - E-commerce Platform",
-    template: "%s | InstShopee",
+    default: "Shopee - E-commerce Platform",
+    template: "%s | Shopee",
   },
   description: "Multi-country e-commerce platform",
 };

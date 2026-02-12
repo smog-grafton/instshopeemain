@@ -6,7 +6,7 @@ interface FeatureIconsProps {
 
 export function FeatureIcons({ icons }: FeatureIconsProps) {
   return (
-    <div className="bg-white justify-around w-[1200px] min-h-28 flex mt-2.5 mx-auto">
+    <div className="bg-white justify-around w-full max-w-[1200px] min-h-28 flex flex-wrap gap-4 justify-center sm:justify-around mt-2.5 mx-auto px-3 sm:px-4">
       {icons.map((icon, index) => (
         <a
           key={index}

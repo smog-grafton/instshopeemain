@@ -91,7 +91,7 @@ export function CartHeader() {
               <div>
                 <Image
                   src="/images/svgs/header/logo-orange.svg"
-                  alt="InstShopee Logo"
+                  alt="Shopee Logo"
                   width={160}
                   height={48}
                   className="block w-[8.125rem] h-[46px] overflow-hidden"

@@ -62,12 +62,12 @@ export function TopNavbar({ variant = "default", config }: TopNavbarProps) {
   
   return (
     <div
-      className={`[font-family:Roboto,SHPBurmese,SHPKhmer,Helvetica_Neue,Helvetica,Arial,文泉驛正黑,WenQuanYi_Zen_Hei,Hiragino_Sans_GB,儷黑_Pro,LiHei_Pro,Heiti_TC,微軟正黑體,Microsoft_JhengHei_UI,Microsoft_JhengHei,sans-serif] text-sm leading-tight text-black/80 z-[400] h-9 relative ${isShop ? "min-w-[1200px]" : "min-w-[inherit]"} ${!isShop ? "bg-[#ee4d2d]" : ""}`}
+      className={`[font-family:Roboto,SHPBurmese,SHPKhmer,Helvetica_Neue,Helvetica,Arial,文泉驛正黑,WenQuanYi_Zen_Hei,Hiragino_Sans_GB,儷黑_Pro,LiHei_Pro,Heiti_TC,微軟正黑體,Microsoft_JhengHei_UI,Microsoft_JhengHei,sans-serif] text-sm leading-tight text-black/80 z-[400] h-9 relative min-w-0 w-full ${!isShop ? "bg-[#ee4d2d]" : ""}`}
       id="component"
       style={isShop ? { backgroundColor: SHOP_TOP_BAR_BG } : undefined}
     >
       <nav
-        className={`mx-auto items-center flex text-white ${isShop ? "w-[1200px]" : "max-w-6xl w-[inherit]"}`}
+        className={`mx-auto items-center flex text-white w-full max-w-[1200px] px-3 sm:px-4 ${!isShop ? "max-w-6xl" : ""}`}
       >
         <LeftSection config={resolvedConfig} />
         <div className="flex-1"></div>

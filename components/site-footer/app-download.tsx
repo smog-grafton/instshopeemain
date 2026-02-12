@@ -8,7 +8,7 @@ interface AppDownloadProps {
 
 export function AppDownload({ qrCode, appStoreBadges }: AppDownloadProps) {
   return (
-    <div className="p-1.5 last:w-52">
+    <div className="p-1.5 w-full sm:w-48 md:w-52 min-w-0">
       <div className="text-xs font-bold mt-10 mb-5 text-black/87">
         SHOPEE APP DOWNLOAD
       </div>

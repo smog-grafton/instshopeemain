@@ -7,7 +7,7 @@ interface SocialLinksProps {
 
 export function SocialLinks({ links }: SocialLinksProps) {
   return (
-    <div className="w-64 p-1.5">
+    <div className="w-full sm:w-48 md:w-64 p-1.5 min-w-0">
       <div className="text-xs font-bold mt-10 mb-5 text-black/87">FOLLOW US</div>
       <ul className="list-none mb-4 text-black/65">
         {links.map((link, index) => (

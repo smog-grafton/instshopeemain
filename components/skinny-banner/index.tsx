@@ -67,7 +67,7 @@ export function SkinnyBanner({
   }
   return (
     <section
-      className="[font-family:Roboto,SHPBurmese,SHPKhmer,Helvetica_Neue,Helvetica,Arial,文泉驛正黑,WenQuanYi_Zen_Hei,Hiragino_Sans_GB,儷黑_Pro,LiHei_Pro,Heiti_TC,微軟正黑體,Microsoft_JhengHei_UI,Microsoft_JhengHei,sans-serif] text-sm leading-tight text-black/80 pt-5 w-[1200px] mx-auto"
+      className="[font-family:Roboto,SHPBurmese,SHPKhmer,Helvetica_Neue,Helvetica,Arial,文泉驛正黑,WenQuanYi_Zen_Hei,Hiragino_Sans_GB,儷黑_Pro,LiHei_Pro,Heiti_TC,微軟正黑體,Microsoft_JhengHei_UI,Microsoft_JhengHei,sans-serif] text-sm leading-tight text-black/80 pt-5 w-full max-w-[1200px] mx-auto px-3 sm:px-4"
       aria-label="Banner"
     >
       <div className="w-full relative">
@@ -86,7 +86,7 @@ export function SkinnyBanner({
           <img
             width={1200}
             loading="lazy"
-            className="inline h-28 align-bottom"
+            className="inline h-20 sm:h-28 w-full align-bottom object-cover object-center"
             srcSet={imageUrl2x ? `${imageUrl}, ${imageUrl2x} 2x` : imageUrl}
             src={imageUrl}
             alt={alt}

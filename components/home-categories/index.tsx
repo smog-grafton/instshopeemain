@@ -97,7 +97,7 @@ export function HomeCategories() {
   return (
     <div
       role="main"
-      className="w-[1200px] mx-auto"
+      className="w-full max-w-[1200px] mx-auto px-3 sm:px-4"
     >
       <div className="min-h-[50rem]">
         <div className="bg-white min-h-72 mt-5">

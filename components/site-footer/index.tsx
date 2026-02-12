@@ -11,8 +11,8 @@ export function SiteFooter() {
       id="component"
       className="[font-family:Roboto,SHPBurmese,SHPKhmer,Helvetica_Neue,Helvetica,Arial,文泉驛正黑,WenQuanYi_Zen_Hei,Hiragino_Sans_GB,儷黑_Pro,LiHei_Pro,Heiti_TC,微軟正黑體,Microsoft_JhengHei_UI,Microsoft_JhengHei,sans-serif] text-sm leading-tight text-black/54 bg-[rgb(251,251,251)]"
     >
-      <div className="w-[75rem] m-auto">
-        <div className="items-start w-full min-w-[1200px] flex -mx-1.5 p-1.5">
+      <div className="w-full max-w-[75rem] m-auto px-3 sm:px-4 md:px-6">
+        <div className="items-start w-full flex flex-wrap -mx-1.5 p-1.5">
           {mockFooterConfig.columns.map((column, index) => (
             <FooterColumn key={index} column={column} />
           ))}

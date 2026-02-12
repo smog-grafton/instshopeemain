@@ -153,7 +153,7 @@ export function MallProductsSection({ products: productsProp }: MallProductsSect
   }
 
   return (
-    <div className="[overflow:unset] bg-white w-[50rem] inline-block align-top">
+    <div className="[overflow:unset] bg-white w-full max-w-[50rem] inline-block align-top">
       <div className="w-full relative transition-all group/carousel min-h-[320px] overflow-visible">
         <div
           ref={scrollContainerRef}
