@@ -437,7 +437,6 @@ export function LoginFormSection() {
                 </Link>
               </div>
             </div>
-            </div>
           </div>
         </div>
       </div>
