@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense, useEffect, useState } from "react";
 import { TopNavbar } from "@/components/top-navbar";
 import { HeaderWithSearch } from "@/components/header-with-search";
 import {
@@ -10,12 +11,11 @@ import {
   ProductGridWithLoader,
 } from "@/components/shocking-sale-page";
 import { SiteFooter } from "@/components/site-footer";
-import { useEffect, useState } from "react";
 import { getShockingSalePage, getShockingSaleSessions, type ApiShockingSalePageResponse, type ApiShockingSaleSession } from "@/lib/api-client";
 import { useSearchParams } from "next/navigation";
 import type { SessionSlot, CategoryTab, MoreMenuItem } from "@/components/shocking-sale-page";
 
-export default function ShockingSalePage() {
+function ShockingSaleContent() {
   const searchParams = useSearchParams();
   const promotionId = searchParams.get("promotionId");
   const categoryId = parseInt(searchParams.get("categoryId") || "0", 10);
@@ -111,5 +111,13 @@ export default function ShockingSalePage() {
       )}
       <SiteFooter />
     </div>
+  );
+}
+
+export default function ShockingSalePage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[rgb(245,245,245)] flex items-center justify-center text-gray-500">Loading...</div>}>
+      <ShockingSaleContent />
+    </Suspense>
   );
 }
