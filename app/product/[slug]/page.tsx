@@ -14,6 +14,11 @@ import {
   defaultProductSpecsDescriptionData,
   defaultProductReviewsSectionData,
   defaultProductDetailData,
+  type CategoryBreadcrumbLink,
+  type ProductSpecItem,
+  type ProductSpecsDescriptionData,
+  type ProductReviewsSectionData,
+  type ReviewAttribute,
 } from "@/components/product-detail-section/data";
 import { SiteFooter } from "@/components/site-footer";
 import { IconArrowRight } from "@/components/product-detail-section/icons";
@@ -84,7 +89,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   ];
 
   // Transform colors and sizes from API
-  const colors = (product.colors || []).map((c) => ({
+  const colors = (product.colors || []).map((c: { label: string; imagePath: string | null }) => ({
     label: c.label,
     imagePath: c.imagePath || `/images/home/mall/products/1.jpeg`,
   }));
@@ -105,8 +110,9 @@ export default async function ProductPage({ params }: ProductPageProps) {
   const shopVoucherBadges = shopVoucherList.slice(0, 2).map((v) => v.offer || "RM1 OFF");
 
   // Transform images for gallery
+  type ImageItem = { imagePath: string | null; imagePathWebp: string | null; isThumbnail: boolean };
   const productImages = product.images && product.images.length > 0
-    ? product.images.map((img) => ({
+    ? product.images.map((img: ImageItem) => ({
         imagePath: img.imagePath || null,
         imagePathWebp: img.imagePathWebp || null,
         isThumbnail: img.isThumbnail || false,
@@ -154,7 +160,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   };
 
   const chatProductContext = {
-    id: product.id,
+    id: product.id ?? (Number(product.shopId) || 0),
     title: product.title,
     image: productImageSrc,
     price: formatPrice(currencySymbol, product.price),
@@ -167,32 +173,34 @@ export default async function ProductPage({ params }: ProductPageProps) {
   };
 
   // Transform specifications
+  type SpecItem = { label: string; value?: string | null; categoryBreadcrumbs?: CategoryBreadcrumbLink[] | unknown };
   const specifications = product.specifications || [];
-  const productSpecsDescriptionData = {
-    specifications: specifications.length > 0 ? specifications.map((spec) => ({
+  const productSpecsDescriptionData: ProductSpecsDescriptionData = {
+    specifications: specifications.length > 0 ? specifications.map((spec: SpecItem) => ({
       label: spec.label,
-      value: spec.value || undefined,
-      categoryBreadcrumbs: spec.categoryBreadcrumbs || undefined,
-    })) : defaultProductSpecsDescriptionData.specifications,
+      value: spec.value ?? undefined,
+      categoryBreadcrumbs: Array.isArray(spec.categoryBreadcrumbs) ? (spec.categoryBreadcrumbs as CategoryBreadcrumbLink[]) : undefined,
+    })) as ProductSpecItem[] : defaultProductSpecsDescriptionData.specifications,
     description: product.description || defaultProductSpecsDescriptionData.description,
   };
 
   // Transform reviews
-  const productReviewsSectionData = reviews ? {
+  type ReviewMediaItem = { type: string; src: string; duration?: string | null; poster?: string | null };
+  const productReviewsSectionData: ProductReviewsSectionData = reviews ? {
     overallScore: reviews.overallScore,
-    filterChips: defaultProductReviewsSectionData.filterChips, // Keep filter chips as is
+    filterChips: defaultProductReviewsSectionData.filterChips,
     reviews: reviews.reviews.map((r) => ({
       username: r.username,
       rating: r.rating,
       date: r.date,
       variation: r.variation,
-      attributes: r.attributes,
+      attributes: (Array.isArray(r.attributes) ? (r.attributes as unknown as ReviewAttribute[]) : []),
       comment: r.comment,
-      media: r.media.map((m) => ({
+      media: r.media.map((m: ReviewMediaItem) => ({
         type: m.type as "image" | "video",
         src: m.src,
-        duration: m.duration,
-        poster: m.poster,
+        duration: m.duration ?? undefined,
+        poster: m.poster ?? undefined,
       })),
       helpfulCount: r.helpfulCount,
     })),
@@ -205,11 +213,11 @@ export default async function ProductPage({ params }: ProductPageProps) {
     shopHref: `/shop/${shopProfile.slug}`,
     profileImagePath: shopProfile.profileImageUrl || defaultShopProfileData.profileImagePath,
     stats: [
-      { label: "Ratings", value: String(shopProfile.stats?.ratings || 0) },
-      { label: "Response Rate", value: `${shopProfile.stats?.responseRate || 0}%` },
+      { label: "Ratings", value: String(shopProfile.stats?.ratings ?? shopProfile.stats?.rating ?? 0) },
+      { label: "Response Rate", value: `${shopProfile.stats?.responseRate ?? shopProfile.stats?.chatPerformance ?? 0}%` },
       { label: "Joined", value: shopProfile.stats?.joined || "Recently" },
       { label: "Products", value: String(shopProfile.stats?.products || 0), href: `/shop/${shopProfile.slug}#product_list` },
-      { label: "Response Time", value: shopProfile.stats?.responseTime || "within hours" },
+      { label: "Response Time", value: shopProfile.stats?.responseTime ?? shopProfile.stats?.chatPerformanceNote ?? "within hours" },
       { label: "Follower", value: String(shopProfile.stats?.followers || 0) },
     ],
   } : {
@@ -249,7 +257,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
                 </span>
               </div>
               <ProductDetailSection data={productDetailData} />
-              <ShopProfile data={shopProfileData} vendorId={shop.id} productContext={chatProductContext} />
+              <ShopProfile data={shopProfileData} vendorId={Number(shop.id) || undefined} productContext={chatProductContext} />
               <div className="flex gap-0 w-full">
                 <div className="flex-1 min-w-0">
                   <ProductSpecsDescription data={productSpecsDescriptionData} />

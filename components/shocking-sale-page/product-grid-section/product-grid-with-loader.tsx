@@ -19,9 +19,10 @@ function transformApiProduct(p: ApiShockingSaleProduct): FlashSaleGridProduct {
   const priceNum = parseFloat(p.price);
   let originalPrice: string;
   
-  if (p.originalPrice) {
-    // Backend provides originalPrice
-    originalPrice = typeof p.originalPrice === 'string' ? p.originalPrice : p.originalPrice.toFixed(2);
+  const rawOriginal = p.originalPrice;
+  if (rawOriginal != null) {
+    // Backend provides originalPrice (string or number)
+    originalPrice = typeof rawOriginal === "string" ? rawOriginal : String(Number(rawOriginal).toFixed(2));
   } else if (p.discount > 0) {
     // Calculate from discount if originalPrice not provided
     originalPrice = (priceNum / (1 - p.discount / 100)).toFixed(2);

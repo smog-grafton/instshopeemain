@@ -235,6 +235,12 @@ export async function fetchCurrentUser(): Promise<{ user: ApiUser }> {
   return apiFetch<{ user: ApiUser }>("/auth/me", {}, true);
 }
 
+/** Returns stored auth token if any (e.g. from login). Session auth uses cookies so this may be null. */
+export function getStoredToken(): string | null {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("auth_token") ?? sessionStorage.getItem("auth_token") ?? null;
+}
+
 /** Upload avatar image; returns updated user. Do not set Content-Type (browser sets multipart boundary). */
 export async function uploadAvatar(file: File): Promise<ApiUser> {
   const headers: HeadersInit = {};
@@ -301,6 +307,7 @@ export interface ApiProduct {
 
 /** Product detail from GET /products/:slug – includes variants, images, specs. */
 export interface ApiProductDetail extends ApiProduct {
+  id?: number;
   description?: string | null;
   favoriteCount?: number;
   inStock?: boolean;
@@ -356,6 +363,31 @@ export async function checkFavorite(slug: string): Promise<FavoriteResponse> {
   return apiFetch<FavoriteResponse>(`/products/${slug}/favorite/check`, {}, true); // Use authentication
 }
 
+export interface ApiProductReviewMedia {
+  type: "image" | "video";
+  src: string;
+  duration?: string | null;
+  poster?: string | null;
+}
+
+export interface ApiProductReview {
+  id: string;
+  username: string;
+  rating: number;
+  date: string;
+  variation: string;
+  attributes: Record<string, string> | string[];
+  comment: string;
+  media: ApiProductReviewMedia[];
+  helpfulCount: number;
+}
+
+export interface ApiProductReviewsResponse {
+  overallScore: number;
+  reviews: ApiProductReview[];
+  pagination?: { page: number; per_page: number; total: number; last_page: number };
+}
+
 export async function getProductReviews(slug: string, params?: {
   page?: number;
   per_page?: number;
@@ -385,11 +417,11 @@ export async function createReview(
   slug: string,
   payload: CreateReviewPayload
 ): Promise<CreateReviewResponse> {
-  return apiFetch<CreateReviewResponse>(`/products/${slug}/reviews`, {
-    method: "POST",
-    body: JSON.stringify(payload),
-    useAuth: true,
-  });
+  return apiFetch<CreateReviewResponse>(
+    `/products/${slug}/reviews`,
+    { method: "POST", body: JSON.stringify(payload) },
+    true
+  );
 }
 
 export async function getRelatedProducts(slug: string, params?: {
@@ -540,6 +572,10 @@ export interface ApiShopProfile {
     chatPerformance: string;
     chatPerformanceNote: string;
     joined: string;
+    /** Optional; backend may add. Use rating for display if absent. */
+    ratings?: number | string;
+    responseRate?: string | number;
+    responseTime?: string;
   };
 }
 
@@ -1388,10 +1424,7 @@ export async function removeFromCart(id: string): Promise<{ message: string }> {
 }
 
 export async function syncCart(): Promise<{ message: string }> {
-  return apiFetch<{ message: string }>("/cart/sync", {
-    method: "POST",
-    useAuth: true,
-  });
+  return apiFetch<{ message: string }>("/cart/sync", { method: "POST" }, true);
 }
 
 export async function clearCart(): Promise<{ message: string }> {

@@ -31,7 +31,7 @@ export function TopNavbar({ variant = "default", config }: TopNavbarProps) {
           if (profile && profile.username) {
             setUserProfile({
               username: profile.username,
-              avatarUrl: profile.avatarUrl,
+              avatarUrl: profile.avatarUrl ?? "",
             });
           }
         } catch (error) {
@@ -40,7 +40,7 @@ export function TopNavbar({ variant = "default", config }: TopNavbarProps) {
           if (authUser) {
             setUserProfile({
               username: authUser.username,
-              avatarUrl: authUser.avatarUrl,
+              avatarUrl: authUser.avatarUrl ?? "",
             });
           }
         }
@@ -55,7 +55,7 @@ export function TopNavbar({ variant = "default", config }: TopNavbarProps) {
     user: {
       ...baseConfig.user,
       username: userProfile?.username ?? authUser?.username ?? baseConfig.user.username,
-      avatarUrl: authUser?.avatarUrl ?? userProfile?.avatarUrl ?? baseConfig.user.avatarUrl,
+      avatarUrl: (authUser?.avatarUrl ?? userProfile?.avatarUrl ?? baseConfig.user.avatarUrl) ?? "",
     },
   };
   const isShop = variant === "shop";

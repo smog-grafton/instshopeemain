@@ -70,15 +70,17 @@ export function CategoryFilterSidebar({ categoryId }: CategoryFilterSidebarProps
 
   // Fetch filter options from backend
   useEffect(() => {
-    if (!categoryId) {
+    if (categoryId === undefined || categoryId === null) {
       setLoading(false);
       return;
     }
 
+    const id = categoryId;
+
     async function fetchFilterOptions() {
       try {
         setLoading(true);
-        const response = await getCategoryFilterOptions(categoryId);
+        const response = await getCategoryFilterOptions(id);
         setFilterOptions(response.filterOptions);
       } catch (error) {
         console.error("Failed to fetch filter options:", error);
@@ -93,7 +95,7 @@ export function CategoryFilterSidebar({ categoryId }: CategoryFilterSidebarProps
       }
     }
 
-    fetchFilterOptions();
+    void fetchFilterOptions();
   }, [categoryId]);
 
   // Update URL when filters change
