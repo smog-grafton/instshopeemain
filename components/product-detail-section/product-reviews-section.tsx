@@ -1,14 +1,19 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { ReviewCard } from "./review-card";
 import { ReviewMediaLightbox } from "./review-media-lightbox";
-import { LeaveReviewModal } from "./leave-review-modal";
 import type {
   ProductReviewsSectionData,
   ReviewMediaItem,
 } from "./data";
+
+const LeaveReviewModal = dynamic(
+  () => import("./leave-review-modal").then((m) => ({ default: m.LeaveReviewModal })),
+  { ssr: false }
+);
 
 /** Full or partial star for summary (red fill). partial 0–1 for last star. */
 function SummaryStar({ filled, partial }: { filled: boolean; partial?: number }) {
