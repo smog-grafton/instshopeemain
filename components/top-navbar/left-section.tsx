@@ -5,13 +5,16 @@ import { SocialLinks } from "./social-links";
 import { DownloadHoverPopup } from "@/components/download-hover-popup";
 import type { NavbarConfig } from "./data";
 
-/** Seller Centre href: env if set, else https://seller.{current host} (never /portal). */
+/** Seller Centre href: env if set, else https://seller.{root domain}. Strip www so www.instshopee.com.co → seller.instshopee.com.co (never seller.www.*). */
 function getSellerCentreHref(config: NavbarConfig): string {
   if (config.sellerCentreUrl && config.sellerCentreUrl !== "/portal") {
     return config.sellerCentreUrl;
   }
   if (typeof window !== "undefined") {
-    const host = window.location.hostname;
+    let host = window.location.hostname;
+    if (host.startsWith("www.")) {
+      host = host.slice(4);
+    }
     const protocol = window.location.protocol || "https:";
     return `${protocol}//seller.${host}`;
   }
