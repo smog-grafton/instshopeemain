@@ -1,5 +1,33 @@
-const API_BASE = `${process.env.NEXT_PUBLIC_LARAVEL_API_URL}/v1`;
-const SANCTUM_BASE = process.env.NEXT_PUBLIC_LARAVEL_API_URL;
+function stripTrailingSlashes(url: string): string {
+  return url.replace(/\/+$/, "");
+}
+
+/**
+ * Laravel API root including `/api` (e.g. `https://backend.example.com/api`).
+ * On the server, set `LARAVEL_API_URL` to the real Laravel origin when the storefront
+ * host cannot serve `/api/*` (otherwise SSR hits Next.js and returns HTML 404).
+ * Browser code always uses `NEXT_PUBLIC_LARAVEL_API_URL`.
+ */
+export function getLaravelApiRoot(): string {
+  if (typeof window === "undefined") {
+    const internal = process.env.LARAVEL_API_URL?.trim();
+    if (internal) return stripTrailingSlashes(internal);
+  }
+  const pub = process.env.NEXT_PUBLIC_LARAVEL_API_URL?.trim() ?? "";
+  return stripTrailingSlashes(pub);
+}
+
+function getLaravelApiV1Base(): string {
+  const root = getLaravelApiRoot();
+  if (!root) {
+    throw new Error(
+      "NEXT_PUBLIC_LARAVEL_API_URL is not set. For server-side fetches on split hosts, set LARAVEL_API_URL to your Laravel /api base."
+    );
+  }
+  return `${root}/v1`;
+}
+
+let warnedApiSameHost = false;
 
 export interface ApiUser {
   id: number;
@@ -24,7 +52,35 @@ export async function apiFetch<T>(
   options: RequestInit = {},
   useAuth: boolean = false
 ): Promise<T> {
-  const url = `${API_BASE}${path}`;
+  const apiV1 = getLaravelApiV1Base();
+  if (
+    typeof window === "undefined" &&
+    process.env.NODE_ENV === "production" &&
+    !process.env.LARAVEL_API_URL &&
+    !warnedApiSameHost
+  ) {
+    const site = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+    if (site) {
+      try {
+        const apiOrigin = new URL(apiV1).hostname;
+        const siteOrigin = new URL(
+          site.startsWith("http") ? site : `https://${site}`
+        ).hostname;
+        if (apiOrigin === siteOrigin) {
+          warnedApiSameHost = true;
+          console.warn(
+            "[api-client] NEXT_PUBLIC_LARAVEL_API_URL is on the same host as NEXT_PUBLIC_SITE_URL. " +
+              "Server-side API calls may receive Next.js HTML (404) instead of Laravel JSON. " +
+              "Set LARAVEL_API_URL on the server to your Laravel base (e.g. https://yourdomain.com/path/to/api)."
+          );
+        }
+      } catch {
+        /* ignore */
+      }
+    }
+  }
+
+  const url = `${apiV1}${path}`;
 
   const headers: HeadersInit = {
     "Content-Type": "application/json",
@@ -92,7 +148,7 @@ export interface UploadReviewMediaResponse {
 
 /** Upload a single image or video file for use in a product review. Returns the public URL to use in createReview media. */
 export async function uploadReviewMedia(file: File): Promise<UploadReviewMediaResponse> {
-  const url = `${API_BASE}/upload/review-media`;
+  const url = `${getLaravelApiV1Base()}/upload/review-media`;
   const formData = new FormData();
   formData.append("file", file);
   const type = file.type.startsWith("video/") ? "video" : "image";
@@ -198,7 +254,7 @@ export async function loginWithEmailPassword(
   password: string
 ): Promise<AuthResponse> {
   // Step 1: Get CSRF cookie from Sanctum
-  await fetch(`${SANCTUM_BASE}/sanctum/csrf-cookie`, {
+  await fetch(`${getLaravelApiRoot()}/sanctum/csrf-cookie`, {
     credentials: "include",
   });
   
@@ -216,7 +272,7 @@ export async function registerBuyer(input: {
   passwordConfirmation: string;
 }): Promise<AuthResponse> {
   // Get CSRF cookie before registration
-  await fetch(`${SANCTUM_BASE}/sanctum/csrf-cookie`, {
+  await fetch(`${getLaravelApiRoot()}/sanctum/csrf-cookie`, {
     credentials: "include",
   });
   
@@ -248,7 +304,7 @@ export async function uploadAvatar(file: File): Promise<ApiUser> {
   const formData = new FormData();
   formData.append("avatar", file);
 
-  const res = await fetch(`${API_BASE}/auth/avatar`, {
+  const res = await fetch(`${getLaravelApiV1Base()}/auth/avatar`, {
     method: "POST",
     headers,
     body: formData,
@@ -280,7 +336,7 @@ export async function logoutApi(): Promise<void> {
 }
 
 export function getGoogleAuthRedirectUrl(): string {
-  return `${API_BASE}/auth/google/redirect`;
+  return `${getLaravelApiV1Base()}/auth/google/redirect`;
 }
 
 // Product types and functions
