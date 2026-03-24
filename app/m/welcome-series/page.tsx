@@ -24,11 +24,7 @@ export default async function WelcomeSeriesPage() {
     country_id: countryId,
   });
   const block = blocks[0];
-  let welcomePerks = await getWelcomePerksSafe({ country_id: countryId });
-  // If nothing matches the resolved country (e.g. perks seeded for another country), show global/unfiltered perks.
-  if (welcomePerks.length === 0) {
-    welcomePerks = await getWelcomePerksSafe();
-  }
+  const welcomePerks = await getWelcomePerksSafe();
 
   return (
     <div className="min-h-screen bg-[#f5f5f5] text-[rgba(0,0,0,0.8)] antialiased">
