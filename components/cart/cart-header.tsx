@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { searchAutocomplete, type AutocompleteSuggestion } from "@/lib/api-client";
-import { getUiBlocksSafe } from "@/lib/api-client";
+import { getUiBlocksSafe, resolveCountryIdForBrowser } from "@/lib/api-client";
 
 const SHOP_ICON_SRC = "/images/profile/shop/shop.svg";
 
@@ -22,7 +22,11 @@ export function CartHeader() {
   useEffect(() => {
     async function fetchPlaceholder() {
       try {
-        const placeholderBlocks = await getUiBlocksSafe({ key: "search_placeholder" });
+        const countryId = await resolveCountryIdForBrowser();
+        const placeholderBlocks = await getUiBlocksSafe({
+          key: "search_placeholder",
+          country_id: countryId,
+        });
         if (placeholderBlocks.length > 0 && placeholderBlocks[0].title) {
           setPlaceholder(placeholderBlocks[0].title);
         }

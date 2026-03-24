@@ -2,7 +2,11 @@
 
 import Image from "next/image";
 import { useEffect, useState } from "react";
-import { getUiBlocks, type ApiUiBlock } from "@/lib/api-client";
+import {
+  getUiBlocks,
+  resolveCountryIdForBrowser,
+  type ApiUiBlock,
+} from "@/lib/api-client";
 
 export function FloatingPromo() {
   const [block, setBlock] = useState<ApiUiBlock | null>(null);
@@ -11,7 +15,11 @@ export function FloatingPromo() {
   useEffect(() => {
     async function fetchBlock() {
       try {
-        const blocks = await getUiBlocks({ key: "floating_promo" });
+        const countryId = await resolveCountryIdForBrowser();
+        const blocks = await getUiBlocks({
+          key: "floating_promo",
+          country_id: countryId,
+        });
         if (blocks.length > 0) {
           setBlock(blocks[0]);
         }

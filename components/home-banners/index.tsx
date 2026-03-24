@@ -4,7 +4,7 @@ import { BannerCarousel } from "./banner-carousel";
 import { SideBanners } from "./side-banners";
 import { FeatureIcons } from "./feature-icons";
 import { useEffect, useState } from "react";
-import { getUiBlocks, type ApiUiBlock } from "@/lib/api-client";
+import { getUiBlocks, resolveCountryIdForBrowser } from "@/lib/api-client";
 import type { BannerItem, FeatureIcon } from "./data";
 import { WobbleLoader } from "@/components/common/wobble-loader";
 
@@ -17,10 +17,11 @@ export function HomeBanners() {
   useEffect(() => {
     async function fetchBanners() {
       try {
+        const countryId = await resolveCountryIdForBrowser();
         const [mainBlocks, sideBlocks, iconBlocks] = await Promise.all([
-          getUiBlocks({ key: "home_banner_main" }),
-          getUiBlocks({ key: "home_banner_side" }),
-          getUiBlocks({ key: "home_feature_icon" }),
+          getUiBlocks({ key: "home_banner_main", country_id: countryId }),
+          getUiBlocks({ key: "home_banner_side", country_id: countryId }),
+          getUiBlocks({ key: "home_feature_icon", country_id: countryId }),
         ]);
 
         setMainBanners(
@@ -43,7 +44,7 @@ export function HomeBanners() {
           iconBlocks.map((b) => ({
             href: b.href,
             iconUrl: b.imageSrc || "",
-            label: b.label || "",
+            label: (b.label || b.title || "").trim(),
           }))
         );
       } catch (error) {

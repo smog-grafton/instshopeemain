@@ -1131,6 +1131,49 @@ export async function getVouchers(category?: string): Promise<{ vouchers: any[];
   return apiFetch<{ vouchers: any[]; tabs: any[] }>(`/vouchers${query ? `?${query}` : ""}`, {}, true);
 }
 
+/**
+ * Map middleware country code to Laravel country id for ui-blocks and similar APIs.
+ * DEFAULT (local dev) resolves to MY when present, else first active country.
+ */
+export async function resolveCountryIdFromCode(
+  countryCode: string
+): Promise<number | undefined> {
+  try {
+    const { countries } = await apiFetch<{
+      countries: Array<{ id: number; code: string }>;
+    }>("/countries");
+    if (!countries?.length) return undefined;
+    const normalized = countryCode === "DEFAULT" ? "MY" : countryCode;
+    return (
+      countries.find((c) => c.code === normalized)?.id ?? countries[0]?.id
+    );
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Client components: map `window.location.host` via NEXT_PUBLIC_DOMAIN_COUNTRY_MAP
+ * then resolve Laravel `country_id`. Prevents duplicate ui-blocks when multiple
+ * countries are seeded (same key without country filter returns every row).
+ */
+export async function resolveCountryIdForBrowser(): Promise<
+  number | undefined
+> {
+  if (typeof window === "undefined") return undefined;
+  let code = "DEFAULT";
+  try {
+    const raw = process.env.NEXT_PUBLIC_DOMAIN_COUNTRY_MAP;
+    if (raw) {
+      const map = JSON.parse(raw) as Record<string, string>;
+      code = map[window.location.host] || "DEFAULT";
+    }
+  } catch {
+    /* ignore */
+  }
+  return resolveCountryIdFromCode(code);
+}
+
 // UI Blocks types and functions
 export interface ApiUiBlock {
   id: number;
@@ -1163,6 +1206,53 @@ export async function getUiBlocksSafe(params?: {
 }): Promise<ApiUiBlock[]> {
   try {
     return await getUiBlocks(params);
+  } catch {
+    return [];
+  }
+}
+
+/** New User Zone — /m/welcome-series (image promos + interactive voucher cards) */
+export interface ApiWelcomePerkCard {
+  leftTitle: string | null;
+  discountText: string | null;
+  minSpendText: string | null;
+  pillText: string | null;
+  validityText: string | null;
+  termsUrl: string | null;
+  topBadgeText: string | null;
+  logoUrl: string | null;
+  ctaLabel: string;
+  ctaUrl: string | null;
+}
+
+export interface ApiWelcomePerk {
+  id: number;
+  kind: "image_banner" | "interactive";
+  sortOrder: number;
+  linkUrl: string | null;
+  bannerImageUrl?: string | null;
+  card?: ApiWelcomePerkCard | null;
+}
+
+export async function getWelcomePerks(params?: {
+  country_id?: number;
+}): Promise<ApiWelcomePerk[]> {
+  const searchParams = new URLSearchParams();
+  if (params?.country_id) {
+    searchParams.set("country_id", String(params.country_id));
+  }
+  const query = searchParams.toString();
+  const response = await apiFetch<{ perks: ApiWelcomePerk[] }>(
+    `/welcome-perks${query ? `?${query}` : ""}`
+  );
+  return response.perks;
+}
+
+export async function getWelcomePerksSafe(params?: {
+  country_id?: number;
+}): Promise<ApiWelcomePerk[]> {
+  try {
+    return await getWelcomePerks(params);
   } catch {
     return [];
   }

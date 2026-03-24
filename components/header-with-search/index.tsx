@@ -5,7 +5,11 @@ import { SearchBar } from "./search-bar";
 import { SearchSuggestions } from "./search-suggestions";
 import { CartButtonWithDropdown } from "./cart-button-with-dropdown";
 import { useEffect, useState } from "react";
-import { getUiBlocksSafe, getTrendingSearches, type ApiUiBlock } from "@/lib/api-client";
+import {
+  getUiBlocksSafe,
+  getTrendingSearches,
+  resolveCountryIdForBrowser,
+} from "@/lib/api-client";
 import type { SearchSuggestion } from "./data";
 
 const DEFAULT_PLACEHOLDER = "Daily 25% Off Voucher only with ShopeeVIP👑! Subscribe Now 👉";
@@ -31,7 +35,11 @@ export function HeaderWithSearch() {
           }));
 
         // Fetch search suggestions from UI blocks (also filter external URLs)
-        const blocks = await getUiBlocksSafe({ key: "search_suggestion" });
+        const countryId = await resolveCountryIdForBrowser();
+        const blocks = await getUiBlocksSafe({
+          key: "search_suggestion",
+          country_id: countryId,
+        });
         const blockSuggestions: SearchSuggestion[] = blocks
           .filter((b) => {
             // Only include internal URLs
@@ -47,7 +55,10 @@ export function HeaderWithSearch() {
         setSuggestions([...trendingSuggestions, ...blockSuggestions]);
         
         // Fetch search placeholder from a dedicated UI block
-        const placeholderBlocks = await getUiBlocksSafe({ key: "search_placeholder" });
+        const placeholderBlocks = await getUiBlocksSafe({
+          key: "search_placeholder",
+          country_id: countryId,
+        });
         if (placeholderBlocks.length > 0) {
           const placeholderBlock = placeholderBlocks[0];
           if (placeholderBlock.title || placeholderBlock.subtitle) {

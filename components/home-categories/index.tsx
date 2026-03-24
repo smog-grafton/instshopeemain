@@ -3,7 +3,11 @@
 import { CategoryItem } from "./category-item";
 import { CategoryNavButtons } from "./category-nav-buttons";
 import { useRef, useState, useEffect } from "react";
-import { getUiBlocks, type ApiUiBlock } from "@/lib/api-client";
+import {
+  getUiBlocks,
+  resolveCountryIdForBrowser,
+  type ApiUiBlock,
+} from "@/lib/api-client";
 import type { CategoryItem as CategoryItemType } from "./data";
 import { WobbleLoader } from "@/components/common/wobble-loader";
 
@@ -27,7 +31,11 @@ export function HomeCategories() {
     async function fetchCategories() {
       try {
         setLoading(true);
-        const blocks = await getUiBlocks({ key: 'home_categories' });
+        const countryId = await resolveCountryIdForBrowser();
+        const blocks = await getUiBlocks({
+          key: "home_categories",
+          country_id: countryId,
+        });
         
         // Transform API blocks to CategoryItem format
         const transformedCategories: CategoryItemType[] = blocks.map((block) => {
