@@ -1243,7 +1243,8 @@ export async function getWelcomePerks(params?: {
   }
   const query = searchParams.toString();
   const response = await apiFetch<{ perks: ApiWelcomePerk[] }>(
-    `/welcome-perks${query ? `?${query}` : ""}`
+    `/welcome-perks${query ? `?${query}` : ""}`,
+    { cache: "no-store" }
   );
   return response.perks;
 }
