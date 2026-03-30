@@ -4,7 +4,7 @@ import { CategoryItem } from "./category-item";
 import { CategoryNavButtons } from "./category-nav-buttons";
 import { useRef, useState, useEffect } from "react";
 import {
-  getUiBlocks,
+  getCategories,
   resolveCountryIdForBrowser,
 } from "@/lib/api-client";
 import type { CategoryItem as CategoryItemType } from "./data";
@@ -25,35 +25,29 @@ export function HomeCategories() {
   };
 
   useEffect(() => {
-    // Fetch categories from backend
     async function fetchCategories() {
       try {
         setLoading(true);
         const countryId = await resolveCountryIdForBrowser();
-        const blocks = await getUiBlocks({
-          key: "home_categories",
+        const response = await getCategories({
+          parent_id: null,
           country_id: countryId,
         });
-        
-        // Transform API blocks to CategoryItem format
-        const transformedCategories: CategoryItemType[] = blocks.map((block) => {
-          // Use categorySlug from API, or extract from href, or generate from label
-          const slug = block.categorySlug || 
-            (block.href.match(/\/m\/([^/]+)/)?.[1]) || 
-            (block.label?.toLowerCase().replace(/\s+/g, '-') || '');
-          
+        const transformedCategories: CategoryItemType[] = response.categories.map((category) => {
+          const fallbackHref = `/${category.slug}-cat.${category.id}`;
+
           return {
-            slug,
-            href: block.href || `/m/${slug}`,
-            imageSrc: block.imageSrc || '/images/home/categories/home/default.webp',
-            webpSrc: block.imageSrc || undefined,
-            label: block.label || block.title || '',
+            slug: category.slug,
+            href: category.url || fallbackHref,
+            imageSrc: category.imagePath || "/images/home/categories/home/default.webp",
+            webpSrc: category.imagePath || undefined,
+            label: category.name,
           };
         });
+
         setCategories(transformedCategories);
       } catch (error) {
-        console.error('Failed to fetch categories:', error);
-        // Fallback to empty array or mock data if needed
+        console.error("Failed to fetch categories:", error);
         setCategories([]);
       } finally {
         setLoading(false);

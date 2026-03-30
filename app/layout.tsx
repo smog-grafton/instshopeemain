@@ -9,6 +9,11 @@ export const metadata: Metadata = {
     template: "%s | Shopee",
   },
   description: "Multi-country e-commerce platform",
+  icons: {
+    icon: "/favicon.ico",
+    shortcut: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 };
 
 export default function RootLayout({
