@@ -17,6 +17,8 @@ export interface ProductRecord {
   categorySlug: string;
   price: number;
   originalPrice?: number;
+  /** From API (e.g. $, RM) */
+  currencySymbol?: string;
   imageSrc: string;
   soldCount: number;
   rating: number;

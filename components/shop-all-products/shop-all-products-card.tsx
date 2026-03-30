@@ -46,6 +46,7 @@ export function ShopAllProductsCard({ item }: ShopAllProductsCardProps) {
     storeName,
     rating,
     textBadges,
+    currencySymbol = "RM",
   } = item;
 
   const hasCod = textBadges?.includes("cod") ?? false;
@@ -56,7 +57,7 @@ export function ShopAllProductsCard({ item }: ShopAllProductsCardProps) {
 
   return (
     <div className="min-w-0 h-full">
-      <div className="relative h-full border border-black/[0.09] rounded-sm overflow-hidden bg-white transition-[border-color] duration-100">
+      <div className="relative h-full overflow-hidden rounded-sm border border-black/[0.09] bg-white transition-[border-color] duration-100">
         <Link
           href={productHref}
           className="contents text-black/80 no-underline cursor-pointer"
@@ -69,11 +70,11 @@ export function ShopAllProductsCard({ item }: ShopAllProductsCardProps) {
                 alt={title}
                 fill
                 className="absolute inset-0 block object-contain"
-                sizes="(max-width: 1200px) 20vw, 200px"
+                sizes="(max-width: 767px) 50vw, (max-width: 1279px) 33vw, 20vw"
                 unoptimized
               />
               {/* Store name bar overlay at top of image */}
-              <div className="absolute left-0 top-0 z-10 w-full px-2 py-1.5 text-xs text-black/54 bg-white/90">
+              <div className="absolute left-0 top-0 z-10 w-full bg-white/90 px-2 py-1.5 text-[10px] text-black/54 sm:text-xs">
                 {storeName} | Official Store
               </div>
               {/* Discount % top-right */}
@@ -86,7 +87,7 @@ export function ShopAllProductsCard({ item }: ShopAllProductsCardProps) {
 
             {/* Mall | Fulfilled badge below image — prominent size */}
             {showMallFulfilled && (
-              <div className="flex-shrink-0 px-2 pt-1.5 min-h-[32px] flex items-center">
+              <div className="flex min-h-[32px] flex-shrink-0 items-center px-2 pt-1.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={MALL_FULFILLED_IMAGE}
@@ -97,15 +98,15 @@ export function ShopAllProductsCard({ item }: ShopAllProductsCardProps) {
             )}
 
             {/* Content: title, price, coupon bars, rating + sold + flag */}
-            <div className="flex flex-1 flex-col justify-between p-2 min-h-0">
-              <div className="mb-1 flex flex-1 flex-col justify-between min-h-0">
+            <div className="flex min-h-0 flex-1 flex-col justify-between p-2 sm:p-3">
+              <div className="mb-1 flex min-h-0 flex-1 flex-col justify-between">
                 <div className="line-clamp-2 text-sm leading-5 text-black/87 overflow-hidden break-words [-webkit-line-clamp:2] [-webkit-box-orient:vertical] [display:-webkit-box]">
                   {title}
                 </div>
                 <div className="mt-1 flex items-center gap-1">
                   <div className="flex shrink-0 max-w-full items-center overflow-hidden font-medium text-[#ee4d2d]">
                     <span className="mr-px text-xs font-medium leading-[14px]">
-                      RM
+                      {currencySymbol}
                     </span>
                     <span className="text-base font-medium leading-5">
                       {price.toFixed(2)}
@@ -137,7 +138,7 @@ export function ShopAllProductsCard({ item }: ShopAllProductsCardProps) {
               )}
 
               {/* Rating + sold + country icon */}
-              <div className="flex max-w-full items-center justify-between mt-1">
+              <div className="mt-1 flex max-w-full items-center justify-between">
                 <div className="flex min-w-0 items-center gap-1">
                   <div
                     className="flex h-[18px] shrink-0 items-center rounded px-1"

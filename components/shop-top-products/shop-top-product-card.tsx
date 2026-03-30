@@ -57,6 +57,7 @@ export function ShopTopProductCard({ item }: ShopTopProductCardProps) {
     rank,
     promotionLabel,
     textBadges,
+    currencySymbol = "RM",
   } = item;
 
   const hasCod = textBadges?.includes("cod") ?? false;
@@ -67,15 +68,12 @@ export function ShopTopProductCard({ item }: ShopTopProductCardProps) {
 
   return (
     <div className="h-full">
-      <div
-        className="relative rounded-md border border-black/[0.09] transition-[border-color] duration-100"
-        style={{ height: "307.656px" }}
-      >
+      <div className="relative h-full min-h-[280px] rounded-sm border border-black/[0.09] transition-[border-color] duration-100">
         <Link
           href={productHref}
           className="contents text-black/80 no-underline cursor-pointer bg-transparent border-0"
         >
-          <div className="flex h-[305.656px] cursor-pointer flex-col overflow-hidden rounded-md bg-white">
+          <div className="flex h-full min-h-[278px] cursor-pointer flex-col overflow-hidden rounded-sm bg-white">
             {/* Image area with TOP badge */}
             <div className="relative w-full flex-shrink-0" style={{ paddingTop: "100%" }}>
               <Image
@@ -83,7 +81,7 @@ export function ShopTopProductCard({ item }: ShopTopProductCardProps) {
                 alt={title}
                 fill
                 className="absolute inset-0 block object-contain"
-                sizes="(max-width: 1200px) 16.666vw, 200px"
+                sizes="(max-width: 639px) 50vw, (max-width: 1279px) 33vw, 16.666vw"
                 unoptimized
               />
               <div className="absolute right-0 bottom-0 z-[30] flex pr-1 pb-1">
@@ -95,7 +93,7 @@ export function ShopTopProductCard({ item }: ShopTopProductCardProps) {
             {/* Content: store, title, badges, price, sold */}
             <div className="flex flex-1 flex-col justify-between p-2">
               <div className="mb-2 flex flex-col justify-between">
-                <div className="text-[10px] text-black/54 overflow-hidden text-ellipsis whitespace-nowrap mb-0.5">
+                <div className="mb-0.5 overflow-hidden text-ellipsis whitespace-nowrap text-[10px] text-black/54">
                   {storeName} | Official Store
                 </div>
                 <div className="min-h-10 overflow-hidden text-sm leading-5 line-clamp-2">
@@ -144,18 +142,18 @@ export function ShopTopProductCard({ item }: ShopTopProductCardProps) {
                 </div>
               </div>
               <div className="flex flex-col justify-between">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex max-w-full shrink-0 items-center overflow-hidden text-ellipsis whitespace-nowrap font-medium text-[#ee4d2d]">
                     <span className="flex items-baseline overflow-hidden text-ellipsis whitespace-nowrap">
                       <span className="mr-px text-xs font-medium leading-[14px]">
-                        RM
+                        {currencySymbol}
                       </span>
                       <span className="text-base font-medium leading-5">
                         {price.toFixed(2)}
                       </span>
                     </span>
                   </div>
-                  <div className="ml-1 shrink grow-0 overflow-hidden text-ellipsis whitespace-nowrap text-xs leading-4 text-black/87">
+                  <div className="shrink grow-0 overflow-hidden text-ellipsis whitespace-nowrap text-xs leading-4 text-black/87 sm:ml-1">
                     {formatSold(soldCount)} Sold/Month
                   </div>
                 </div>

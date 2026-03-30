@@ -81,12 +81,12 @@ export function VoucherWallet() {
   ];
 
   return (
-    <div className="text-sm leading-tight text-black/80 bg-white grow overflow-x-hidden overflow-y-hidden shadow-sm px-8 py-6 rounded-sm w-[980px] ml-7 min-h-[400px]">
+    <div className="min-w-0 w-full rounded-sm bg-white px-4 py-5 text-sm leading-tight text-black/80 shadow-sm sm:px-6 lg:ml-7 lg:w-[980px] lg:px-8 lg:py-6">
       {loading ? (
         <VoucherWalletSkeleton />
       ) : (
         <>
-          <VoucherWalletHeader />
+          <VoucherWalletHeader totalCount={vouchers.length} />
           <AddVoucherForm />
           <VoucherTabs
             tabs={displayTabs}

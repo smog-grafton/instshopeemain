@@ -67,14 +67,14 @@ export function AddressList({ addresses, onRefresh }: AddressListProps) {
 
   return (
     <>
-      <div className="px-8 py-6">
+      <div className="px-4 py-6 sm:px-6 lg:px-8">
         {addresses.map((address) => (
           <div
             key={address.id}
-            className="border border-black/10 rounded-[3px] p-4 mb-4 flex items-start gap-4"
+            className="mb-4 flex flex-col gap-3 rounded-[3px] border border-black/10 p-4 sm:flex-row sm:items-start sm:justify-between"
           >
             <div className="flex-1">
-              <div className="flex items-center text-[14px] font-medium text-black/87 mb-2">
+              <div className="mb-2 flex flex-wrap items-center gap-y-1 text-[14px] font-medium text-black/87">
                 <span>{address.fullName}</span>
                 <span className="mx-2 text-black/20">|</span>
                 <span className="text-black/80">{formatPhone(address.phoneNumber)}</span>
@@ -88,7 +88,7 @@ export function AddressList({ addresses, onRefresh }: AddressListProps) {
                 {formatAddressLine(address)}
               </div>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-3 self-start sm:ml-4">
               <button
                 type="button"
                 className="text-[13px] text-[#0055aa] cursor-pointer border-0 bg-transparent p-0"

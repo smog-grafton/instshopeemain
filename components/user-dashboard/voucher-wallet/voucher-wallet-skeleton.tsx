@@ -6,30 +6,32 @@
  */
 export function VoucherWalletSkeleton() {
   return (
-    <div className="text-sm leading-tight text-black/80 bg-white grow overflow-x-hidden overflow-y-hidden shadow-sm px-8 py-6 rounded-sm w-[980px] ml-7 min-h-[400px] animate-pulse">
-      <div className="flex justify-between items-center mb-6">
-        <div className="h-6 w-40 bg-zinc-200 rounded" />
-        <div className="flex gap-4">
-          <div className="h-4 w-28 bg-zinc-100 rounded" />
-          <div className="h-4 w-32 bg-zinc-100 rounded" />
-          <div className="h-4 w-20 bg-zinc-100 rounded" />
+    <div className="animate-pulse text-sm leading-tight text-black/80">
+      <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <div className="h-7 w-44 rounded bg-zinc-200" />
+          <div className="mt-3 h-4 w-72 max-w-full rounded bg-zinc-100" />
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <div className="h-10 w-36 rounded-full bg-zinc-200" />
+          <div className="h-10 w-32 rounded-full bg-zinc-100" />
+          <div className="h-10 w-28 rounded-full bg-zinc-100" />
         </div>
       </div>
-      <div className="flex items-center gap-4 mt-5 px-11 py-7 bg-black/5 rounded">
-        <div className="h-4 w-24 bg-zinc-200 rounded" />
-        <div className="h-11 flex-1 max-w-md bg-zinc-100 rounded" />
-        <div className="h-11 w-24 bg-zinc-200 rounded" />
+      <div className="rounded-3xl bg-zinc-50 p-4 sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="h-14 flex-1 rounded-2xl bg-zinc-100" />
+          <div className="h-11 w-full rounded-full bg-zinc-200 sm:w-28" />
+        </div>
       </div>
-      <div className="flex gap-2 mt-6">
+      <div className="mt-6 flex gap-2 overflow-hidden">
         {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="h-8 w-14 bg-zinc-100 rounded" />
+          <div key={i} className="h-10 w-28 shrink-0 rounded-full bg-zinc-100" />
         ))}
       </div>
-      <div className="flex flex-wrap gap-5 mt-4">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <div key={i} className="w-1/2 pr-2.5">
-            <div className="h-28 bg-zinc-100 rounded" />
-          </div>
+      <div className="mt-5 grid gap-4 md:grid-cols-2">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="h-52 rounded-3xl bg-zinc-100" />
         ))}
       </div>
     </div>

@@ -8,6 +8,7 @@ import type { CollectionProductItem } from "@/components/shop-root-booster-line/
 
 interface ShopNewRootTreatmentSectionProps {
   shopSlug: string;
+  shopName?: string;
 }
 
 function transformApiProduct(p: ApiProduct, shopName: string): CollectionProductItem {
@@ -25,6 +26,7 @@ function transformApiProduct(p: ApiProduct, shopName: string): CollectionProduct
     promotionLabel: p.promotionLabel ?? undefined,
     textBadges: p.textBadges,
     imageBadges: p.imageBadges,
+    currencySymbol: p.currencySymbol ?? "RM",
     storeName: shopName,
   };
 }
@@ -35,6 +37,7 @@ function transformApiProduct(p: ApiProduct, shopName: string): CollectionProduct
  */
 export function ShopNewRootTreatmentSection({
   shopSlug,
+  shopName,
 }: ShopNewRootTreatmentSectionProps) {
   const [products, setProducts] = useState<CollectionProductItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,9 +51,9 @@ export function ShopNewRootTreatmentSection({
           shopCollection: "249763764", // NEW ROOT TREATMENT collection ID from mock data
           limit: 12,
         });
-        // Transform API products to component format
-        // Note: We don't have shop name here, so we'll use shopSlug as fallback
-        const transformed = response.products.map((p) => transformApiProduct(p, shopSlug));
+        const transformed = response.products.map((p) =>
+          transformApiProduct(p, p.shopName || shopName || shopSlug)
+        );
         setProducts(transformed);
       } catch (error) {
         console.error("Failed to fetch new root treatment products:", error);
@@ -59,7 +62,7 @@ export function ShopNewRootTreatmentSection({
       }
     }
     fetchProducts();
-  }, [shopSlug]);
+  }, [shopName, shopSlug]);
 
   if (loading) {
     return (

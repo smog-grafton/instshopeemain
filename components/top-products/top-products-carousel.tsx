@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import type { TopProduct } from "./data";
 import { getTopProductImageSrc } from "./data";
+import { isBackendImage } from "@/lib/utils";
 
 const CARD_WIDTH_PX = 208;
 
@@ -17,12 +18,11 @@ function TopProductCard({ product }: { product: TopProduct }) {
 
   return (
     <li
-      className="touch-pan-y flex-shrink-0 snap-start overflow-hidden"
-      style={{ width: CARD_WIDTH_PX }}
+      className="touch-pan-y w-[10.75rem] flex-shrink-0 snap-start overflow-hidden sm:w-[13rem]"
     >
       <Link
         href={product.href}
-        className="no-underline px-2.5 py-5 block active:outline-0 hover:outline-0 focus-visible:outline-2 focus-visible:outline-black/87 focus-visible:outline-offset-[-2px] w-full"
+        className="block w-full px-2.5 py-4 no-underline active:outline-0 hover:outline-0 focus-visible:outline-2 focus-visible:outline-black/87 focus-visible:outline-offset-[-2px] sm:py-5"
       >
         {/* Image block: full width, square aspect, with TOP badge and sales bar */}
         <div className="relative w-full block">
@@ -41,15 +41,15 @@ function TopProductCard({ product }: { product: TopProduct }) {
               alt={product.name}
               fill
               className="object-contain transition-opacity duration-200"
-              sizes="208px"
-              unoptimized
+              sizes="(max-width: 640px) 172px, 208px"
+              unoptimized={isBackendImage(src)}
             />
           </div>
           <div className="text-white text-center w-full h-6 font-medium leading-6 absolute left-0 bottom-0 bg-black/26 flex items-center justify-center text-sm">
             Monthly Sales {product.monthlySales}
           </div>
         </div>
-        <div className="text-ellipsis text-neutral-600 text-left capitalize text-base font-medium leading-6 mt-5 line-clamp-2 min-h-[3rem]">
+        <div className="mt-4 min-h-[2.7rem] line-clamp-2 text-left text-[0.92rem] font-medium capitalize leading-5 text-neutral-600 sm:mt-5 sm:min-h-[3rem] sm:text-base sm:leading-6">
           {product.name}
         </div>
       </Link>
@@ -91,13 +91,13 @@ export function TopProductsCarousel({ products }: TopProductsCarouselProps) {
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -CARD_WIDTH_PX * 2, behavior: "smooth" });
+      scrollContainerRef.current.scrollBy({ left: -Math.max(scrollContainerRef.current.clientWidth * 0.8, CARD_WIDTH_PX), behavior: "smooth" });
     }
   };
 
   const scrollRight = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: CARD_WIDTH_PX * 2, behavior: "smooth" });
+      scrollContainerRef.current.scrollBy({ left: Math.max(scrollContainerRef.current.clientWidth * 0.8, CARD_WIDTH_PX), behavior: "smooth" });
     }
   };
 
@@ -129,10 +129,7 @@ export function TopProductsCarousel({ products }: TopProductsCarouselProps) {
           onScroll={handleScroll}
           className="touch-pan-y overflow-x-auto overflow-y-hidden min-h-[300px] w-full snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
-          <ul
-            className="flex flex-nowrap items-start list-none m-0 p-0 gap-0"
-            style={{ width: products.length * CARD_WIDTH_PX }}
-          >
+          <ul className="m-0 flex w-max list-none flex-nowrap items-start gap-0 p-0">
             {products.map((product) => (
               <TopProductCard key={product.id} product={product} />
             ))}

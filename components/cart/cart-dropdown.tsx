@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "./cart-context";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, isBackendImage } from "@/lib/utils";
 
 interface CartDropdownProps {
   isOpen: boolean;
@@ -24,24 +24,23 @@ export function CartDropdown({
     <div
       role="tooltip"
       aria-hidden="false"
-      className="absolute top-[46px] right-0 z-[400] opacity-100 border border-black/9 will-change-transform"
+      className="absolute right-0 top-full z-[400] mt-2 border border-black/9 opacity-100 will-change-transform"
       style={{
-        transformOrigin: "376px 0px",
         animation: "0.2s cubic-bezier(0.4, 0, 0.6, 1) popover-enter-animation",
       }}
     >
       {/* Arrow */}
       <div
-        className="absolute top-px left-[376px] z-[3] will-change-transform"
+        className="absolute right-4 top-0 z-[3] will-change-transform"
         style={{
-          transform: "matrix(1, 0, 0, 1, -7, -10)",
+          transform: "translateY(-10px)",
           borderBottom: "10px solid rgba(0, 0, 0, 0.09)",
           borderLeft: "0 solid transparent",
           borderRight: "0 solid transparent",
         }}
       >
         <div
-          className="absolute w-0 h-0 left-[-8px] bottom-[-10px]"
+          className="absolute bottom-[-10px] left-[-8px] h-0 w-0"
           style={{
             borderBottom: "10px solid rgb(255, 255, 255)",
             borderLeft: "14px solid transparent",
@@ -52,7 +51,7 @@ export function CartDropdown({
 
       <div
         tabIndex={0}
-        className="bg-white rounded-[2px] overflow-hidden w-[25rem] shadow-[rgba(0,0,0,0.2)_0px_1px_50px_0px]"
+        className="w-[25rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-[2px] bg-white shadow-[rgba(0,0,0,0.2)_0px_1px_50px_0px]"
       >
         <h3 className="font-normal text-sm m-0 flex items-center text-black/26 h-10 pl-2.5 capitalize">
           Recently Added Products
@@ -69,13 +68,22 @@ export function CartDropdown({
               className="box-border flex p-2.5 w-full relative"
             >
               <div className="border border-black/9 shrink-0 h-10 w-10 object-cover overflow-hidden relative">
-                <Image
-                  src={item.imageSrc}
-                  alt={item.title}
-                  width={40}
-                  height={40}
-                  className="object-cover w-10 h-10"
-                />
+                {isBackendImage(item.imageSrc) ? (
+                  <img
+                    src={item.imageSrc}
+                    alt={item.title}
+                    className="h-10 w-10 object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <Image
+                    src={item.imageSrc}
+                    alt={item.title}
+                    width={40}
+                    height={40}
+                    className="object-cover w-10 h-10"
+                  />
+                )}
               </div>
               <div className="flex-1 min-w-0 ml-2.5 overflow-hidden">
                 <div className="flex items-center">

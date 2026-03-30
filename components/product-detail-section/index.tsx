@@ -14,14 +14,46 @@ import { ProductVariants } from "./product-variants";
 import { ProductQuantity } from "./product-quantity";
 import { ProductActions } from "./product-actions";
 import { useCart } from "@/components/cart";
-import { defaultProductDetailData, type ProductDetailSectionData } from "./data";
+import type { ProductDetailSectionData } from "./data";
 
 interface ProductDetailSectionProps {
   data?: Partial<ProductDetailSectionData>;
 }
 
 export function ProductDetailSection({ data: dataOverride }: ProductDetailSectionProps) {
-  const data = { ...defaultProductDetailData, ...dataOverride };
+  const data: ProductDetailSectionData = {
+    title: dataOverride?.title ?? "",
+    rating: dataOverride?.rating ?? 0,
+    ratingsCount: dataOverride?.ratingsCount ?? 0,
+    sold: dataOverride?.sold ?? "0",
+    priceMin: dataOverride?.priceMin ?? "",
+    priceMax: dataOverride?.priceMax ?? "",
+    originalMin: dataOverride?.originalMin ?? "",
+    originalMax: dataOverride?.originalMax ?? "",
+    discountPercent: dataOverride?.discountPercent ?? 0,
+    priceTeaserText: dataOverride?.priceTeaserText ?? "",
+    shopVoucherBadges: dataOverride?.shopVoucherBadges ?? [],
+    shopVoucherList: dataOverride?.shopVoucherList ?? [],
+    shippingText: dataOverride?.shippingText ?? "Shipping details available at checkout",
+    shippingSubtext:
+      dataOverride?.shippingSubtext ?? "Delivery timelines vary by seller handling time and destination.",
+    guaranteeText: dataOverride?.guaranteeText ?? "Seller-backed after-sales support available",
+    favoriteCount: dataOverride?.favoriteCount ?? 0,
+    colors: dataOverride?.colors ?? [],
+    sizes: dataOverride?.sizes ?? [],
+    quantity: dataOverride?.quantity ?? 1,
+    inStock: dataOverride?.inStock ?? false,
+    slug: dataOverride?.slug,
+    imageSrc: dataOverride?.imageSrc,
+    price: dataOverride?.price,
+    shopId: dataOverride?.shopId,
+    shopName: dataOverride?.shopName,
+    shopSlug: dataOverride?.shopSlug,
+    images: dataOverride?.images ?? [],
+    promotionEndsAt: dataOverride?.promotionEndsAt,
+    currencySymbol: dataOverride?.currencySymbol,
+    catalogShippingFee: dataOverride?.catalogShippingFee,
+  };
   const router = useRouter();
   const { addItem } = useCart();
 
@@ -64,6 +96,7 @@ export function ProductDetailSection({ data: dataOverride }: ProductDetailSectio
         shopName: data.shopName,
         shopSlug: data.shopSlug,
         currencySymbol: data.currencySymbol,
+        catalogShippingFee: data.catalogShippingFee && data.catalogShippingFee > 0 ? data.catalogShippingFee : undefined,
       });
       setShowToast(true);
       if (thenNavigate) router.push(data.slug ? `/checkout?from=buynow&slug=${encodeURIComponent(data.slug)}` : "/checkout?from=cart");
@@ -80,6 +113,7 @@ export function ProductDetailSection({ data: dataOverride }: ProductDetailSectio
       quantity,
       addItem,
       router,
+      data.catalogShippingFee,
     ]
   );
 
@@ -94,17 +128,17 @@ export function ProductDetailSection({ data: dataOverride }: ProductDetailSectio
 
   return (
     <>
-      <section className="bg-white shadow-sm rounded-[3px] flex mt-5 relative">
-        <section className="shrink-0 w-96 p-4">
+      <section className="relative mt-4 overflow-hidden rounded-sm bg-white shadow-sm lg:mt-5 lg:grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
+        <section className="shrink-0 p-3 sm:p-4 lg:border-r lg:border-gray-100">
           <ProductGallery productTitle={data.title} images={data.images} />
-          <ProductShareFavorite 
-            productSlug={data.slug || ''} 
+          <ProductShareFavorite
+            productSlug={data.slug || ""}
             favoriteCount={data.favoriteCount} 
             productTitle={data.title}
           />
         </section>
-        <section className="flex flex-[auto] grow shrink-0 w-0">
-          <div className="flex-col flex-[auto] w-full pl-5 pr-9 pt-5">
+        <section className="min-w-0">
+          <div className="flex h-full flex-col px-4 pb-5 pt-4 sm:px-5 lg:px-6 lg:pb-6 lg:pt-5">
             <ProductTitleRating
               title={data.title}
               rating={data.rating}
@@ -126,7 +160,7 @@ export function ProductDetailSection({ data: dataOverride }: ProductDetailSectio
               priceTeaserText={data.priceTeaserText}
               hideTeaserLine
             />
-            <div className="mt-6 px-5">
+            <div className="mt-5 sm:mt-6">
               <div className="flex flex-col">
                 <ShopVouchers
                   badgeLabels={data.shopVoucherBadges}

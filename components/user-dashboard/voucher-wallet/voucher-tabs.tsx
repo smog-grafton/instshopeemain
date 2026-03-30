@@ -47,106 +47,72 @@ export function VoucherTabs({ tabs, moreTabs = [], activeTab, onTabChange }: Vou
   }, []);
 
   return (
-    <div className="z-[1] relative">
-      <div className="mt-3.5 mb-3">
-        <nav className="z-[999] w-full sticky bg-white h-12 top-0">
-          <ul className="flex border-b border-solid h-12 border-b-zinc-100">
+    <div className="relative z-[1]">
+      <div className="mb-1 mt-4">
+        <nav className="-mx-4 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+          <ul className="flex min-w-max items-center gap-2 border-b border-zinc-100 pb-3">
             {tabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
-                <li
-                  key={tab.id}
-                  className="select-none cursor-pointer justify-center items-center flex grow shrink-0 text-base relative"
-                  onClick={() => onTabChange(tab.id)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      onTabChange(tab.id);
-                    }
-                  }}
-                  role="tab"
-                  aria-selected={isActive}
-                  tabIndex={0}
-                >
-                  <div className="grow flex relative h-full">
-                    <div className="grow justify-center items-center flex px-2.5 py-2">
-                      <span className={isActive ? "text-red-500" : "text-neutral-600"}>
-                        {tab.label} ({tab.count})
-                      </span>
-                    </div>
-                    <hr className="box-content h-3 m-0.5 border border-solid border-black/10 w-0 shrink-0" />
-                    {isActive && (
-                      <i
-                        className="bg-red-500 h-0.5 absolute bottom-0 left-1/2 -translate-x-1/2 w-20 block pointer-events-none"
-                        aria-hidden
-                      />
-                    )}
-                  </div>
+                <li key={tab.id}>
+                  <button
+                    type="button"
+                    onClick={() => onTabChange(tab.id)}
+                    className={`inline-flex h-10 items-center justify-center rounded-full px-4 text-sm font-medium transition ${
+                      isActive
+                        ? "bg-red-500 text-white shadow-sm"
+                        : "border border-zinc-200 bg-white text-neutral-600 hover:border-zinc-300 hover:bg-zinc-50"
+                    }`}
+                    role="tab"
+                    aria-selected={isActive}
+                  >
+                    {tab.label} ({tab.count})
+                  </button>
                 </li>
               );
             })}
-            {/* More button */}
-            <li
-              ref={moreButtonRef}
-              className="select-none cursor-pointer justify-center items-center flex grow shrink-0 text-base relative"
-              onClick={() => setIsMoreOpen(!isMoreOpen)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setIsMoreOpen(!isMoreOpen);
-                }
-              }}
-              role="tab"
-              aria-selected={isMoreTabActive}
-              tabIndex={0}
-            >
-              <div className="grow flex relative h-full">
-                <div className="grow justify-center items-center flex px-2.5 py-2">
-                  <span className={isMoreTabActive ? "text-red-500" : "text-neutral-600"}>
-                    More
-                    <ChevronDownIcon />
-                  </span>
-                </div>
-                {isMoreTabActive && (
-                  <i
-                    className="bg-red-500 h-0.5 absolute bottom-0 left-1/2 -translate-x-1/2 w-20 block pointer-events-none"
-                    aria-hidden
-                  />
-                )}
-              </div>
-            </li>
+            {moreTabs.length > 0 && (
+              <li ref={moreButtonRef}>
+                <button
+                  type="button"
+                  onClick={() => setIsMoreOpen((current) => !current)}
+                  className={`inline-flex h-10 items-center justify-center rounded-full px-4 text-sm font-medium transition ${
+                    isMoreTabActive
+                      ? "bg-red-500 text-white shadow-sm"
+                      : "border border-zinc-200 bg-white text-neutral-600 hover:border-zinc-300 hover:bg-zinc-50"
+                  }`}
+                  role="tab"
+                  aria-selected={isMoreTabActive}
+                >
+                  More
+                  <ChevronDownIcon />
+                </button>
+              </li>
+            )}
           </ul>
         </nav>
-        {/* Dropdown */}
         {isMoreOpen && (
           <div
             ref={dropdownRef}
-            className="absolute right-0 mt-1 bg-white border border-gray-200 rounded-sm shadow-lg z-[1000] min-w-[200px]"
+            className="absolute right-0 z-[1000] mt-2 min-w-[220px] rounded-2xl border border-gray-200 bg-white p-2 shadow-lg"
           >
             {moreTabs.map((tab) => {
               const isActive = activeTab === tab.id;
               return (
-                <div
+                <button
+                  type="button"
                   key={tab.id}
-                  className="px-4 py-3 cursor-pointer hover:bg-gray-50 text-sm text-neutral-600 hover:text-black/80"
+                  className="block w-full rounded-xl px-4 py-3 text-left text-sm text-neutral-600 transition hover:bg-gray-50 hover:text-black/80"
                   onClick={() => {
                     onTabChange(tab.id);
                     setIsMoreOpen(false);
                   }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      onTabChange(tab.id);
-                      setIsMoreOpen(false);
-                    }
-                  }}
                   role="menuitem"
-                  tabIndex={0}
                 >
                   <span className={isActive ? "text-red-500 font-medium" : ""}>
                     {tab.label} ({tab.count})
                   </span>
-                </div>
+                </button>
               );
             })}
           </div>

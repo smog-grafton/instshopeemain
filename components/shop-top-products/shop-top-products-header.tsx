@@ -9,7 +9,7 @@ interface ShopTopProductsHeaderProps {
  * Matches inspected styles: grey uppercase title, red See All with chevron.
  */
 export function ShopTopProductsHeader({ shopSlug }: ShopTopProductsHeaderProps) {
-  const seeAllHref = `/shop/${shopSlug}?shopCollection=0#product_list`;
+  const seeAllHref = `/shop/${shopSlug}#product_list`;
 
   return (
     <div

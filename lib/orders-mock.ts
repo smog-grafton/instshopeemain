@@ -16,6 +16,7 @@
 
 export type PaymentMethodKey =
   | "voucher"
+  | "wallet"
   | "online-banking"
   | "card"
   | "cash"

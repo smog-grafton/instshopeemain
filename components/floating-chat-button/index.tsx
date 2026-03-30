@@ -34,7 +34,7 @@ export function FloatingChatButton({ onClick }: FloatingChatButtonProps) {
   return (
     <button
       type="button"
-      className="[font-family:Roboto,Droid_Sans,Arial,sans-serif] fixed right-0 bottom-0 z-[1000] flex cursor-pointer items-center justify-start rounded-tl-md rounded-bl-md bg-white p-3 text-sm leading-tight text-black/80 shadow-sm outline-none hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+      className="[font-family:Roboto,Droid_Sans,Arial,sans-serif] fixed bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] right-0 z-[1000] flex cursor-pointer items-center justify-start rounded-tl-md rounded-bl-md bg-white p-3 text-sm leading-tight text-black/80 shadow-sm outline-none hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 lg:bottom-0"
       aria-label="Chat"
       onClick={onClick}
     >

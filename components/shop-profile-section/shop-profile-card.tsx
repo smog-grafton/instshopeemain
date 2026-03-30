@@ -2,6 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useCallback, useEffect, useState, type MouseEvent } from "react";
+import { useChat } from "@/components/chat-widget/chat-context";
+import { useAuth } from "@/components/auth/auth-context";
+import { followShop, getShopFollowStatus, unfollowShop } from "@/lib/api-client";
 import type { ShopProfileData } from "./data";
 import { shopProfileAssets } from "./data";
 
@@ -37,34 +41,94 @@ function ChatIcon() {
   );
 }
 
+function isRemoteImage(src: string): boolean {
+  return src.startsWith("http://") || src.startsWith("https://");
+}
+
 export function ShopProfileCard({ data }: ShopProfileCardProps) {
+  const { openChat } = useChat();
+  const { isLoggedIn } = useAuth();
+  const [followBusy, setFollowBusy] = useState(false);
+  const [following, setFollowing] = useState<boolean | null>(null);
+
   const profileSrc = data.profileImageUrl || shopProfileAssets.defaultProfileImage;
   const coverSrc = data.coverImageUrl || shopProfileAssets.defaultProfileImage;
   const mallBadgeSrc = shopProfileAssets.defaultMallBadge;
+  /** Backend URLs must bypass the optimizer (remotePatterns) or use unoptimized. */
+  const profileUnoptimized = isRemoteImage(profileSrc);
+
+  const vendorId = Number.parseInt(data.id, 10);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setFollowing(null);
+      return;
+    }
+    getShopFollowStatus(data.slug)
+      .then((r) => setFollowing(r.following))
+      .catch(() => setFollowing(false));
+  }, [data.slug, isLoggedIn]);
+
+  const handleFollow = useCallback(
+    async (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      if (!isLoggedIn) {
+        window.location.href = `/login?next=${encodeURIComponent(`/shop/${data.slug}`)}`;
+        return;
+      }
+      setFollowBusy(true);
+      try {
+        if (following) {
+          await unfollowShop(data.slug);
+          setFollowing(false);
+        } else {
+          await followShop(data.slug);
+          setFollowing(true);
+        }
+      } catch {
+        // network / auth
+      } finally {
+        setFollowBusy(false);
+      }
+    },
+    [data.slug, isLoggedIn, following]
+  );
+
+  const handleChat = useCallback(
+    (e: MouseEvent<HTMLButtonElement>) => {
+      e.preventDefault();
+      openChat({
+        shopName: data.name,
+        shopSlug: data.slug,
+        vendorId: Number.isFinite(vendorId) ? vendorId : undefined,
+      });
+    },
+    [openChat, data.name, data.slug, vendorId]
+  );
 
   return (
-    <div className="relative h-[135px] w-[24.375rem] overflow-hidden rounded-[4px]">
+    <div className="relative min-h-[168px] w-full overflow-hidden rounded-sm lg:h-[135px] lg:w-[24.375rem] lg:shrink-0">
       <div
         className="absolute inset-0 -m-[4px] bg-cover bg-center bg-no-repeat blur-[2px]"
         style={{ backgroundImage: `url(${coverSrc})` }}
       />
       <div className="absolute inset-0 bg-black/60" />
-      <div className="absolute inset-[10px_14px_10px_20px]">
-        <div className="flex">
+      <div className="absolute inset-[12px] sm:inset-[12px_14px] lg:inset-[10px_14px_10px_20px]">
+        <div className="flex items-start">
           <Link
             href={`/shop/${data.slug}`}
-            className="relative block h-20 w-20 shrink-0 cursor-pointer text-transparent no-underline"
+            className="relative block h-[72px] w-[72px] shrink-0 cursor-pointer text-transparent no-underline sm:h-20 sm:w-20"
             aria-label={`${data.name} profile`}
           >
             {/* Profile circle – no overflow on wrapper so badge can overlay outside */}
-            <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-4 border-white/40 bg-[rgb(245,245,245)] cursor-pointer select-none box-border overflow-hidden">
+            <div className="relative flex h-[72px] w-[72px] items-center justify-center overflow-hidden rounded-full border-4 border-white/40 bg-[rgb(245,245,245)] box-border cursor-pointer select-none sm:h-20 sm:w-20">
               <Image
                 src={profileSrc}
                 alt=""
                 width={72}
                 height={72}
                 className="block h-[72px] w-[72px] rounded-full object-cover"
-                unoptimized={profileSrc.startsWith("/") && !profileSrc.startsWith("/images/")}
+                unoptimized={profileUnoptimized}
               />
             </div>
             {/* Shopee Mall badge: centered at bottom of profile circle as overlay */}
@@ -75,34 +139,37 @@ export function ShopProfileCard({ data }: ShopProfileCardProps) {
                   alt="Shopee Mall"
                   width={64}
                   height={16}
-                  className="h-4 w-16 border-0 object-contain drop-shadow-sm"
+                  className="h-[14px] w-14 border-0 object-contain drop-shadow-sm sm:h-4 sm:w-16"
                   unoptimized
                 />
               </div>
             )}
           </Link>
-          <div className="relative ml-2.5 mt-2.5 overflow-hidden text-white">
-            <h1 className="mb-1.5 mt-0 max-h-12 overflow-hidden text-ellipsis break-words text-xl font-medium leading-6 line-clamp-2">
+          <div className="relative ml-3 min-w-0 overflow-hidden pt-1 text-white sm:ml-2.5 sm:mt-2.5">
+            <h1 className="mb-1 mt-0 max-h-12 overflow-hidden text-ellipsis break-words text-lg font-medium leading-5 line-clamp-2 sm:mb-1.5 sm:text-xl sm:leading-6">
               {data.name}
             </h1>
             <div className="text-xs">
               <div className="my-1.5 align-middle text-xs text-white/70">{data.status}</div>
             </div>
-            <div className="relative mt-2.5 flex">
-              <Link href={`/shop/${data.slug}`} className="flex flex-1 cursor-pointer pr-2.5 no-underline">
+            <div className="relative mt-3 flex flex-wrap gap-2 sm:mt-2.5 sm:flex-nowrap sm:gap-0">
+              <div className="flex min-w-[112px] flex-1 sm:pr-2.5">
                 <button
                   type="button"
-                  className="flex h-[25px] w-full flex-1 cursor-pointer items-center justify-center rounded-[2px] border border-white bg-transparent px-0 py-1.5 text-xs font-medium capitalize leading-3 text-white outline-none transition-colors duration-100"
+                  onClick={handleFollow}
+                  disabled={followBusy}
+                  className="flex h-[25px] w-full flex-1 cursor-pointer items-center justify-center rounded-[2px] border border-white bg-transparent px-0 py-1.5 text-xs font-medium capitalize leading-3 text-white outline-none transition-colors duration-100 disabled:opacity-60"
                 >
                   <span className="flex items-center justify-center pr-2.5 text-[15px]">
                     <FollowIcon />
                   </span>
-                  follow
+                  {following ? "following" : "follow"}
                 </button>
-              </Link>
-              <Link href={`/shop/${data.slug}#chat`} className="flex flex-1 cursor-pointer pr-2.5 no-underline">
+              </div>
+              <div className="flex min-w-[112px] flex-1 sm:pr-2.5">
                 <button
                   type="button"
+                  onClick={handleChat}
                   className="flex h-[25px] w-full flex-1 cursor-pointer items-center justify-center rounded-[2px] border border-white bg-transparent px-0 py-1.5 text-xs font-medium capitalize leading-3 text-white outline-none transition-colors duration-100"
                 >
                   <span className="flex items-center justify-center pr-2.5 text-[15px]">
@@ -110,7 +177,7 @@ export function ShopProfileCard({ data }: ShopProfileCardProps) {
                   </span>
                   chat
                 </button>
-              </Link>
+              </div>
             </div>
           </div>
         </div>

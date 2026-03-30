@@ -17,6 +17,15 @@ const laravelApiPattern = (() => {
   }
 })();
 
+/** Local Laravel hosts when NEXT_PUBLIC_LARAVEL_API_URL was missing at build time (avoids "url parameter is not allowed"). */
+const laravelDevFallbackPatterns: NonNullable<
+  NextConfig["images"]
+>["remotePatterns"] = [
+  { protocol: "http", hostname: "api.instshopee.test", port: "8000", pathname: "/**" },
+  { protocol: "http", hostname: "localhost", port: "8000", pathname: "/**" },
+  { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/**" },
+];
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   compress: true,
@@ -54,6 +63,7 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
       ...(laravelApiPattern ? [laravelApiPattern] : []),
+      ...laravelDevFallbackPatterns,
     ],
   },
 };

@@ -45,11 +45,11 @@ export default function UserAccountPhonePage() {
 
   return (
     <UserDashboardLayout>
-      <div className="bg-white grow w-[980px] relative shadow-sm ml-7 rounded-sm">
+      <div className="relative grow rounded-sm bg-white shadow-sm lg:ml-7 lg:w-[980px]">
         <div className="flex-col min-h-full flex relative" role="main">
           <div className="contents">
-            <div className="pb-2.5 px-8">
-              <div className="[border-bottom-style:solid] py-5 border-b border-b-zinc-100">
+            <div className="px-4 pb-2.5 sm:px-6 lg:px-8">
+              <div className="[border-bottom-style:solid] border-b border-b-zinc-100 py-5">
                 <h1 className="capitalize text-zinc-800 text-lg font-medium leading-6">
                   Phone Number
                 </h1>
@@ -59,23 +59,23 @@ export default function UserAccountPhonePage() {
               </div>
               <div className="pt-8">
                 <form onSubmit={handleSubmit}>
-                  <table className="indent-[initial] border-zinc-500 border-spacing-0 w-[602px]">
-                    <tbody>
-                      <tr>
-                        <td className="text-right whitespace-nowrap min-w-[20%] overflow-x-hidden overflow-y-hidden text-neutral-600/80 pb-8">
+                  <table className="indent-[initial] block w-full max-w-[602px] border-spacing-0 border-zinc-500 lg:table">
+                    <tbody className="block lg:table-row-group">
+                      <tr className="block lg:table-row">
+                        <td className="block overflow-x-hidden overflow-y-hidden pb-2 text-left text-neutral-600/80 lg:table-cell lg:min-w-[20%] lg:whitespace-nowrap lg:pb-8 lg:text-right">
                           <label>Current phone</label>
                         </td>
-                        <td className="w-96 pl-5 pb-8">
+                        <td className="block w-full pb-6 lg:table-cell lg:w-96 lg:pl-5 lg:pb-8">
                           <div className="text-zinc-800 text-sm">
                             {currentPhone ?? "—"}
                           </div>
                         </td>
                       </tr>
-                      <tr>
-                        <td className="text-right whitespace-nowrap min-w-[20%] overflow-x-hidden overflow-y-hidden pb-8 text-neutral-600/80">
+                      <tr className="block lg:table-row">
+                        <td className="block overflow-x-hidden overflow-y-hidden pb-2 text-left text-neutral-600/80 lg:table-cell lg:min-w-[20%] lg:whitespace-nowrap lg:pb-8 lg:text-right">
                           <label htmlFor="phone">Phone number</label>
                         </td>
-                        <td className="w-96 pl-5 pb-8">
+                        <td className="block w-full pb-6 lg:table-cell lg:w-96 lg:pl-5 lg:pb-8">
                           <div className="items-center w-full h-10 flex overflow-x-hidden overflow-y-hidden shadow-inner rounded-sm border border-solid border-black/14">
                             <input
                               id="phone"
@@ -92,12 +92,12 @@ export default function UserAccountPhonePage() {
                           </div>
                         </td>
                       </tr>
-                      <tr>
-                        <td className="text-right whitespace-nowrap min-w-[20%] overflow-x-hidden overflow-y-hidden pb-8 text-neutral-600/80">
+                      <tr className="block lg:table-row">
+                        <td className="block overflow-x-hidden overflow-y-hidden pb-2 text-left text-neutral-600/80 lg:table-cell lg:min-w-[20%] lg:whitespace-nowrap lg:pb-8 lg:text-right">
                           <label></label>
                         </td>
-                        <td className="w-96 pl-5 pb-8">
-                          <div className="flex items-center gap-3">
+                        <td className="block w-full pb-8 lg:table-cell lg:w-96 lg:pl-5">
+                          <div className="flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                             <button
                               type="submit"
                               disabled={saving}

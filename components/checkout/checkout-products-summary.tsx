@@ -1,15 +1,18 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { CartItem } from "@/components/cart";
 import { useCart } from "@/components/cart";
+import { useAuth } from "@/components/auth/auth-context";
 import { CheckoutErrorModal } from "./checkout-error-modal";
 import type { StoredAddress } from "@/lib/address-storage";
-import { getPaymentMethods, type ApiPaymentMethod } from "@/lib/api-client";
+import { getPaymentMethods, getBuyerWallet, type ApiPaymentMethod } from "@/lib/api-client";
 import { placeOrder, type PaymentMethodKey } from "@/lib/api-client-orders";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, isBackendImage } from "@/lib/utils";
+import { clearCheckoutSelection, getCartItemKey } from "@/lib/cart-selection";
 
 const SHOP_ICON_PATH =
   "M1.95 6.6c.156.804.7 1.867 1.357 1.867.654 0 1.43 0 1.43-.933h.932s0 .933 1.155.933c1.176 0 1.15-.933 1.15-.933h.984s-.027.933 1.148.933c1.157 0 1.15-.933 1.15-.933h.94s0 .933 1.43.933c1.368 0 1.356-1.867 1.356-1.867H1.95zm11.49-4.666H3.493L2.248 5.667h12.437L13.44 1.934zM2.853 14.066h11.22l-.01-4.782c-.148.02-.295.042-.465.042-.7 0-1.436-.324-1.866-.86-.376.53-.88.86-1.622.86-.667 0-1.255-.417-1.64-.86-.39.443-.976.86-1.643.86-.74 0-1.246-.33-1.623-.86-.43.536-1.195.86-1.895.86-.152 0-.297-.02-.436-.05l-.018 4.79zM14.996 12.2v.933L14.984 15H1.94l-.002-1.867V8.84C1.355 8.306 1.003 7.456 1 6.6L2.87 1h11.193l1.866 5.6c0 .943-.225 1.876-.934 2.39v3.21z";
@@ -30,6 +33,7 @@ interface CheckoutProductsAndSummaryProps {
   totalItems: number;
   /** Address snapshot used when placing orders (mock). */
   address: StoredAddress | null;
+  shippingConfigLoading?: boolean;
 }
 
 const payBtnBase =
@@ -43,6 +47,7 @@ export function CheckoutProductsAndSummary({
   totalPayment,
   totalItems,
   address,
+  shippingConfigLoading = false,
 }: CheckoutProductsAndSummaryProps) {
   const [selectedPayment, setSelectedPayment] = useState<PaymentMethodKey | null>(
     null
@@ -51,16 +56,33 @@ export function CheckoutProductsAndSummary({
   const [paymentMethods, setPaymentMethods] = useState<ApiPaymentMethod[]>([]);
   const [loadingPaymentMethods, setLoadingPaymentMethods] = useState(true);
   const [placing, setPlacing] = useState(false);
+  /** Buyer wallet available balance when paying with wallet */
+  const [walletBalance, setWalletBalance] = useState<number | null>(null);
+  const [walletLoading, setWalletLoading] = useState(false);
+  const [walletResolved, setWalletResolved] = useState(false);
+  const [walletAutoApplied, setWalletAutoApplied] = useState(false);
   // Payment evidence for manual payment methods
   const [accountHolderName, setAccountHolderName] = useState("");
   const [transactionScreenshot, setTransactionScreenshot] = useState<string | null>(null);
-  const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
+  const [, setScreenshotFile] = useState<File | null>(null);
+  const initialPaymentResolved = useRef(false);
   const router = useRouter();
-  const { items: cartItems, clearCart } = useCart();
+  const { removeItemsByKeys } = useCart();
+  const { isLoggedIn } = useAuth();
 
-  // Get currency symbol from first item in cart (assuming all items use same currency)
-  // Fallback to first group item if cartItems not available
-  const currencySymbol = cartItems[0]?.currencySymbol || groups[0]?.items[0]?.currencySymbol || "RM";
+  const currencySymbol = groups[0]?.items[0]?.currencySymbol || "RM";
+  const effectiveBuyerShipping = Math.max(0, shippingSubtotal - shippingDiscount);
+  const walletMethod = useMemo(
+    () => paymentMethods.find((method) => method.key === "wallet") ?? null,
+    [paymentMethods]
+  );
+  const walletMethodAvailable = walletMethod != null;
+  const walletCanCoverOrder = walletBalance !== null && walletBalance >= totalPayment;
+  const selectedPaymentMethod =
+    paymentMethods.find((method) => method.key === selectedPayment) ?? null;
+  const checkoutItemKeys = groups.flatMap((group) =>
+    group.items.map((item) => getCartItemKey(item))
+  );
 
   useEffect(() => {
     async function fetchPaymentMethods() {
@@ -77,6 +99,89 @@ export function CheckoutProductsAndSummary({
     }
     fetchPaymentMethods();
   }, []);
+
+  const chooseDefaultPayment = useCallback((): PaymentMethodKey | null => {
+    if (paymentMethods.length === 0) {
+      return null;
+    }
+
+    if (isLoggedIn && walletMethodAvailable && walletCanCoverOrder) {
+      return "wallet";
+    }
+
+    const preferredNonWallet = paymentMethods.find(
+      (method) => method.key !== "wallet"
+    );
+
+    return (preferredNonWallet ?? paymentMethods[0]).key as PaymentMethodKey;
+  }, [isLoggedIn, paymentMethods, walletCanCoverOrder, walletMethodAvailable]);
+
+  useEffect(() => {
+    if (!isLoggedIn || loadingPaymentMethods || !walletMethodAvailable) {
+      setWalletLoading(false);
+      setWalletBalance(null);
+      setWalletResolved(true);
+      return;
+    }
+
+    let cancelled = false;
+    setWalletResolved(false);
+    setWalletLoading(true);
+    getBuyerWallet()
+      .then((res) => {
+        if (cancelled) return;
+        const raw = res.wallet.available_balance ?? res.wallet.balance;
+        setWalletBalance(parseFloat(String(raw ?? "0")));
+      })
+      .catch(() => {
+        if (!cancelled) setWalletBalance(null);
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setWalletLoading(false);
+          setWalletResolved(true);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn, loadingPaymentMethods, walletMethodAvailable]);
+
+  useEffect(() => {
+    if (loadingPaymentMethods || paymentMethods.length === 0) {
+      return;
+    }
+
+    if (isLoggedIn && walletMethodAvailable && !walletResolved) {
+      return;
+    }
+
+    const hasValidCurrentSelection =
+      selectedPayment != null &&
+      paymentMethods.some((method) => method.key === selectedPayment);
+
+    if (initialPaymentResolved.current && hasValidCurrentSelection) {
+      return;
+    }
+
+    const nextPayment = chooseDefaultPayment();
+    if (!nextPayment) {
+      return;
+    }
+
+    setSelectedPayment(nextPayment);
+    setWalletAutoApplied(nextPayment === "wallet" && walletCanCoverOrder);
+    initialPaymentResolved.current = true;
+  }, [
+    chooseDefaultPayment,
+    isLoggedIn,
+    loadingPaymentMethods,
+    paymentMethods,
+    selectedPayment,
+    walletCanCoverOrder,
+    walletMethodAvailable,
+    walletResolved,
+  ]);
 
   const copyAddress = useCallback(async (address: string) => {
     try {
@@ -118,6 +223,23 @@ export function CheckoutProductsAndSummary({
       }
       if (!transactionScreenshot) {
         setErrorMessage("Please upload a screenshot of the transaction as proof of payment.");
+        return;
+      }
+    }
+
+    if (selectedPayment === "wallet") {
+      if (!isLoggedIn) {
+        setErrorMessage("Please sign in to pay with your wallet.");
+        return;
+      }
+      if (walletLoading) {
+        setErrorMessage("Wallet balance is still loading. Please wait a moment.");
+        return;
+      }
+      if (walletBalance === null || walletBalance < totalPayment) {
+        setErrorMessage(
+          `Insufficient wallet balance for this order (${formatPrice(currencySymbol, totalPayment)}). Top up your wallet and try again.`
+        );
         return;
       }
     }
@@ -166,8 +288,21 @@ export function CheckoutProductsAndSummary({
         paymentEvidence,
       });
 
-      clearCart();
-      router.push(`/user/purchase?orderId=${encodeURIComponent(result.order.id)}`);
+      await removeItemsByKeys(checkoutItemKeys);
+      clearCheckoutSelection();
+
+      const createdOrders = result.orders && result.orders.length > 0
+        ? result.orders
+        : result.order
+          ? [result.order]
+          : [];
+
+      const highlightIds = createdOrders.map((order) => order.id).filter(Boolean);
+      const nextQuery = highlightIds.length > 1
+        ? `?orderIds=${encodeURIComponent(highlightIds.join(","))}`
+        : `?orderId=${encodeURIComponent(highlightIds[0] ?? "")}`;
+
+      router.push(`/user/purchase${nextQuery}`);
     } catch (error) {
       console.error("Failed to place order", error);
       setErrorMessage(
@@ -185,8 +320,8 @@ export function CheckoutProductsAndSummary({
           key={group.shopKey}
           className="bg-white rounded border-b border-black/[0.09]"
         >
-          <div className="flex flex-col gap-[25px] py-[25px] border-b border-black/[0.09]">
-            <div className="flex items-center h-5 px-[30px]">
+          <div className="flex flex-col gap-5 border-b border-black/[0.09] py-5 lg:gap-[25px] lg:py-[25px]">
+            <div className="flex flex-wrap items-center gap-2 px-4 sm:px-6 lg:h-5 lg:px-[30px]">
               <div className="flex items-center">
                 <svg
                   width={17}
@@ -209,11 +344,11 @@ export function CheckoutProductsAndSummary({
               </h3>
               <button
                 type="button"
-                className="ml-2.5 flex items-center border-0 bg-transparent p-0 text-[14px] text-[#00bfa5] border-l border-black/[0.09]"
+                className="ml-auto flex items-center border-0 border-black/[0.09] bg-transparent p-0 text-[14px] text-[#00bfa5] lg:ml-2.5 lg:border-l"
               >
                 <svg
                   viewBox="0 0 16 16"
-                  className="w-5 h-[15px] ml-2.5 mr-1 block fill-[#00bfa5]"
+                  className="mr-1 block h-[15px] w-5 fill-[#00bfa5] lg:ml-2.5"
                 >
                   <path d="M15 4a1 1 0 01.993.883L16 5v9.932a.5.5 0 01-.82.385l-2.061-1.718-8.199.001a1 1 0 01-.98-.8l-.016-.117-.108-1.284 8.058.001a2 2 0 001.976-1.692l.018-.155L14.293 4H15zm-2.48-4a1 1 0 011 1l-.003.077-.646 8.4a1 1 0 01-.997.923l-8.994-.001-2.06 1.718a.5.5 0 01-.233.108l-.087.007a.5.5 0 01-.492-.41L0 11.732V1a1 1 0 011-1h11.52zM3.646 4.246a.5.5 0 000 .708c.305.304.694.526 1.146.682A4.936 4.936 0 006.4 5.9c.464 0 1.02-.062 1.608-.264.452-.156.841-.378 1.146-.682a.5.5 0 10-.708-.708c-.185.186-.445.335-.764.444a4.004 4.004 0 01-2.564 0c-.319-.11-.579-.258-.764-.444a.5.5 0 00-.708 0z" />
                 </svg>
@@ -231,34 +366,49 @@ export function CheckoutProductsAndSummary({
                 return (
                   <div
                     key={`${item.slug}-${item.colorLabel ?? ""}-${item.size ?? ""}`}
-                    className="flex min-h-[55px] mx-[30px] text-[14px] text-[#222] overflow-hidden text-ellipsis"
+                    className="mx-4 flex flex-col gap-2 overflow-hidden text-[14px] text-[#222] sm:mx-6 lg:mx-[30px] lg:min-h-[55px] lg:flex-row lg:items-center"
                   >
-                    <div className="flex flex-[4_1_0%] justify-start items-center overflow-hidden text-ellipsis">
-                      <Image
-                        src={item.imageSrc}
-                        alt={item.title}
-                        width={40}
-                        height={40}
-                        className="align-bottom border-0"
-                      />
-                      <span className="flex flex-col justify-center m-0 mx-4 overflow-hidden">
-                        <span className="whitespace-nowrap overflow-hidden text-ellipsis">
+                    <div className="flex items-center overflow-hidden text-ellipsis lg:flex-[4_1_0%]">
+                      {isBackendImage(item.imageSrc) ? (
+                        <img
+                          src={item.imageSrc}
+                          alt={item.title}
+                          width={40}
+                          height={40}
+                          className="h-10 w-10 align-bottom border-0 object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <Image
+                          src={item.imageSrc}
+                          alt={item.title}
+                          width={40}
+                          height={40}
+                          className="align-bottom border-0"
+                        />
+                      )}
+                      <span className="mx-3 flex min-w-0 flex-col justify-center overflow-hidden lg:mx-4">
+                        <span className="overflow-hidden text-ellipsis whitespace-nowrap">
                           {item.title}
                         </span>
                       </span>
                     </div>
-                    <div className="flex flex-[2_1_0%] items-center justify-start text-[#929292] overflow-hidden text-ellipsis">
-                      <span className="whitespace-nowrap overflow-hidden text-ellipsis pl-[13px]">
+                    <div className="flex items-center justify-between text-[#929292] lg:flex-[2_1_0%] lg:justify-start">
+                      <span className="text-[12px] text-black/45 lg:hidden">Variation</span>
+                      <span className="overflow-hidden text-ellipsis whitespace-nowrap lg:pl-[13px]">
                         {variation}
                       </span>
                     </div>
-                    <div className="flex flex-[2_1_0%] items-center justify-end overflow-hidden text-ellipsis">
+                    <div className="flex items-center justify-between lg:flex-[2_1_0%] lg:justify-end">
+                      <span className="text-[12px] text-black/45 lg:hidden">Unit Price</span>
                       {formatPrice(item.currencySymbol || currencySymbol, item.price)}
                     </div>
-                    <div className="flex flex-[2_1_0%] items-center justify-end overflow-hidden text-ellipsis">
+                    <div className="flex items-center justify-between lg:flex-[2_1_0%] lg:justify-end">
+                      <span className="text-[12px] text-black/45 lg:hidden">Quantity</span>
                       {item.quantity}
                     </div>
-                    <div className="flex flex-[2_1_0%] font-medium items-center justify-end overflow-hidden text-ellipsis">
+                    <div className="flex items-center justify-between font-medium lg:flex-[2_1_0%] lg:justify-end">
+                      <span className="text-[12px] font-normal text-black/45 lg:hidden">Subtotal</span>
                       {formatPrice(item.currencySymbol || currencySymbol, total)}
                     </div>
                   </div>
@@ -267,9 +417,8 @@ export function CheckoutProductsAndSummary({
             </div>
           </div>
 
-          <div className="grid grid-cols-[480px_720px] border-b border-dashed border-black/[0.09]">
-            <div />
-            <div className="p-[25px]">
+          <div className="border-b border-dashed border-black/[0.09]">
+            <div className="p-4 sm:p-6 lg:ml-auto lg:max-w-[720px] lg:p-[25px]">
               <div className="flex justify-between items-end">
                 <div className="flex items-center text-[14px]">
                   <Image
@@ -293,11 +442,11 @@ export function CheckoutProductsAndSummary({
         </div>
       ))}
 
-      <div className="grid grid-cols-[480px_720px] bg-[#fafdff] border-b border-dashed border-black/[0.09] min-w-0">
-        <div className="p-[25px] flex flex-col min-w-0 text-[14px]">
-          <div className="flex min-w-0">
+      <div className="grid border-b border-dashed border-black/[0.09] bg-[#fafdff] min-w-0 lg:grid-cols-[minmax(0,480px)_minmax(0,1fr)]">
+        <div className="flex min-w-0 flex-col p-4 text-[14px] sm:p-6 lg:p-[25px]">
+          <div className="flex min-w-0 flex-col gap-2 lg:flex-row lg:items-center">
             <span className="leading-10">Message for Sellers:</span>
-            <div className="flex-1 ml-4">
+            <div className="min-w-0 flex-1 lg:ml-4">
               <div className="relative text-xs font-light">
                 <div className="flex items-center h-10 border border-black/20 rounded-[2px] bg-white shadow-[0_2px_0_0_rgba(0,0,0,0.02)_inset]">
                   <input
@@ -311,7 +460,7 @@ export function CheckoutProductsAndSummary({
             </div>
           </div>
         </div>
-        <div className="flex flex-col p-[25px] min-w-0 text-[14px]">
+        <div className="flex min-w-0 flex-col border-t border-black/[0.06] p-4 text-[14px] sm:p-6 lg:border-t-0 lg:p-[25px]">
           <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-black/87">
             <span className="text-[14px] font-medium leading-5 shrink-0">
               Shipping Option:
@@ -325,7 +474,7 @@ export function CheckoutProductsAndSummary({
             >
               change
             </button>
-            <div className="shrink-0 flex items-baseline gap-1 ml-auto text-[#222] text-[14px] font-medium leading-5">
+            <div className="ml-auto flex shrink-0 items-baseline gap-1 text-[14px] font-medium leading-5 text-[#222]">
               <Image
                 src="/images/svgs/cart/fast-car-delivery.svg"
                 alt=""
@@ -333,13 +482,13 @@ export function CheckoutProductsAndSummary({
                 height={13}
                 className="align-text-bottom shrink-0 border-0"
               />
-              <span className="text-black/26 line-through">{formatPrice(currencySymbol, 2.65)}</span>
-              <span>{formatPrice(currencySymbol, 0)}</span>
+              <span className="text-black/26 line-through">{formatPrice(currencySymbol, shippingSubtotal)}</span>
+              <span>{formatPrice(currencySymbol, effectiveBuyerShipping)}</span>
               <span className="text-black/54 text-xs leading-4">(incl. SST)</span>
             </div>
           </div>
           <div className="border-t border-dashed border-black/[0.09] w-full mt-2.5 pt-2.5" />
-          <div className="flex items-center gap-2 min-h-[20px] text-[14px] leading-5 whitespace-nowrap">
+          <div className="flex flex-wrap items-center gap-2 text-[14px] leading-5">
             <Image
               src="/images/svgs/cart/fast-car-delivery.svg"
               alt=""
@@ -347,10 +496,10 @@ export function CheckoutProductsAndSummary({
               height={12}
               className="shrink-0 border-0"
             />
-            <span className="text-[#26aa99] font-medium shrink-0">
+            <span className="font-medium text-[#26aa99]">
               Get by 5 - 10 Feb with Standard Doorstep Delivery (International)
             </span>
-            <span className="shrink-0 text-black/40 ml-0.5" aria-hidden>
+            <span className="ml-0.5 shrink-0 text-black/40" aria-hidden>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="w-4 h-4 inline-block">
                 <path d="M9 18l6-6-6-6" />
               </svg>
@@ -360,9 +509,9 @@ export function CheckoutProductsAndSummary({
       </div>
 
       <div className="flex flex-col py-4 bg-[#fafdff]">
-        <div className="flex justify-end items-center">
+        <div className="flex items-center justify-end px-4 sm:px-6 lg:px-[30px]">
           <h3 className="text-[14px] font-normal leading-[16.8px] text-black/54 m-0 p-0 flex items-center">
-            Order Total ({totalItems} Item{totalItems !== 1 ? "s" : ""}):
+            Items Total ({totalItems} Item{totalItems !== 1 ? "s" : ""}):
           </h3>
           <div className="text-[#ee4d2d] text-xl font-medium min-w-[100px] h-10 py-0 px-[25px] pl-2.5 flex items-center justify-end">
             {formatPrice(currencySymbol, merchandiseSubtotal)}
@@ -371,10 +520,10 @@ export function CheckoutProductsAndSummary({
       </div>
 
       <div className="mt-5">
-        <div className="bg-white border-b border-black/5 flex items-center py-7 px-[30px] relative">
+        <div className="relative flex flex-col gap-3 border-b border-black/5 bg-white px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:px-[30px] lg:py-7">
           <div className="flex flex-col flex-grow flex-shrink-0">
-            <div className="flex">
-              <div className="flex-grow flex-shrink-0 flex items-end">
+            <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+              <div className="flex flex-grow flex-shrink-0 items-end">
                 <Image
                   src="/images/svgs/cart/coupon.svg"
                   alt=""
@@ -386,7 +535,7 @@ export function CheckoutProductsAndSummary({
                   Voucher / Discount
                 </h2>
               </div>
-              <div className="flex-grow-0 flex-shrink-0 flex items-center">
+              <div className="flex flex-grow-0 flex-shrink-0 items-center">
                 <span className="text-[14px] text-[#757575]">
                   <span className="text-[#ee4d2d]">1</span> Selected
                 </span>
@@ -399,7 +548,7 @@ export function CheckoutProductsAndSummary({
               </div>
             </div>
           </div>
-          <div className="flex-grow-0 flex-shrink-0 ml-4 pl-[50px]">
+          <div className="flex-grow-0 flex-shrink-0 lg:ml-4 lg:pl-[50px]">
             <button
               type="button"
               className="float-right border-0 bg-transparent p-0 text-[14px] font-medium text-[#0055aa] cursor-pointer"
@@ -409,8 +558,8 @@ export function CheckoutProductsAndSummary({
           </div>
         </div>
 
-        <div className="bg-white border-b border-black/5 flex items-center py-7 px-[30px] relative">
-          <div className="flex-grow flex-shrink-0 flex items-center">
+        <div className="relative flex flex-col gap-3 border-b border-black/5 bg-white px-4 py-5 sm:px-6 lg:flex-row lg:items-center lg:px-[30px] lg:py-7">
+          <div className="flex flex-grow flex-shrink-0 items-center">
             <Image
               src="/images/common/coin/coin.png"
               alt=""
@@ -446,8 +595,8 @@ export function CheckoutProductsAndSummary({
       <div className="rounded-[3px] mb-3 shadow-[0_1px_0_rgba(0,0,0,0.05)]">
         <div className="bg-white mt-5">
           <h2 className="sr-only">Payment Method</h2>
-          <div className="flex items-center box-border min-h-[90px] px-[30px] border-b border-black/5 py-2.5 pb-5 relative">
-            <div className="text-[#222] text-lg flex-[0_0_200px]">
+          <div className="relative flex flex-col gap-4 border-b border-black/5 px-4 py-4 sm:px-6 lg:min-h-[90px] lg:flex-row lg:items-start lg:px-[30px] lg:pb-5">
+            <div className="text-lg text-[#222] lg:flex-[0_0_200px]">
               Payment Method
             </div>
             {loadingPaymentMethods ? (
@@ -456,7 +605,7 @@ export function CheckoutProductsAndSummary({
               <>
                 <div
                   role="radiogroup"
-                  className="flex flex-wrap gap-x-2 gap-y-2 mt-2.5"
+                  className="mt-1 flex flex-wrap gap-x-2 gap-y-2 lg:mt-2.5"
                 >
                   {paymentMethods.map((method) => (
                     <button
@@ -466,7 +615,10 @@ export function CheckoutProductsAndSummary({
                       aria-label={method.name}
                       aria-checked={selectedPayment === method.key}
                       className={`${payBtnBase} ${selectedPayment === method.key ? "border-[#ee4d2d]" : "border-black/[0.09]"}`}
-                      onClick={() => setSelectedPayment(method.key as PaymentMethodKey)}
+                      onClick={() => {
+                        setSelectedPayment(method.key as PaymentMethodKey);
+                        setWalletAutoApplied(false);
+                      }}
                     >
                       {method.logoUrl && (
                         <Image
@@ -486,25 +638,69 @@ export function CheckoutProductsAndSummary({
                           className="shrink-0"
                         />
                       )}
+                      {method.key === "wallet" && !method.logoUrl && (
+                        <Image
+                          src="/images/common/coin/coin.png"
+                          alt=""
+                          width={20}
+                          height={20}
+                          className="shrink-0"
+                        />
+                      )}
                       <span>{method.name}</span>
                     </button>
                   ))}
                 </div>
-                {selectedPayment && paymentMethods.find(m => m.key === selectedPayment && m.type === "manual" && m.config?.address) && (
+                {selectedPayment === "wallet" && (
+                  <div className="mt-3 p-4 rounded-[2px] border border-black/10 bg-black/[0.02] text-[13px] space-y-2 text-left w-full">
+                    {!isLoggedIn && (
+                      <p className="text-black/70 m-0">Sign in to pay with your wallet balance.</p>
+                    )}
+                    {isLoggedIn && walletLoading && <p className="text-black/70 m-0">Loading wallet balance…</p>}
+                    {isLoggedIn && !walletLoading && walletBalance !== null && (
+                      <>
+                        {walletAutoApplied && walletCanCoverOrder && (
+                          <p className="m-0 rounded-[2px] border border-[#b7e4c7] bg-[#eefaf3] px-2 py-1 text-[#1c7c54]">
+                            Account funds are available, so this order will be paid from your wallet automatically.
+                          </p>
+                        )}
+                        <p className="m-0 text-black/80">
+                          Available balance:{" "}
+                          <strong className="text-[#222]">{formatPrice(currencySymbol, walletBalance)}</strong>
+                          {walletBalance < totalPayment && (
+                            <span className="text-[#ee4d2d] ml-2">Not enough for this order.</span>
+                          )}
+                        </p>
+                        {walletBalance >= totalPayment && (
+                          <p className="m-0 text-black/60">
+                            Wallet-paid orders move straight to processing. No separate admin payment approval is needed.
+                          </p>
+                        )}
+                        <Link href="/user/wallet" className="text-[#0055aa] underline text-[13px] inline-block">
+                          Top up wallet
+                        </Link>
+                      </>
+                    )}
+                    {isLoggedIn && !walletLoading && walletBalance === null && (
+                      <p className="text-[#ee4d2d] m-0">Could not load wallet. Try again or choose another payment method.</p>
+                    )}
+                  </div>
+                )}
+                {selectedPayment && selectedPaymentMethod?.type === "manual" && selectedPaymentMethod.config?.address && (
                   <div className="mt-3 p-4 rounded-[2px] border border-black/10 bg-black/[0.02] text-[13px] space-y-3">
                     <div>
                       <div className="text-black/70 mb-1 font-medium">
-                        {paymentMethods.find(m => m.key === selectedPayment)?.name} deposit address:
+                        {selectedPaymentMethod.name} deposit address:
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <code className="flex-1 min-w-0 break-all font-mono text-[12px] text-black/87 bg-white px-2 py-1 rounded border border-black/10">
-                          {paymentMethods.find(m => m.key === selectedPayment)?.config?.address}
+                          {selectedPaymentMethod.config?.address}
                         </code>
                         <button
                           type="button"
                           className="shrink-0 px-2 py-1 rounded border border-black/20 bg-white text-[12px] text-black/80 hover:bg-black/5"
                           onClick={() => {
-                            const addr = paymentMethods.find(m => m.key === selectedPayment)?.config?.address;
+                            const addr = selectedPaymentMethod.config?.address;
                             if (addr) copyAddress(addr);
                           }}
                         >
@@ -602,7 +798,7 @@ export function CheckoutProductsAndSummary({
 
         <div
           aria-live="polite"
-          className="flex flex-col items-end bg-[#fffefb] border-t border-[#f1f0ed] pt-4 pb-0 shadow-[0_1px_1px_rgba(0,0,0,0.05)] px-[30px]"
+          className="flex flex-col items-end border-t border-[#f1f0ed] bg-[#fffefb] px-4 pb-0 pt-4 shadow-[0_1px_1px_rgba(0,0,0,0.05)] sm:px-6 lg:px-[30px]"
         >
           <h2 className="sr-only">Total Payment:</h2>
           <div className="flex items-center justify-end gap-x-6 min-h-10">
@@ -660,15 +856,23 @@ export function CheckoutProductsAndSummary({
               </svg>
             </span>
           </div>
-          <div className="border-t border-dashed border-black/[0.09] w-full flex justify-end items-center min-h-[95px] mt-2">
+          <div className="mt-2 flex min-h-[95px] w-full items-center justify-end border-t border-dashed border-black/[0.09]">
             <div className="flex-1" />
             <button
               type="button"
-              disabled={placing}
-              className="flex items-center justify-center w-[210px] h-10 py-3 px-3.5 rounded-[2px] border border-black/[0.09] bg-[#ee4d2d] text-white text-base font-normal cursor-pointer shadow-[0_1px_1px_rgba(0,0,0,0.03)] disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={
+                shippingConfigLoading ||
+                placing ||
+                (selectedPayment === "wallet" &&
+                  (!isLoggedIn ||
+                    walletLoading ||
+                    walletBalance === null ||
+                    walletBalance < totalPayment))
+              }
+              className="flex h-10 w-full items-center justify-center rounded-[2px] border border-black/[0.09] bg-[#ee4d2d] px-3.5 py-3 text-base font-normal text-white shadow-[0_1px_1px_rgba(0,0,0,0.03)] disabled:cursor-not-allowed disabled:opacity-70 sm:w-[210px]"
               onClick={handlePlaceOrder}
             >
-              {placing ? "Placing…" : "Place Order"}
+              {shippingConfigLoading ? "Calculating…" : placing ? "Placing…" : "Place Order"}
             </button>
           </div>
         </div>

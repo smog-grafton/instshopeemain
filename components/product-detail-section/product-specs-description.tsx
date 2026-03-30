@@ -11,9 +11,9 @@ interface ProductSpecsDescriptionProps {
 }
 
 const SECTION_HEADER_CLASS =
-  "capitalize text-lg font-medium p-3.5 text-black/87 bg-black/2";
+  "bg-black/2 p-3 text-lg font-medium capitalize text-black/87 sm:p-3.5";
 const SPEC_LABEL_CLASS =
-  "[word-break:break-word] w-52 text-sm m-[inherit] pr-3 text-black/40";
+  "m-[inherit] w-full break-words pr-3 text-sm text-black/40 sm:w-44 lg:w-52";
 
 function SpecSectionHeader({ children }: { children: React.ReactNode }) {
   return <h2 className={SECTION_HEADER_CLASS}>{children}</h2>;
@@ -24,7 +24,7 @@ function CategoryBreadcrumb({ links }: { links: CategoryBreadcrumbLink[] }) {
     "cursor-pointer whitespace-nowrap no-underline text-sky-700 text-sm active:outline-0 hover:outline-0 focus-visible:outline-2 focus-visible:outline-solid focus-visible:-m-1.5 focus-visible:p-1.5 focus-visible:rounded-sm";
 
   return (
-    <div className="flex items-center whitespace-nowrap h-4">
+    <div className="flex h-4 items-center whitespace-nowrap overflow-x-auto [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
       {links.map((link, index) => (
         <span key={link.href} className="contents">
           <Link href={link.href} className={linkClass}>
@@ -41,7 +41,7 @@ function CategoryBreadcrumb({ links }: { links: CategoryBreadcrumbLink[] }) {
 
 function SpecRow({ item }: { item: ProductSpecItem }) {
   return (
-    <div className="flex mb-5 last:mb-5">
+    <div className="mb-5 flex flex-col gap-1 last:mb-5 sm:flex-row">
       <h3 className={SPEC_LABEL_CLASS}>{item.label}</h3>
       {item.categoryBreadcrumbs ? (
         <CategoryBreadcrumb links={item.categoryBreadcrumbs} />
@@ -58,9 +58,9 @@ function ProductSpecifications({
   specifications: ProductSpecItem[];
 }) {
   return (
-    <section className="pt-4 px-4">
+    <section className="px-3 pt-4 sm:px-4">
       <SpecSectionHeader>Product Specifications</SpecSectionHeader>
-      <div className="mt-8 mb-4 mx-4">
+      <div className="mx-2 mb-4 mt-6 sm:mx-4 sm:mt-8">
         {specifications.map((item) => (
           <SpecRow key={item.label} item={item} />
         ))}
@@ -76,9 +76,9 @@ function ProductDescription({ description }: { description: string }) {
     .filter(Boolean);
 
   return (
-    <section className="pt-4 px-4">
+    <section className="px-3 pt-4 sm:px-4">
       <SpecSectionHeader>Product Description</SpecSectionHeader>
-      <div className="mt-8 mb-4 mx-4">
+      <div className="mx-2 mb-4 mt-6 sm:mx-4 sm:mt-8">
         <div className="whitespace-pre-wrap text-ellipsis flex flex-col gap-y-8 gap-x-8 text-sm leading-relaxed overflow-x-hidden overflow-y-hidden text-black/80">
           <div>
             {paragraphs.map((text, i) => (
@@ -96,7 +96,7 @@ export function ProductSpecsDescription({ data }: ProductSpecsDescriptionProps) 
 
   return (
     <div
-      className="text-sm leading-tight text-black/80 bg-white overflow-x-hidden overflow-y-hidden shadow-sm mt-4 p-2.5 rounded-sm"
+      className="mt-4 overflow-x-hidden overflow-y-hidden rounded-sm bg-white p-2.5 text-sm leading-tight text-black/80 shadow-sm"
       aria-label="Product details"
     >
       <ProductSpecifications specifications={specifications} />

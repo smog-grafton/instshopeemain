@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams, useRouter } from "next/navigation";
-import { useMemo, useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   type ShopAllProductsSort,
   type ShopAllProductItem,
@@ -11,10 +11,16 @@ import { ShopCategorySidebar } from "./shop-category-sidebar";
 import { ShopAllProductsSortBar } from "./shop-all-products-sort-bar";
 import { ShopAllProductsGrid } from "./shop-all-products-grid";
 import { ShopAllProductsPagination } from "./shop-all-products-pagination";
-import { getShopProducts, getShopCollectionProducts, getShopNavigation } from "@/lib/api-client";
+import {
+  getShopProducts,
+  getShopCollectionProducts,
+  getShopNavigation,
+  searchShopProducts,
+} from "@/lib/api-client";
 
 interface ShopAllProductsSectionProps {
   shopSlug: string;
+  shopName?: string;
 }
 
 const VALID_SORTS: ShopAllProductsSort[] = [
@@ -25,14 +31,19 @@ const VALID_SORTS: ShopAllProductsSort[] = [
   "price_desc",
 ];
 
-export function ShopAllProductsSection({ shopSlug }: ShopAllProductsSectionProps) {
+export function ShopAllProductsSection({
+  shopSlug,
+  shopName,
+}: ShopAllProductsSectionProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pageParam = searchParams.get("page");
+  const keywordParam = (searchParams.get("keyword") ?? "").trim();
   const shopCollectionParam = searchParams.get("shopCollection");
   const sortParam = searchParams.get("sort");
 
   const currentPage = Math.max(1, parseInt(pageParam ?? "1", 10) || 1);
+  const currentKeyword = keywordParam;
   const currentShopCollection = shopCollectionParam ?? null;
   const [sortOption, setSortOption] = useState<ShopAllProductsSort>(() =>
     sortParam && VALID_SORTS.includes(sortParam as ShopAllProductsSort)
@@ -45,7 +56,14 @@ export function ShopAllProductsSection({ shopSlug }: ShopAllProductsSectionProps
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(true);
 
-  // Fetch navigation for sidebar categories
+  useEffect(() => {
+    const nextSort =
+      sortParam && VALID_SORTS.includes(sortParam as ShopAllProductsSort)
+        ? (sortParam as ShopAllProductsSort)
+        : "popular";
+    setSortOption(nextSort);
+  }, [sortParam]);
+
   useEffect(() => {
     async function fetchNavigation() {
       try {
@@ -59,7 +77,7 @@ export function ShopAllProductsSection({ shopSlug }: ShopAllProductsSectionProps
         const getCollection = (href: string): string | undefined => {
           const q = href.indexOf("?");
           if (q === -1) return undefined;
-          const params = new URLSearchParams(href.slice(q));
+          const params = new URLSearchParams(href.slice(q + 1));
           return params.get("shopCollection") ?? undefined;
         };
         const rest = [...nav.mainTabs, ...nav.moreItems]
@@ -73,12 +91,13 @@ export function ShopAllProductsSection({ shopSlug }: ShopAllProductsSectionProps
         setCategories([allProducts, ...rest]);
       } catch (error) {
         console.error("Failed to fetch navigation:", error);
-        // Fallback to empty categories
-        setCategories([{
-          label: "All Products",
-          href: `/shop/${shopSlug}#product_list`,
-          isAllProducts: true,
-        }]);
+        setCategories([
+          {
+            label: "All Products",
+            href: `/shop/${shopSlug}#product_list`,
+            isAllProducts: true,
+          },
+        ]);
       }
     }
     fetchNavigation();
@@ -88,34 +107,34 @@ export function ShopAllProductsSection({ shopSlug }: ShopAllProductsSectionProps
     async function fetchProducts() {
       setLoading(true);
       try {
-        let response;
-        if (currentShopCollection) {
-          // Fetch collection products
-          const collectionResponse = await getShopCollectionProducts(shopSlug, {
-            shopCollection: currentShopCollection,
-            limit: 100, // Get all collection products, pagination handled client-side
+        let response:
+          | Awaited<ReturnType<typeof getShopProducts>>
+          | Awaited<ReturnType<typeof searchShopProducts>>
+          | Awaited<ReturnType<typeof getShopCollectionProducts>>;
+
+        if (currentKeyword) {
+          response = await searchShopProducts(shopSlug, {
+            keyword: currentKeyword,
+            page: currentPage,
+            per_page: 10,
+            sort: sortOption,
+            shopCollection: currentShopCollection ?? undefined,
           });
-          // Transform to paginated response format
-          const perPage = 10;
-          const start = (currentPage - 1) * perPage;
-          const end = start + perPage;
-          const paginatedProducts = collectionResponse.products.slice(start, end);
-          response = {
-            products: paginatedProducts,
-            pagination: {
-              page: currentPage,
-              per_page: perPage,
-              total: collectionResponse.products.length,
-              last_page: Math.ceil(collectionResponse.products.length / perPage),
-            },
-          };
+        } else if (currentShopCollection) {
+          response = await getShopCollectionProducts(shopSlug, {
+            shopCollection: currentShopCollection,
+            page: currentPage,
+            per_page: 10,
+            sort: sortOption,
+          });
         } else {
-          // Fetch all shop products
           response = await getShopProducts(shopSlug, {
             page: currentPage,
             per_page: 10,
+            sort: sortOption,
           });
         }
+
         const transformedItems: ShopAllProductItem[] = response.products.map((p) => {
           const item: ShopAllProductItem = {
             slug: p.slug,
@@ -123,27 +142,22 @@ export function ShopAllProductsSection({ shopSlug }: ShopAllProductsSectionProps
             shopId: p.shopId,
             categorySlug: p.categorySlug,
             price: p.price,
-            originalPrice: p.originalPrice ?? undefined, // Convert null to undefined
+            originalPrice: p.originalPrice ?? undefined,
             imageSrc: p.imageSrc,
             soldCount: p.soldCount,
             rating: p.rating,
             location: p.location,
-            storeName: shopSlug, // We can enhance this later with shop name
+            storeName: p.shopName || shopName || shopSlug,
           };
-          // Only include optional fields if they have values (not null)
-          if (p.promotionLabel != null) {
-            item.promotionLabel = p.promotionLabel;
-          }
-          if (p.textBadges) {
-            item.textBadges = p.textBadges;
-          }
-          if (p.imageBadges) {
-            item.imageBadges = p.imageBadges;
-          }
+          if (p.promotionLabel != null) item.promotionLabel = p.promotionLabel;
+          if (p.textBadges) item.textBadges = p.textBadges;
+          if (p.imageBadges) item.imageBadges = p.imageBadges;
+          item.currencySymbol = p.currencySymbol ?? "RM";
           return item;
         });
+
         setItems(transformedItems);
-        setTotalPages(response.pagination.last_page);
+        setTotalPages(response.pagination?.last_page ?? 1);
       } catch (error) {
         console.error("Failed to fetch shop products:", error);
         setItems([]);
@@ -153,64 +167,76 @@ export function ShopAllProductsSection({ shopSlug }: ShopAllProductsSectionProps
       }
     }
     fetchProducts();
-  }, [shopSlug, currentPage, sortOption, currentShopCollection]);
+  }, [shopSlug, shopName, currentPage, sortOption, currentShopCollection, currentKeyword]);
 
   const safePage = Math.min(currentPage, Math.max(1, totalPages));
 
   const buildPageHref = useCallback(
     (page: number) => {
       const params = new URLSearchParams();
+      if (currentKeyword) params.set("keyword", currentKeyword);
       if (page > 1) params.set("page", String(page));
       if (sortOption !== "popular") params.set("sort", sortOption);
       if (currentShopCollection) params.set("shopCollection", currentShopCollection);
       const q = params.toString();
       return q ? `/shop/${shopSlug}?${q}#product_list` : `/shop/${shopSlug}#product_list`;
     },
-    [shopSlug, sortOption, currentShopCollection]
+    [currentKeyword, currentShopCollection, shopSlug, sortOption]
   );
 
   const handleSortChange = useCallback(
     (option: ShopAllProductsSort) => {
       setSortOption(option);
       const params = new URLSearchParams();
+      if (currentKeyword) params.set("keyword", currentKeyword);
       if (option !== "popular") params.set("sort", option);
       if (currentShopCollection) params.set("shopCollection", currentShopCollection);
       const q = params.toString();
       router.replace(q ? `/shop/${shopSlug}?${q}#product_list` : `/shop/${shopSlug}#product_list`);
     },
-    [shopSlug, currentShopCollection, router]
+    [currentKeyword, currentShopCollection, router, shopSlug]
   );
 
   return (
-    <section
-      id="product_list"
-      aria-label="All products"
-      className="w-full flex gap-0"
-    >
-      <ShopCategorySidebar
-        categories={categories}
-        currentShopCollection={currentShopCollection}
-      />
-      <div className="flex-1 min-w-0 flex flex-col">
-        <ShopAllProductsSortBar
-          currentPage={safePage}
-          totalPages={totalPages}
-          sortOption={sortOption}
-          onSortChange={handleSortChange}
-          buildPageHref={buildPageHref}
+    <section id="product_list" aria-label="All products" className="w-full pt-5">
+      {currentKeyword && (
+        <div className="mb-3 rounded-sm bg-white px-4 py-3 text-sm text-black/80 shadow-[0_1px_1px_rgba(0,0,0,0.05)]">
+          Results for <span className="font-medium text-black">{currentKeyword}</span>
+        </div>
+      )}
+
+      <div className="flex w-full flex-col gap-4 lg:flex-row lg:gap-0">
+        <ShopCategorySidebar
+          categories={categories}
+          currentShopCollection={currentShopCollection}
         />
-        {loading ? (
-          <div className="py-8 text-center text-gray-500">Loading products...</div>
-        ) : (
-          <ShopAllProductsGrid items={items} />
-        )}
-        {totalPages > 1 && (
-          <ShopAllProductsPagination
+        <div className="min-w-0 flex-1">
+          <ShopAllProductsSortBar
             currentPage={safePage}
             totalPages={totalPages}
+            sortOption={sortOption}
+            onSortChange={handleSortChange}
             buildPageHref={buildPageHref}
           />
-        )}
+          {loading ? (
+            <div className="mt-3 rounded-sm bg-white px-4 py-10 text-center text-gray-500 shadow-[0_1px_1px_rgba(0,0,0,0.05)]">
+              Loading products...
+            </div>
+          ) : items.length > 0 ? (
+            <ShopAllProductsGrid items={items} />
+          ) : (
+            <div className="mt-3 rounded-sm bg-white px-4 py-10 text-center text-black/54 shadow-[0_1px_1px_rgba(0,0,0,0.05)]">
+              No products match this view yet.
+            </div>
+          )}
+          {totalPages > 1 && (
+            <ShopAllProductsPagination
+              currentPage={safePage}
+              totalPages={totalPages}
+              buildPageHref={buildPageHref}
+            />
+          )}
+        </div>
       </div>
     </section>
   );

@@ -1,7 +1,8 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export type ShopSearchScope = "in_shop" | "in_mall";
 
@@ -15,32 +16,50 @@ interface ShopSearchBarProps {
 }
 
 export function ShopSearchBar({ shopSlug }: ShopSearchBarProps) {
-  const [query, setQuery] = useState("");
+  const router = useRouter();
+  const currentParams = useSearchParams();
+  const currentKeyword = currentParams.get("keyword") ?? "";
+  const currentCollection = currentParams.get("shopCollection") ?? "";
+  const [query, setQuery] = useState(currentKeyword);
   const [scope, setScope] = useState<ShopSearchScope>("in_shop");
   const [scopeOpen, setScopeOpen] = useState(false);
   const scopeRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    setQuery(currentKeyword);
+  }, [currentKeyword]);
+
   const scopeLabel = SCOPE_OPTIONS.find((o) => o.value === scope)?.label ?? "In This Shop";
 
-  const searchAction =
-    scope === "in_shop"
-      ? `/shop/${shopSlug}`
-      : "/search";
-  const searchParams = new URLSearchParams();
-  if (query.trim()) searchParams.set("keyword", query.trim());
+  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
 
-  const actionUrl = searchParams.toString()
-    ? `${searchAction}?${searchParams.toString()}`
-    : searchAction;
+    const params = new URLSearchParams();
+    const trimmedQuery = query.trim();
+
+    if (trimmedQuery) {
+      params.set("keyword", trimmedQuery);
+    }
+
+    if (scope === "in_shop" && currentCollection) {
+      params.set("shopCollection", currentCollection);
+    }
+
+    const basePath = scope === "in_shop" ? `/shop/${shopSlug}` : "/search";
+    const queryString = params.toString();
+    const hash = scope === "in_shop" ? "#product_list" : "";
+
+    router.push(queryString ? `${basePath}?${queryString}${hash}` : `${basePath}${hash}`);
+    setScopeOpen(false);
+  };
 
   return (
     <div className="flex-1 flex relative min-w-0 w-full">
       <form
         role="search"
         autoComplete="off"
-        action={actionUrl}
-        method="GET"
-        className="flex h-10 items-stretch justify-between rounded-none border-[3px] border-white bg-white shadow-sm w-full"
+        onSubmit={handleSubmit}
+        className="flex h-10 w-full items-stretch justify-between rounded-none border-2 border-white bg-white shadow-sm lg:border-[3px]"
       >
         <div className="flex flex-1">
           <div className="relative flex flex-1 box-border px-2.5">
@@ -56,7 +75,7 @@ export function ShopSearchBar({ shopSlug }: ShopSearchBarProps) {
               role="combobox"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="m-0 flex flex-1 items-center border-0 p-0 text-sm text-black/80 outline-none placeholder:text-black/54"
+              className="m-0 flex flex-1 items-center border-0 p-0 text-[13px] text-black/80 outline-none placeholder:text-black/54 sm:text-sm"
             />
           </div>
           <div className="relative" ref={scopeRef}>
@@ -67,7 +86,7 @@ export function ShopSearchBar({ shopSlug }: ShopSearchBarProps) {
               aria-haspopup="listbox"
               aria-label="Search scope"
               onClick={() => setScopeOpen((o) => !o)}
-              className="flex items-center h-[34px] min-h-[25.5px] w-full max-w-[150px] pl-4 pr-2.5 border-0 border-l border-black/10 bg-white cursor-pointer text-sm text-black/87 appearance-button overflow-visible capitalize rounded-none"
+              className="flex h-[34px] min-h-[25.5px] w-full max-w-[112px] items-center overflow-visible rounded-none border-0 border-l border-black/10 bg-white pl-3 pr-2 text-[13px] text-black/87 appearance-button capitalize cursor-pointer sm:max-w-[132px] sm:pl-4 sm:pr-2.5 sm:text-sm lg:max-w-[150px]"
             >
               <span className="pointer-events-none truncate whitespace-nowrap">
                 {scopeLabel}
@@ -75,7 +94,7 @@ export function ShopSearchBar({ shopSlug }: ShopSearchBarProps) {
               <svg
                 enableBackground="new 0 0 11 11"
                 viewBox="0 0 11 11"
-                className="w-2 h-2 ml-4 block fill-black/87 shrink-0"
+                className="ml-2 block h-2 w-2 shrink-0 fill-black/87 sm:ml-3 lg:ml-4"
                 aria-hidden
               >
                 <path d="m11 2.5c0 .1 0 .2-.1.3l-5 6c-.1.1-.3.2-.4.2s-.3-.1-.4-.2l-5-6c-.2-.2-.1-.5.1-.7s.5-.1.7.1l4.6 5.5 4.6-5.5c.2-.2.5-.2.7-.1.1.1.2.3.2.4z" />
@@ -122,7 +141,7 @@ export function ShopSearchBar({ shopSlug }: ShopSearchBarProps) {
         </div>
         <button
           type="submit"
-          className="flex min-w-[60px] max-w-[190px] h-[34px] px-4 justify-center items-center rounded-[2px] border-0 text-white text-sm capitalize cursor-pointer shadow-[0_1px_1px_rgba(0,0,0,0.09)] bg-[rgb(208,1,27)] hover:opacity-90"
+          className="flex h-[34px] min-w-[52px] max-w-[190px] items-center justify-center rounded-[2px] border-0 bg-[rgb(208,1,27)] px-3 text-sm capitalize text-white shadow-[0_1px_1px_rgba(0,0,0,0.09)] cursor-pointer hover:opacity-90 sm:min-w-[60px] sm:px-4"
           aria-label="Search"
         >
           <Image

@@ -116,13 +116,13 @@ export function ProfileForm() {
 
   return (
     <form onSubmit={handleSubmit}>
-      <table className="indent-[initial] border-zinc-500 border-spacing-0 w-[602px]">
-        <tbody>
-          <tr>
-            <td className="text-right whitespace-nowrap min-w-[20%] overflow-x-hidden overflow-y-hidden text-neutral-600/80 pb-14">
+      <table className="indent-[initial] block w-full max-w-[602px] border-spacing-0 border-zinc-500 lg:table">
+        <tbody className="block lg:table-row-group">
+          <tr className="block lg:table-row">
+            <td className="block overflow-x-hidden overflow-y-hidden pb-2 text-left text-neutral-600/80 lg:table-cell lg:min-w-[20%] lg:whitespace-nowrap lg:pb-14 lg:text-right">
               <label htmlFor="username">Username</label>
             </td>
-            <td className="w-96 pl-5 pb-8">
+            <td className="block w-full pb-6 lg:table-cell lg:w-96 lg:pl-5 lg:pb-8">
               <div>
                 <div className="items-center w-full h-10 flex overflow-x-hidden overflow-y-hidden shadow-inner rounded-sm border border-solid border-black/14">
                   <input
@@ -140,11 +140,11 @@ export function ProfileForm() {
               </div>
             </td>
           </tr>
-          <tr>
-            <td className="text-right whitespace-nowrap min-w-[20%] overflow-x-hidden overflow-y-hidden pb-8 text-neutral-600/80">
+          <tr className="block lg:table-row">
+            <td className="block overflow-x-hidden overflow-y-hidden pb-2 text-left text-neutral-600/80 lg:table-cell lg:min-w-[20%] lg:whitespace-nowrap lg:pb-8 lg:text-right">
               <label htmlFor="name">Name</label>
             </td>
-            <td className="w-96 pl-5 pb-8">
+            <td className="block w-full pb-6 lg:table-cell lg:w-96 lg:pl-5 lg:pb-8">
               <div>
                 <div className="items-center w-full h-10 flex overflow-x-hidden overflow-y-hidden shadow-inner rounded-sm border border-solid border-black/14">
                   <input
@@ -159,12 +159,12 @@ export function ProfileForm() {
               </div>
             </td>
           </tr>
-          <tr>
-            <td className="text-right whitespace-nowrap min-w-[20%] overflow-x-hidden overflow-y-hidden pb-8 text-neutral-600/80">
+          <tr className="block lg:table-row">
+            <td className="block overflow-x-hidden overflow-y-hidden pb-2 text-left text-neutral-600/80 lg:table-cell lg:min-w-[20%] lg:whitespace-nowrap lg:pb-8 lg:text-right">
               <label>Email</label>
             </td>
-            <td className="w-96 pl-5 pb-8">
-              <div className="items-center flex gap-2">
+            <td className="block w-full pb-6 lg:table-cell lg:w-96 lg:pl-5 lg:pb-8">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="text-zinc-800 text-sm">{userProfile?.emailMasked || ""}</div>
                 <Link
                   href="/user/account/email"
@@ -175,12 +175,12 @@ export function ProfileForm() {
               </div>
             </td>
           </tr>
-          <tr>
-            <td className="text-right whitespace-nowrap min-w-[20%] overflow-x-hidden overflow-y-hidden pb-8 text-neutral-600/80">
+          <tr className="block lg:table-row">
+            <td className="block overflow-x-hidden overflow-y-hidden pb-2 text-left text-neutral-600/80 lg:table-cell lg:min-w-[20%] lg:whitespace-nowrap lg:pb-8 lg:text-right">
               <label>Phone Number</label>
             </td>
-            <td className="w-96 pl-5 pb-8">
-              <div className="items-center flex gap-2">
+            <td className="block w-full pb-6 lg:table-cell lg:w-96 lg:pl-5 lg:pb-8">
+              <div className="flex flex-wrap items-center gap-2">
                 <div className="text-zinc-800 text-sm">
                   {userProfile?.phoneNumber ? userProfile.phoneNumber : "—"}
                 </div>
@@ -193,8 +193,8 @@ export function ProfileForm() {
               </div>
             </td>
           </tr>
-          <tr>
-            <td className="text-right whitespace-nowrap min-w-[20%] overflow-x-hidden overflow-y-hidden pb-8 text-neutral-600/80">
+          <tr className="block lg:table-row">
+            <td className="block overflow-x-hidden overflow-y-hidden pb-2 text-left text-neutral-600/80 lg:table-cell lg:min-w-[20%] lg:whitespace-nowrap lg:pb-8 lg:text-right">
               <label>
                 Gender
                 <span className="cursor-pointer align-middle ml-1.5" title="Help">
@@ -202,9 +202,9 @@ export function ProfileForm() {
                 </span>
               </label>
             </td>
-            <td className="w-96 pl-5 pb-8">
+            <td className="block w-full pb-6 lg:table-cell lg:w-96 lg:pl-5 lg:pb-8">
               <div>
-                <div className="flex" role="radiogroup" aria-label="Gender">
+                <div className="flex flex-col gap-3 sm:flex-row" role="radiogroup" aria-label="Gender">
                   {(["male", "female", "other"] as const).map((g) => (
                     <label
                       key={g}
@@ -234,8 +234,8 @@ export function ProfileForm() {
               </div>
             </td>
           </tr>
-          <tr>
-            <td className="text-right whitespace-nowrap min-w-[20%] overflow-x-hidden overflow-y-hidden pb-8 text-neutral-600/80">
+          <tr className="block lg:table-row">
+            <td className="block overflow-x-hidden overflow-y-hidden pb-2 text-left text-neutral-600/80 lg:table-cell lg:min-w-[20%] lg:whitespace-nowrap lg:pb-8 lg:text-right">
               <label>
                 Date of birth
                 <span className="cursor-pointer align-middle ml-1.5" title="Help">
@@ -243,9 +243,9 @@ export function ProfileForm() {
                 </span>
               </label>
             </td>
-            <td className="w-96 pl-5 pb-8">
-              <div className="justify-between w-full flex gap-2">
-                <div className="cursor-pointer select-none w-4/12 flex min-w-0 relative">
+            <td className="block w-full pb-6 lg:table-cell lg:w-96 lg:pl-5 lg:pb-8">
+              <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-between">
+                <div className="relative flex min-w-0 cursor-pointer select-none sm:w-4/12">
                   <select
                     value={date === "" ? "" : date}
                     onChange={(e) => setDate(e.target.value === "" ? "" : Number(e.target.value))}
@@ -262,7 +262,7 @@ export function ProfileForm() {
                     <ChevronDownIcon />
                   </span>
                 </div>
-                <div className="cursor-pointer select-none w-4/12 flex min-w-0 relative">
+                <div className="relative flex min-w-0 cursor-pointer select-none sm:w-4/12">
                   <select
                     value={month === "" ? "" : month}
                     onChange={(e) => setMonth(e.target.value === "" ? "" : Number(e.target.value))}
@@ -279,7 +279,7 @@ export function ProfileForm() {
                     <ChevronDownIcon />
                   </span>
                 </div>
-                <div className="cursor-pointer select-none w-4/12 flex min-w-0 relative">
+                <div className="relative flex min-w-0 cursor-pointer select-none sm:w-4/12">
                   <select
                     value={year === "" ? "" : year}
                     onChange={(e) => setYear(e.target.value === "" ? "" : Number(e.target.value))}
@@ -299,12 +299,12 @@ export function ProfileForm() {
               </div>
             </td>
           </tr>
-          <tr>
-            <td className="text-right whitespace-nowrap min-w-[20%] overflow-x-hidden overflow-y-hidden pb-8 text-neutral-600/80">
+          <tr className="block lg:table-row">
+            <td className="block overflow-x-hidden overflow-y-hidden pb-2 text-left text-neutral-600/80 lg:table-cell lg:min-w-[20%] lg:whitespace-nowrap lg:pb-8 lg:text-right">
               <label></label>
             </td>
-            <td className="w-96 pl-5 pb-8">
-              <div className="flex items-center gap-3">
+            <td className="block w-full pb-8 lg:table-cell lg:w-96 lg:pl-5">
+              <div className="flex flex-col items-start gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                 <button
                   type="submit"
                   disabled={saving}

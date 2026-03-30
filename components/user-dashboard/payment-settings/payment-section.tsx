@@ -83,7 +83,7 @@ export function PaymentSection({ section, paymentMethods = [], onRefresh }: Paym
   return (
     <section>
       {/* Title row: title (left) + Add button (right) */}
-      <div className="flex items-center justify-between gap-4 px-6 pt-6 pb-4">
+      <div className="flex flex-col items-start justify-between gap-4 px-4 pb-4 pt-6 sm:px-6 md:flex-row md:items-center">
         <h2 className="text-xl font-medium text-black/87">{section.title}</h2>
         {isBankSection || isCardSection ? (
           <button
@@ -92,7 +92,7 @@ export function PaymentSection({ section, paymentMethods = [], onRefresh }: Paym
               if (isBankSection) setShowBankModal(true);
               if (isCardSection) setShowCardModal(true);
             }}
-            className="shrink-0 inline-flex items-center px-[18px] py-2.5 text-base font-normal text-white rounded-[2px] bg-[rgb(238,77,45)] hover:bg-[rgb(225,72,42)] border-0 cursor-pointer transition-colors"
+            className="inline-flex w-full items-center justify-center rounded-[2px] border-0 bg-[rgb(238,77,45)] px-[18px] py-2.5 text-base font-normal text-white transition-colors hover:bg-[rgb(225,72,42)] md:w-auto"
           >
             <PlusIcon />
             {section.buttonLabel}
@@ -100,7 +100,7 @@ export function PaymentSection({ section, paymentMethods = [], onRefresh }: Paym
         ) : (
           <Link
             href={section.buttonHref}
-            className="shrink-0 inline-flex items-center px-[18px] py-2.5 text-base font-normal text-white rounded-[2px] bg-[rgb(238,77,45)] hover:bg-[rgb(225,72,42)] no-underline transition-colors"
+            className="inline-flex w-full items-center justify-center rounded-[2px] bg-[rgb(238,77,45)] px-[18px] py-2.5 text-base font-normal text-white no-underline transition-colors hover:bg-[rgb(225,72,42)] md:w-auto"
           >
             <PlusIcon />
             {section.buttonLabel}
@@ -114,11 +114,11 @@ export function PaymentSection({ section, paymentMethods = [], onRefresh }: Paym
           {section.emptyMessage}
         </p>
       ) : (
-        <div className="px-6 py-4">
+        <div className="px-4 py-4 sm:px-6">
           {paymentMethods.map((method) => (
             <div
               key={method.id}
-              className="border border-black/10 rounded-[3px] p-4 mb-3 flex items-center justify-between"
+              className="mb-3 flex flex-col gap-3 rounded-[3px] border border-black/10 p-4 sm:flex-row sm:items-center sm:justify-between"
             >
               <div className="flex-1">
                 {method.type === "card" ? (
@@ -153,7 +153,7 @@ export function PaymentSection({ section, paymentMethods = [], onRefresh }: Paym
               </div>
               <button
                 type="button"
-                className="text-[13px] text-[#0055aa] cursor-pointer border-0 bg-transparent p-0 ml-4"
+                className="ml-0 cursor-pointer border-0 bg-transparent p-0 text-left text-[13px] text-[#0055aa] sm:ml-4"
                 onClick={() => handleDelete(method.id)}
               >
                 Delete

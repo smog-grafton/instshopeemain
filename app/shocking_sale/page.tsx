@@ -14,6 +14,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { getShockingSalePage, getShockingSaleSessions, type ApiShockingSalePageResponse, type ApiShockingSaleSession } from "@/lib/api-client";
 import { useSearchParams } from "next/navigation";
 import type { SessionSlot, CategoryTab, MoreMenuItem } from "@/components/shocking-sale-page";
+import { StorefrontMobileDock } from "@/components/storefront-mobile-dock";
 
 function ShockingSaleContent() {
   const searchParams = useSearchParams();
@@ -81,7 +82,7 @@ function ShockingSaleContent() {
   } : null;
 
   return (
-    <div className="min-h-screen bg-[rgb(245,245,245)]">
+    <div className="min-h-screen bg-[rgb(245,245,245)] pb-28 lg:pb-0">
       <TopNavbar />
       <HeaderWithSearch />
       {loading ? (
@@ -110,6 +111,7 @@ function ShockingSaleContent() {
         </>
       )}
       <SiteFooter />
+      <StorefrontMobileDock />
     </div>
   );
 }

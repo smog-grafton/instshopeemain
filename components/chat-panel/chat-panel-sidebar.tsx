@@ -53,8 +53,8 @@ export function ChatPanelSidebar({
   }, [conversations, filter, search]);
 
   return (
-    <div className="flex w-56 flex-col overflow-x-hidden overflow-y-hidden">
-      <div className="flex w-full items-center px-4 pb-2 pt-3">
+    <div className="flex h-full w-full min-w-0 flex-col overflow-hidden bg-white sm:w-56 sm:min-w-[14rem]">
+      <div className="flex w-full items-center gap-2 border-b border-neutral-200 px-3 pb-3 pt-3 sm:border-b-0 sm:px-4 sm:pb-2">
         <div className="relative z-10 h-full w-full text-sm">
           <div className="relative inline-table h-8 w-full border-spacing-0 rounded border border-solid border-neutral-200 bg-white px-3 align-middle outline-none transition-all duration-200 ease-in-out hover:border-zinc-400 [border-collapse:initial]">
             <div className="relative table-cell w-px shrink-0 align-middle pr-2 text-neutral-400 leading-[0] whitespace-nowrap">
@@ -73,10 +73,10 @@ export function ChatPanelSidebar({
             />
           </div>
         </div>
-        <div className="relative ml-2 shrink-0">
+        <div className="relative shrink-0">
           <button
             type="button"
-            className="flex select-none cursor-pointer items-center justify-center break-keep text-sm text-zinc-800 transition-colors duration-300"
+            className="flex select-none cursor-pointer items-center justify-center break-keep whitespace-nowrap text-sm text-zinc-800 transition-colors duration-300"
             onClick={() => setDropdownOpen((o) => !o)}
             aria-haspopup="listbox"
             aria-expanded={dropdownOpen}
@@ -118,7 +118,7 @@ export function ChatPanelSidebar({
           )}
         </div>
       </div>
-      <div className="flex flex-1 flex-col overflow-x-hidden overflow-y-hidden">
+      <div className="flex flex-1 flex-col overflow-hidden">
         <div className="relative h-0 flex-1 overflow-x-hidden overflow-y-auto">
           {filtered.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center pb-10">

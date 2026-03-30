@@ -1,38 +1,37 @@
 import Link from "next/link";
 
-export function VoucherWalletHeader() {
+export function VoucherWalletHeader({ totalCount }: { totalCount?: number }) {
   return (
-    <div className="flex justify-between items-center">
-      <div className="capitalize text-xl font-medium text-black/80">
-        Vouchers / Discounts
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+      <div>
+        <h1 className="text-xl font-semibold text-black/80">Vouchers / Discounts</h1>
+        <p className="mt-1 text-sm leading-6 text-neutral-500">
+          Keep active buyer vouchers organized and redeem new codes before you
+          checkout.
+          {typeof totalCount === "number" ? ` ${totalCount} voucher(s) loaded.` : ""}
+        </p>
       </div>
-      <div className="flex">
-        <div className="border-l border-solid border-black/20">
-          <Link
-            href="/user/get-more-vouchers"
-            className="cursor-pointer outline-none hover:outline-none text-red-500 text-sm leading-4 no-underline"
-          >
-            Get more vouchers
-          </Link>
-        </div>
-        <div className="border-l border-[0.5px] border-l-black/20 ml-2.5 pl-2.5">
-          <Link
-            href="/user/voucher-wallet?page=history"
-            className="cursor-pointer outline-none hover:outline-none text-red-500 text-sm leading-4 no-underline"
-          >
-            View voucher history
-          </Link>
-        </div>
-        <div className="border-l border-[0.5px] border-l-black/20 ml-2.5 pl-2.5">
-          <Link
-            href="https://help.shopee.com.my/portal/article/78690"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="cursor-pointer outline-none hover:outline-none text-sm leading-4 no-underline text-neutral-500"
-          >
-            Learn More
-          </Link>
-        </div>
+      <div className="flex flex-wrap items-center gap-2">
+        <Link
+          href="/user/get-more-vouchers"
+          className="inline-flex h-10 items-center justify-center rounded-full bg-red-500 px-4 text-sm font-medium text-white no-underline transition hover:bg-red-600"
+        >
+          Get more vouchers
+        </Link>
+        <Link
+          href="/user/voucher-wallet?page=history"
+          className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-200 px-4 text-sm font-medium text-zinc-700 no-underline transition hover:border-zinc-300 hover:bg-zinc-50"
+        >
+          View history
+        </Link>
+        <Link
+          href="https://help.shopee.com.my/portal/article/78690"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-200 px-4 text-sm font-medium text-zinc-500 no-underline transition hover:border-zinc-300 hover:bg-zinc-50"
+        >
+          Learn more
+        </Link>
       </div>
     </div>
   );

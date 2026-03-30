@@ -4,6 +4,8 @@
  */
 
 export interface ShopProfileData {
+  /** Vendor id for follow / chat APIs */
+  id: string;
   /** Store display name */
   name: string;
   /** e.g. "Active 3 minutes ago" */
@@ -42,6 +44,7 @@ export const shopProfileAssets = {
  */
 export function getMockShopProfile(slug: string): ShopProfileData {
   return {
+    id: "0",
     name: "Grafen Korea Official Store",
     status: "Active 3 minutes ago",
     profileImageUrl: defaultProfileImage,

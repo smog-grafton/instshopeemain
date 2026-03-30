@@ -8,8 +8,10 @@ export default function UserLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <div className="min-h-screen bg-[rgb(245,245,245)]">
-      <TopNavbar />
-      <HeaderWithSearch />
+      <div className="hidden lg:block">
+        <TopNavbar />
+        <HeaderWithSearch />
+      </div>
       {children}
       <FooterContent />
       <SiteFooter />

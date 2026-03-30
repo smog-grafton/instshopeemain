@@ -18,23 +18,34 @@ export function ProductPriceBlock({
   priceTeaserText,
   hideTeaserLine = false,
 }: ProductPriceBlockProps) {
+  const currentPriceLabel = priceMin === priceMax ? priceMin : `${priceMin} - ${priceMax}`;
+  const originalPriceLabel = originalMin === originalMax ? originalMin : `${originalMin} - ${originalMax}`;
+  const showOriginalPrice =
+    Boolean(originalMin && originalMax) &&
+    originalPriceLabel.trim() !== "" &&
+    originalPriceLabel !== currentPriceLabel;
+
   return (
     <div className="mt-2.5">
-      <div className="flex flex-col z-[2] bg-neutral-50 relative px-5 py-4">
+      <div className="relative z-[2] flex flex-col bg-neutral-50 px-4 py-4 sm:px-5">
         <section aria-live="polite">
-          <div className="items-center flex">
-            <div className="text-red-500 text-3xl font-medium whitespace-nowrap flex-none">
-              {priceMin} - {priceMax}
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-2">
+            <div className="flex-none whitespace-nowrap text-2xl font-medium text-red-500 sm:text-3xl">
+              {currentPriceLabel}
             </div>
-            <div className="text-neutral-400 text-base line-through whitespace-nowrap flex-none ml-2.5">
-              {originalMin} - {originalMax}
-            </div>
-            <div className="whitespace-nowrap flex-none text-red-500 bg-rose-50 justify-center items-center h-5 text-xs font-bold inline-flex ml-2.5 px-1 rounded-sm">
-              -{discountPercent}%
-            </div>
+            {showOriginalPrice && (
+              <div className="flex-none whitespace-nowrap text-sm text-neutral-400 line-through sm:text-base">
+                {originalPriceLabel}
+              </div>
+            )}
+            {discountPercent > 0 && (
+              <div className="inline-flex h-5 flex-none items-center justify-center whitespace-nowrap rounded-sm bg-rose-50 px-1 text-xs font-bold text-red-500">
+                -{discountPercent}%
+              </div>
+            )}
           </div>
         </section>
-        {!hideTeaserLine && (
+        {!hideTeaserLine && priceTeaserText && (
           <div className="text-red-500 items-center h-5 flex my-2.5">
             <div className="shrink-0 h-5 mr-2.5 w-5 bg-red-500/20 rounded" aria-hidden />
             <div className="text-ellipsis whitespace-nowrap overflow-x-hidden overflow-y-hidden">

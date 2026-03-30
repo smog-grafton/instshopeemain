@@ -50,30 +50,31 @@ export default function UserNotificationsOrderPage() {
 
   return (
     <UserDashboardLayout>
-      <div className="bg-white grow w-[980px] relative shadow-sm ml-7 rounded-sm min-h-[400px]">
-        <div className="flex-col min-h-full flex relative" role="main">
-          <div className="contents">
-            <div className="pb-2.5 px-8">
-              <div className="[border-bottom-style:solid] py-5 border-b border-b-zinc-100">
-                <h1 className="capitalize text-zinc-800 text-lg font-medium leading-6">
-                  Order Updates
-                </h1>
-                <div className="text-neutral-600 text-sm leading-4 mt-[0.1875rem]">
-                  Notifications about your orders
-                </div>
+      <div className="min-w-0 w-full rounded-sm bg-white shadow-sm lg:ml-7 lg:w-[980px]">
+        <div className="px-4 pb-4 sm:px-6 lg:px-8" role="main">
+          <div className="border-b border-zinc-100 py-5">
+            <h1 className="text-lg font-medium leading-6 text-zinc-800">
+              Order Updates
+            </h1>
+            <p className="mt-1 text-sm leading-5 text-neutral-600">
+              Shipping, delivery, and purchase status changes for your orders.
+            </p>
+          </div>
+
+          <div className="py-6">
+            {loading ? (
+              <div className="rounded-2xl border border-zinc-100 bg-zinc-50 px-4 py-10 text-center text-sm text-zinc-500 sm:px-6">
+                Loading notifications...
               </div>
-              {loading ? (
-                <div className="py-8 text-center text-gray-500">Loading notifications...</div>
-              ) : items.length === 0 ? (
-                <OrderUpdatesEmpty />
-              ) : (
-                <div className="py-6 px-8 flex flex-col gap-3">
-                  {items.map((item) => (
-                    <OrderUpdateCard key={item.id} item={item} />
-                  ))}
-                </div>
-              )}
-            </div>
+            ) : items.length === 0 ? (
+              <OrderUpdatesEmpty />
+            ) : (
+              <div className="flex flex-col gap-3">
+                {items.map((item) => (
+                  <OrderUpdateCard key={item.id} item={item} />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

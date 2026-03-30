@@ -6,6 +6,7 @@ import { apiFetch } from "./api-client";
 
 export type PaymentMethodKey =
   | "voucher"
+  | "wallet"
   | "online-banking"
   | "card"
   | "cash"
@@ -93,6 +94,9 @@ export interface PlaceOrderInput {
 export interface PlaceOrderResult {
   order: OrderRecord;
   primaryPayment: PaymentRecord;
+  orders?: OrderRecord[];
+  primaryPayments?: PaymentRecord[];
+  splitByShop?: boolean;
 }
 
 export async function getOrders(): Promise<OrderRecord[]> {
@@ -128,3 +132,12 @@ export async function placeOrder(input: PlaceOrderInput): Promise<PlaceOrderResu
   return response;
 }
 
+export async function confirmOrderDelivery(id: string): Promise<OrderRecord> {
+  const response = await apiFetch<{ success: boolean; order: OrderRecord }>(
+    `/orders/${id}/confirm-delivery`,
+    { method: "POST" },
+    true
+  );
+
+  return response.order;
+}

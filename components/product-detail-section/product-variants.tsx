@@ -45,15 +45,20 @@ export function ProductVariants({
     else setInternalSize(i);
   };
 
+  if (colors.length === 0 && sizes.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="text-neutral-800 items-center flex -ml-1 -mt-1 pt-1 px-1 pb-4">
-      <div className="flex flex-col">
-        <section className="flex items-baseline mb-6">
-          <h2 className="text-neutral-500 capitalize w-24 shrink-0 items-center font-normal mr-2.5">
+    <div className="px-1 pb-4 pt-1 text-neutral-800">
+      <div className="flex flex-col gap-5">
+        {colors.length > 0 && (
+        <section className="flex flex-col gap-2 sm:flex-row sm:items-baseline">
+          <h2 className="mr-2.5 w-20 shrink-0 text-sm font-normal capitalize text-neutral-500 sm:w-24">
             Color
           </h2>
           <div>
-            <div className="flex items-center flex-wrap basis-[515px] max-w-lg max-h-56 overflow-y-auto -mt-2">
+            <div className="-mt-2 flex max-h-56 max-w-2xl flex-wrap items-center overflow-y-auto">
               {colors.map((color, i) => (
                 <button
                   key={color.label}
@@ -78,12 +83,14 @@ export function ProductVariants({
             </div>
           </div>
         </section>
-        <section className="flex items-baseline mb-6">
-          <h2 className="text-neutral-500 capitalize w-24 shrink-0 items-center font-normal mr-2.5">
+        )}
+        {sizes.length > 0 && (
+        <section className="flex flex-col gap-2 sm:flex-row sm:items-baseline">
+          <h2 className="mr-2.5 w-20 shrink-0 text-sm font-normal capitalize text-neutral-500 sm:w-24">
             Size
           </h2>
           <div>
-            <div className="flex items-center flex-wrap basis-[515px] max-w-lg max-h-56 overflow-y-auto -mt-2">
+            <div className="-mt-2 flex max-h-56 max-w-2xl flex-wrap items-center overflow-y-auto">
               {sizes.map((size, i) => (
                 <button
                   key={size}
@@ -112,6 +119,7 @@ export function ProductVariants({
             </div>
           </div>
         </section>
+        )}
       </div>
     </div>
   );

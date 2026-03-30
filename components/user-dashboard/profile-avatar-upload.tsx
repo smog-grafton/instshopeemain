@@ -60,8 +60,8 @@ export function ProfileAvatarUpload() {
   const avatarUrl = userProfile?.avatarUrl ?? null;
 
   return (
-    <div className="[border-left-style:solid] justify-center w-72 flex overflow-x-hidden overflow-y-hidden border-l border-l-zinc-100">
-      <div className="flex-col items-center flex">
+    <div className="flex w-full justify-center overflow-x-hidden overflow-y-hidden border-b border-b-zinc-100 pb-6 lg:w-72 lg:border-b-0 lg:border-l lg:border-l-zinc-100 lg:pb-0">
+      <div className="flex flex-col items-center">
         <div
           className="justify-center items-center w-24 h-24 flex relative my-5 rounded-[50%] overflow-hidden bg-neutral-100"
           role="img"

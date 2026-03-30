@@ -7,6 +7,7 @@ export interface DailyDiscoverProduct {
   href: string;
   findSimilarHref: string;
   imageIndex: number; // 1–7, cycles through local images
+  imageSrc?: string;
   hasVideo: boolean;
   badges: ("shopee-lagi-murah" | "cod" | "mall" | "new-arrival" | "preferred" | "sea-shipping")[];
   promotionLabel?: string; // e.g. "15% off", "RM9 off", "RM0.3 off"

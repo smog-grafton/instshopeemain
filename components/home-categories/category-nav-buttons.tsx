@@ -18,7 +18,7 @@ export function CategoryNavButtons({
       <button
         type="button"
         onClick={onPrev}
-        className={`cursor-pointer outline-0 justify-center items-center text-xl flex absolute shadow rounded-[50%] top-2/4 left-0 bg-white w-6 h-6 leading-6 -mt-3 -translate-x-2/4 transition-all duration-300 ease-in-out z-10 ${
+        className={`absolute left-0 top-2/4 z-10 hidden h-6 w-6 -mt-3 -translate-x-2/4 cursor-pointer items-center justify-center rounded-[50%] bg-white text-xl leading-6 shadow outline-0 transition-all duration-300 ease-in-out md:flex ${
           showPrev
             ? "opacity-100 scale-100 group-hover/categories:scale-[1.75]"
             : "opacity-0 scale-0 pointer-events-none"
@@ -41,7 +41,7 @@ export function CategoryNavButtons({
       <button
         type="button"
         onClick={onNext}
-        className={`cursor-pointer outline-0 justify-center items-center text-xl flex absolute shadow rounded-[50%] top-2/4 right-0 bg-white w-6 h-6 leading-6 -mt-3 translate-x-2/4 transition-all duration-300 ease-in-out z-10 ${
+        className={`absolute right-0 top-2/4 z-10 hidden h-6 w-6 -mt-3 translate-x-2/4 cursor-pointer items-center justify-center rounded-[50%] bg-white text-xl leading-6 shadow outline-0 transition-all duration-300 ease-in-out md:flex ${
           showNext
             ? "opacity-100 scale-100 group-hover/categories:scale-[1.75]"
             : "opacity-0 scale-0 pointer-events-none"

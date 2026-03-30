@@ -12,43 +12,30 @@ interface VoucherListWithLoaderProps {
   baseVouchers: VoucherItem[];
 }
 
-function extendVouchers(
-  vouchers: VoucherItem[],
-  startIndex: number,
-  count: number
-): VoucherItem[] {
-  const result: VoucherItem[] = [];
-  for (let i = 0; i < count; i++) {
-    const source = vouchers[(startIndex + i) % vouchers.length];
-    result.push({
-      ...source,
-      id: `load-${startIndex + i}-${source.id}`,
-    });
-  }
-  return result;
-}
-
 export function VoucherListWithLoader({
   baseVouchers,
 }: VoucherListWithLoaderProps) {
+  const initialCount = Math.min(INITIAL_COUNT, baseVouchers.length);
   const [items, setItems] = useState<VoucherItem[]>(() =>
-    baseVouchers.slice(0, Math.min(INITIAL_COUNT, baseVouchers.length))
+    baseVouchers.slice(0, initialCount)
   );
   const [isLoading, setIsLoading] = useState(false);
-  const loadIndexRef = useRef(Math.min(INITIAL_COUNT, baseVouchers.length));
+  const loadIndexRef = useRef(initialCount);
   const loaderRef = useRef<HTMLDivElement>(null);
 
   const loadMore = useCallback(() => {
-    if (isLoading || baseVouchers.length === 0) return;
+    if (isLoading || baseVouchers.length === 0 || loadIndexRef.current >= baseVouchers.length) {
+      return;
+    }
+
     setIsLoading(true);
     const t = setTimeout(() => {
       setItems((prev) => {
-        const next = extendVouchers(
-          baseVouchers,
+        const next = baseVouchers.slice(
           loadIndexRef.current,
-          LOAD_MORE_COUNT
+          loadIndexRef.current + LOAD_MORE_COUNT
         );
-        loadIndexRef.current += LOAD_MORE_COUNT;
+        loadIndexRef.current += next.length;
         return [...prev, ...next];
       });
       setIsLoading(false);
@@ -69,17 +56,24 @@ export function VoucherListWithLoader({
     return () => observer.disconnect();
   }, [loadMore]);
 
+  useEffect(() => {
+    const nextInitialCount = Math.min(INITIAL_COUNT, baseVouchers.length);
+    setItems(baseVouchers.slice(0, nextInitialCount));
+    loadIndexRef.current = nextInitialCount;
+    setIsLoading(false);
+  }, [baseVouchers]);
+
   if (baseVouchers.length === 0) {
     return (
-      <div className="z-0 relative mt-4 py-12 text-center text-black/54">
+      <div className="relative z-0 mt-4 rounded-3xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-14 text-center text-black/54">
         No vouchers yet. Get more from the link above or redeem a code.
       </div>
     );
   }
 
   return (
-    <div className="z-0 relative mt-4">
-      <div className="flex flex-wrap">
+    <div className="relative z-0 mt-5">
+      <div className="grid gap-4 md:grid-cols-2">
         {items.map((item) => (
           <VoucherCard key={item.id} item={item} />
         ))}

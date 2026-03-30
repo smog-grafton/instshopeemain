@@ -45,6 +45,8 @@ export interface ProductDetailSectionData {
   promotionEndsAt?: string;
   /** Currency symbol for display (e.g., "RM", "USD", "IDR") */
   currencySymbol?: string;
+  /** From catalog-linked products (wholesale); added once per cart line at checkout shipping. */
+  catalogShippingFee?: number;
 }
 
 /** Single stat row in the shop profile (e.g. Ratings, Response Rate). */
@@ -360,4 +362,5 @@ export const defaultProductDetailData: ProductDetailSectionData = {
   sizes: ["38", "39", "40", "41", "42", "43", "37"],
   quantity: 1,
   inStock: true,
+  catalogShippingFee: 0,
 };

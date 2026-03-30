@@ -51,62 +51,77 @@ function ChevronRightIcon({ className }: { className?: string }) {
 
 export function CoinsHeader({ balance }: CoinsHeaderProps) {
   return (
-    <div className="flex items-center gap-4 bg-white rounded-[2px] shadow-[0_1px_1px_0_rgba(0,0,0,0.05)] mb-3 px-5 py-4 overflow-visible text-[rgb(246,167,0)]">
-      {/* Coin icon */}
-      <div className="relative w-12 h-12 shrink-0">
-        <Image
-          src={COIN_IMAGE}
-          alt="Shopee Coins"
-          width={48}
-          height={48}
-          className="w-12 h-12 object-contain"
-        />
+    <div className="overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#fff7e5_0%,#fff1c6_45%,#ffe3ad_100%)] p-5 shadow-sm sm:p-6">
+      <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+        <div className="flex items-start gap-4">
+          <div className="relative h-14 w-14 shrink-0 rounded-2xl bg-white/70 p-2 shadow-sm">
+            <Image
+              src={COIN_IMAGE}
+              alt="Shopee Coins"
+              width={48}
+              height={48}
+              className="h-12 w-12 object-contain"
+            />
+          </div>
+
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <div className="text-sm font-semibold uppercase tracking-[0.08em] text-amber-700">
+                Coins available
+              </div>
+              <button
+                type="button"
+                className="cursor-pointer text-black/54"
+                aria-label="Coins info"
+              >
+                <InfoIcon />
+              </button>
+            </div>
+            <div className="mt-2 text-4xl font-semibold leading-none text-zinc-900">
+              {balance.available}
+            </div>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-zinc-600">
+              Use coins on eligible orders to reduce checkout totals and keep an
+              eye on expiry dates before they roll off.
+            </p>
+          </div>
+        </div>
+
+        <Link
+          href="/shopee-coins"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-zinc-900 px-5 text-sm font-medium text-white shadow-sm transition hover:bg-zinc-800"
+        >
+          Earn more coins
+          <ChevronRightIcon className="block h-2.5 w-2.5 fill-white" />
+        </Link>
       </div>
 
-      {/* Balance number */}
-      <div className="text-[2rem] leading-none shrink-0">{balance.available}</div>
-
-      {/* Info section: min-w-0 so it can shrink and "Earn more coins" stays on same row */}
-      <div className="flex flex-col min-w-0 flex-1">
-        <div className="flex items-center">
-          <div className="text-base -mr-2.5 text-[rgb(246,167,0)]">Coins available</div>
-          <button
-            type="button"
-            className="outline-none flex relative overflow-visible ml-2.5 cursor-pointer text-black/54"
-            aria-label="Coins info"
-          >
-            <InfoIcon />
-          </button>
+      <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl bg-white/80 p-4 shadow-sm">
+          <p className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+            Expiring soon
+          </p>
+          <p className="mt-2 text-2xl font-semibold text-zinc-900">
+            {balance.expiring}
+          </p>
         </div>
-        <div className="flex items-center">
-          {balance.expiring > 0 && balance.expiringDate ? (
-            <Link
-              href="/user/coin/expiration/"
-              className="flex items-center text-sm font-light text-[rgb(146,146,146)] no-underline hover:underline"
-            >
-              {balance.expiring} coins expiring on {balance.expiringDate}
-              <ChevronRightIcon className="w-[11px] h-[11px] ml-1.5 fill-black/54 inline-block relative overflow-hidden" />
-            </Link>
-          ) : (
-            <Link
-              href="/user/coin/expiration/"
-              className="flex items-center text-sm font-light text-[rgb(146,146,146)] no-underline hover:underline"
-            >
-              0 coins expiring on
-              <ChevronRightIcon className="w-[11px] h-[11px] ml-1.5 fill-black/54 inline-block" />
-            </Link>
-          )}
-        </div>
+        <Link
+          href="/user/coin/expiration/"
+          className="flex items-center justify-between gap-3 rounded-2xl bg-white/80 p-4 no-underline shadow-sm transition hover:bg-white"
+        >
+          <div className="min-w-0">
+            <p className="text-xs font-semibold uppercase tracking-[0.08em] text-zinc-500">
+              Next expiry
+            </p>
+            <p className="mt-2 text-sm font-medium leading-6 text-zinc-800">
+              {balance.expiring > 0 && balance.expiringDate
+                ? `${balance.expiring} coins expiring on ${balance.expiringDate}`
+                : "No coins expiring yet"}
+            </p>
+          </div>
+          <ChevronRightIcon className="h-[11px] w-[11px] shrink-0 fill-black/54" />
+        </Link>
       </div>
-
-      {/* Earn more link: shrink-0 so it never wraps to next line */}
-      <Link
-        href="/shopee-coins"
-        className="flex justify-end items-center gap-2 shrink-0 text-base no-underline text-[rgb(246,167,0)] hover:underline"
-      >
-        Earn more coins
-        <ChevronRightIcon className="w-2.5 h-2.5 fill-[rgb(246,167,0)] block" />
-      </Link>
     </div>
   );
 }

@@ -15,6 +15,10 @@ export function ShopTopProductsSection({
   shopSlug,
   products,
 }: ShopTopProductsSectionProps) {
+  if (products.length === 0) {
+    return null;
+  }
+
   return (
     <div className="shopee-header-section__content">
       <ShopTopProductsHeader shopSlug={shopSlug} />

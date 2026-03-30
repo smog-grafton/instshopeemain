@@ -28,12 +28,12 @@ export function ProductQuantity({
   };
 
   return (
-    <section className="flex items-center text-neutral-500 mt-4">
-      <h2 className="text-neutral-500 capitalize w-24 shrink-0 items-center font-normal mr-2.5">
+    <section className="mt-4 flex flex-col gap-2 text-neutral-500 sm:flex-row sm:items-center">
+      <h2 className="mr-2.5 w-20 shrink-0 text-sm font-normal capitalize text-neutral-500 sm:w-24">
         Quantity
       </h2>
-      <div className="flex items-center">
-        <div className="mr-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="mr-0">
           <div className="items-center flex bg-white">
             <button
               type="button"
@@ -65,7 +65,7 @@ export function ProductQuantity({
             </button>
           </div>
         </div>
-        <div>{inStock ? "IN STOCK" : "OUT OF STOCK"}</div>
+        <div className="text-sm text-black/65">{inStock ? "IN STOCK" : "OUT OF STOCK"}</div>
       </div>
     </section>
   );

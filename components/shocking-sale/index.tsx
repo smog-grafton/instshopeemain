@@ -5,8 +5,6 @@ import { ShockingSaleHeader } from "./header";
 import { ProductCarousel } from "./product-carousel";
 import { getShockingSaleHome, type ApiShockingSaleConfig } from "@/lib/api-client";
 import type { ShockingSaleProduct } from "./data";
-import { WobbleLoader } from "@/components/common/wobble-loader";
-
 export function ShockingSale() {
   const [config, setConfig] = useState<ApiShockingSaleConfig | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,10 +26,10 @@ export function ShockingSale() {
   if (loading) {
     return (
       <div
-        role="main"
-        className="w-full max-w-[1200px] mx-auto px-3 sm:px-4 md:-mt-[25rem]"
+        role="region"
+        className="mx-auto w-full max-w-[1200px] px-3 sm:px-4 md:-mt-[25rem]"
       >
-        <div className="bg-white min-h-72">
+        <div className="min-h-72 bg-white shadow-sm">
           <div className="py-8 text-center text-gray-500">Loading flash deals...</div>
         </div>
       </div>
@@ -66,14 +64,15 @@ export function ShockingSale() {
   };
 
   return (
-    <div
-      role="main"
-      className="w-full max-w-[1200px] mx-auto px-3 sm:px-4 md:-mt-[25rem]"
+    <section
+      id="home-shocking-sale"
+      role="region"
+      className="mx-auto w-full max-w-[1200px] px-3 sm:px-4 md:-mt-[25rem]"
     >
-      <div className="bg-white min-h-72">
+      <div className="min-h-72 bg-white shadow-sm">
         <ShockingSaleHeader config={componentConfig} />
         <ProductCarousel products={products} />
       </div>
-    </div>
+    </section>
   );
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { TopProductsHeader } from "./top-products-header";
 import { TopProductsCarousel } from "./top-products-carousel";
-import { topProductsData, type TopProduct } from "./data";
+import { type TopProduct } from "./data";
 import { getRecommendedProducts, type ApiProduct } from "@/lib/api-client";
 
 function transformApiProductToTopProduct(p: ApiProduct, index: number): TopProduct {
@@ -22,7 +22,7 @@ function transformApiProductToTopProduct(p: ApiProduct, index: number): TopProdu
 }
 
 export function TopProducts() {
-  const [products, setProducts] = useState<TopProduct[]>(topProductsData);
+  const [products, setProducts] = useState<TopProduct[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export function TopProducts() {
         setProducts(transformed);
       } catch (error) {
         console.error("Failed to fetch top products:", error);
-        // Keep mock products as fallback
+        setProducts([]);
       } finally {
         setLoading(false);
       }
@@ -46,6 +46,8 @@ export function TopProducts() {
       <TopProductsHeader />
       {loading ? (
         <div className="py-8 text-center text-gray-500">Loading top products...</div>
+      ) : products.length === 0 ? (
+        <div className="py-8 text-center text-gray-500">No top products available yet.</div>
       ) : (
         <TopProductsCarousel products={products} />
       )}

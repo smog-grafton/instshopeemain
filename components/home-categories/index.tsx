@@ -6,10 +6,8 @@ import { useRef, useState, useEffect } from "react";
 import {
   getUiBlocks,
   resolveCountryIdForBrowser,
-  type ApiUiBlock,
 } from "@/lib/api-client";
 import type { CategoryItem as CategoryItemType } from "./data";
-import { WobbleLoader } from "@/components/common/wobble-loader";
 
 export function HomeCategories() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -103,48 +101,41 @@ export function HomeCategories() {
   };
 
   return (
-    <div
-      role="main"
-      className="w-full max-w-[1200px] mx-auto px-3 sm:px-4"
-    >
-      <div className="min-h-[50rem]">
-        <div className="bg-white min-h-72 mt-5">
-          <div className="group">
-            <div className="items-center flex before:bg-red-500 before:w-2.5 before:h-6 before:mr-1.5 bg-white [border-bottom-style:solid] h-16 px-5 border-b border-b-black/5 before:content-none">
-              <div className="uppercase text-ellipsis whitespace-nowrap flex-1 overflow-x-hidden overflow-y-hidden mr-5 text-base font-medium text-black/54 group-lang:leading-6">
-                Categories
-              </div>
+    <section id="home-categories" role="region" className="mx-auto mt-5 w-full max-w-[1200px] px-3 sm:px-4">
+      <div className="overflow-hidden bg-white shadow-sm">
+        <div className="group">
+          <div className="flex h-14 items-center border-b border-b-black/5 bg-white px-4 before:mr-1.5 before:h-6 before:w-2.5 before:bg-red-500 before:content-none sm:h-16 sm:px-5">
+            <div className="mr-5 flex-1 overflow-hidden text-ellipsis whitespace-nowrap text-sm font-medium uppercase text-black/54 group-lang:leading-6 sm:text-base">
+              Categories
             </div>
-            <div>
-              <div className="w-full h-full relative group/categories">
-                <div
-                  ref={scrollContainerRef}
-                  className="touch-pan-y h-full overflow-x-hidden overflow-y-hidden"
-                  onScroll={handleScroll}
-                >
-                  <ul className="flex relative flex-col flex-wrap content-start h-[19rem] w-[120%]">
-                    {loading ? (
-                      <li className="w-full text-center py-8 text-gray-500">Loading categories...</li>
-                    ) : categories.length === 0 ? (
-                      <li className="w-full text-center py-8 text-gray-500">No categories available</li>
-                    ) : (
-                      categories.map((category) => (
-                        <CategoryItem key={category.slug} category={category} />
-                      ))
-                    )}
-                  </ul>
-                </div>
-                <CategoryNavButtons
-                  onPrev={scrollLeft}
-                  onNext={scrollRight}
-                  showPrev={showPrev}
-                  showNext={showNext}
-                />
-              </div>
+          </div>
+          <div className="relative w-full">
+            <div
+              ref={scrollContainerRef}
+              className="touch-pan-y overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              onScroll={handleScroll}
+            >
+              <ul className="grid h-[7.5rem] w-max grid-flow-col auto-cols-[6.875rem] grid-rows-1 content-start sm:h-[18rem] sm:auto-cols-[8rem] sm:grid-rows-2">
+                {loading ? (
+                  <li className="flex h-full w-[16rem] items-center justify-center text-sm text-gray-500">Loading categories...</li>
+                ) : categories.length === 0 ? (
+                  <li className="flex h-full w-[16rem] items-center justify-center text-sm text-gray-500">No categories available</li>
+                ) : (
+                  categories.map((category) => (
+                    <CategoryItem key={category.slug} category={category} />
+                  ))
+                )}
+              </ul>
             </div>
+            <CategoryNavButtons
+              onPrev={scrollLeft}
+              onNext={scrollRight}
+              showPrev={showPrev}
+              showNext={showNext}
+            />
           </div>
         </div>
       </div>
-    </div>
+    </section>
   );
 }

@@ -76,6 +76,7 @@ export function CollectionProductCard({ item }: CollectionProductCardProps) {
     rating,
     promotionLabel,
     textBadges,
+    currencySymbol = "RM",
   } = item;
 
   const hasCod = textBadges?.includes("cod") ?? false;
@@ -89,15 +90,12 @@ export function CollectionProductCard({ item }: CollectionProductCardProps) {
 
   return (
     <div className="h-full">
-      <div
-        className="relative rounded-md border border-black/[0.09] transition-[border-color] duration-100"
-        style={{ height: "331.656px" }}
-      >
+      <div className="relative h-full min-h-[296px] rounded-sm border border-black/[0.09] transition-[border-color] duration-100">
         <Link
           href={productHref}
           className="contents text-black/80 no-underline cursor-pointer bg-transparent border-0"
         >
-          <div className="flex h-[329.656px] cursor-pointer flex-col overflow-hidden rounded-md bg-white">
+          <div className="flex h-full min-h-[294px] cursor-pointer flex-col overflow-hidden rounded-sm bg-white">
             {/* Image area (no TOP badge) */}
             <div
               className="relative w-full flex-shrink-0"
@@ -108,7 +106,7 @@ export function CollectionProductCard({ item }: CollectionProductCardProps) {
                 alt={title}
                 fill
                 className="absolute inset-0 block object-contain"
-                sizes="(max-width: 1200px) 16.666vw, 200px"
+                sizes="(max-width: 639px) 50vw, (max-width: 1279px) 33vw, 16.666vw"
                 unoptimized
               />
               <div className="absolute left-0 top-0 z-10 px-1.5 py-1 text-[10px] text-black/54 bg-white/90 rounded-br">
@@ -135,7 +133,7 @@ export function CollectionProductCard({ item }: CollectionProductCardProps) {
                 <div className="mt-1 flex items-center gap-1">
                   <div className="flex shrink-0 max-w-full items-center overflow-hidden font-medium text-[#ee4d2d]">
                     <span className="mr-px text-xs font-medium leading-[14px]">
-                      RM
+                      {currencySymbol}
                     </span>
                     <span className="text-base font-medium leading-5">
                       {price.toFixed(2)}
@@ -211,7 +209,7 @@ export function CollectionProductCard({ item }: CollectionProductCardProps) {
               </div>
 
               {/* Rating + sold + country icon */}
-              <div className="flex max-w-full items-center justify-between mb-2">
+              <div className="mb-2 flex max-w-full items-center justify-between">
                 <div className="flex min-w-0 items-center">
                   <div
                     className="flex h-[18px] shrink-0 items-center rounded px-1"

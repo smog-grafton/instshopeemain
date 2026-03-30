@@ -17,8 +17,8 @@ import {
 import {
   getAddresses,
   createAddress,
-  updateAddress,
   type ApiAddress,
+  getCheckoutConfig,
 } from "@/lib/api-client";
 import { useAuth } from "@/components/auth/auth-context";
 import {
@@ -29,6 +29,9 @@ import {
   CheckoutDeliveryAddress,
   CheckoutAddressBookModal,
 } from "@/components/checkout";
+import { getCartItemKey, readCheckoutSelection } from "@/lib/cart-selection";
+
+const roundMoney = (value: number) => Math.round(value * 100) / 100;
 
 export function CheckoutContent() {
   const router = useRouter();
@@ -40,17 +43,42 @@ export function CheckoutContent() {
   const [storedAddress, setStoredAddressState] = useState<StoredAddress | null>(
     null
   );
-  const [apiAddresses, setApiAddresses] = useState<ApiAddress[]>([]);
+  const [, setApiAddresses] = useState<ApiAddress[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [showAddressBookModal, setShowAddressBookModal] = useState(false);
   const [showEditAddressModal, setShowEditAddressModal] = useState(false);
+  const [checkoutSelectionKeys, setCheckoutSelectionKeys] = useState<string[] | null>(null);
+  const [checkoutShippingPercent, setCheckoutShippingPercent] = useState(0);
+  const [shippingConfigLoading, setShippingConfigLoading] = useState(true);
   const { items } = useCart();
   const { isLoggedIn } = useAuth();
+
+  useEffect(() => {
+    if (from !== "cart") {
+      setCheckoutSelectionKeys([]);
+      return;
+    }
+
+    setCheckoutSelectionKeys(readCheckoutSelection());
+  }, [from]);
+
+  const checkoutItems = useMemo(() => {
+    if (from === "buynow" && slug) {
+      const matched = items.filter((item) => item.slug === slug);
+      return matched.length > 0 ? matched : items;
+    }
+
+    if (from === "cart" && checkoutSelectionKeys && checkoutSelectionKeys.length > 0) {
+      return items.filter((item) => checkoutSelectionKeys.includes(getCartItemKey(item)));
+    }
+
+    return items;
+  }, [checkoutSelectionKeys, from, items, slug]);
 
   const groups: ShopGroup[] = useMemo(
     () =>
       Object.values(
-        items.reduce<Record<string, ShopGroup>>((acc, item) => {
+        checkoutItems.reduce<Record<string, ShopGroup>>((acc, item) => {
           const shopKey = item.shopSlug ?? item.shopId ?? "default-shop";
           if (!acc[shopKey]) {
             acc[shopKey] = {
@@ -64,8 +92,34 @@ export function CheckoutContent() {
           return acc;
         }, {})
       ),
-    [items]
+    [checkoutItems]
   );
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getCheckoutConfig()
+      .then((config) => {
+        if (!cancelled) {
+          setCheckoutShippingPercent(Number(config.shippingPercent ?? 0));
+        }
+      })
+      .catch((error) => {
+        console.error("Failed to load checkout config:", error);
+        if (!cancelled) {
+          setCheckoutShippingPercent(0);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setShippingConfigLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     async function loadAddresses() {
@@ -222,14 +276,48 @@ export function CheckoutContent() {
   const showChangeModal = showEditAddressModal;
   const showContent = hasAddress === true;
 
-  const merchandiseSubtotal = items.reduce(
+  const merchandiseSubtotal = checkoutItems.reduce(
     (sum, i) => sum + i.price * i.quantity,
     0
   );
-  const shippingSubtotal = 2.5;
-  const shippingDiscount = 2.5;
-  const totalPayment = merchandiseSubtotal + shippingSubtotal - shippingDiscount;
-  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
+  const shippingBreakdown = useMemo(
+    () =>
+      groups.reduce(
+        (sum, group) => {
+          const groupMerchandise = group.items.reduce(
+            (groupSum, item) => groupSum + item.price * item.quantity,
+            0
+          );
+          const groupCatalogShipping = group.items.reduce(
+            (groupSum, item) => groupSum + (item.catalogShippingFee ?? 0),
+            0
+          );
+          const percentageShipping = roundMoney(
+            groupMerchandise * (checkoutShippingPercent / 100)
+          );
+          const groupShippingSubtotal = roundMoney(
+            percentageShipping + groupCatalogShipping
+          );
+
+          return {
+            shippingSubtotal: roundMoney(
+              sum.shippingSubtotal + groupShippingSubtotal
+            ),
+            shippingDiscount: roundMoney(
+              sum.shippingDiscount + groupShippingSubtotal
+            ),
+          };
+        },
+        { shippingSubtotal: 0, shippingDiscount: 0 }
+      ),
+    [checkoutShippingPercent, groups]
+  );
+  const shippingSubtotal = shippingBreakdown.shippingSubtotal;
+  const shippingDiscount = shippingBreakdown.shippingDiscount;
+  const totalPayment = roundMoney(
+    merchandiseSubtotal + shippingSubtotal - shippingDiscount
+  );
+  const totalItems = checkoutItems.reduce((sum, i) => sum + i.quantity, 0);
 
   return (
     <div className="min-h-screen bg-[rgb(245,245,245)]">
@@ -274,7 +362,7 @@ export function CheckoutContent() {
       {showContent && (
         <main
           role="main"
-          className="w-[1200px] mx-auto mb-[70px] text-sm leading-tight text-black/80"
+          className="mx-auto mb-[70px] w-full max-w-[1200px] px-3 text-sm leading-tight text-black/80 sm:px-4 lg:px-0"
         >
           {/* Delivery address card */}
           {storedAddress && (
@@ -288,8 +376,8 @@ export function CheckoutContent() {
 
           {/* Products Ordered card */}
           <div className="mt-3 shadow-[0_1px_1px_rgba(0,0,0,0.05)]">
-            <div className="bg-white rounded-t h-[50px] pt-6 px-[30px] flex items-center shadow-[0_1px_1px_rgba(0,0,0,0.09)]">
-              <div className="flex items-center w-full h-[30px] text-[14px] text-black/54">
+            <div className="hidden h-[50px] items-center rounded-t bg-white px-[30px] pt-6 shadow-[0_1px_1px_rgba(0,0,0,0.09)] lg:flex">
+              <div className="flex h-[30px] w-full items-center text-[14px] text-black/54">
                 <div className="flex-[4_1_0%] text-left">
                   <h2 className="text-lg font-normal text-[#222] m-0 p-0">
                     Products Ordered
@@ -307,11 +395,14 @@ export function CheckoutContent() {
                 </div>
               </div>
             </div>
+            <div className="rounded-t bg-white px-4 py-4 shadow-[0_1px_1px_rgba(0,0,0,0.09)] lg:hidden">
+              <h2 className="m-0 text-lg font-normal text-[#222]">Products Ordered</h2>
+            </div>
 
-            {items.length === 0 ? (
+            {checkoutItems.length === 0 ? (
               <div className="bg-white rounded-b p-10 text-center text-black/60">
-                Your cart is empty. Add items from the cart or product page to
-                checkout.
+                No products are selected for checkout yet. Return to your cart and
+                choose the items you want to place an order for.
               </div>
             ) : (
               <CheckoutProductsAndSummary
@@ -319,10 +410,11 @@ export function CheckoutContent() {
                 merchandiseSubtotal={merchandiseSubtotal}
                 shippingSubtotal={shippingSubtotal}
                 shippingDiscount={shippingDiscount}
-                totalPayment={totalPayment}
-                totalItems={totalItems}
-                address={storedAddress}
-              />
+        totalPayment={totalPayment}
+        totalItems={totalItems}
+        address={storedAddress}
+        shippingConfigLoading={shippingConfigLoading}
+      />
             )}
           </div>
         </main>

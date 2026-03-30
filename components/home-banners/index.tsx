@@ -6,7 +6,6 @@ import { FeatureIcons } from "./feature-icons";
 import { useEffect, useState } from "react";
 import { getUiBlocks, resolveCountryIdForBrowser } from "@/lib/api-client";
 import type { BannerItem, FeatureIcon } from "./data";
-import { WobbleLoader } from "@/components/common/wobble-loader";
 
 export function HomeBanners() {
   const [mainBanners, setMainBanners] = useState<BannerItem[]>([]);
@@ -66,17 +65,19 @@ export function HomeBanners() {
 
   return (
     <div
-      className="[font-family:Roboto,SHPBurmese,SHPKhmer,Helvetica_Neue,Helvetica,Arial,文泉驛正黑,WenQuanYi_Zen_Hei,Hiragino_Sans_GB,儷黑_Pro,LiHei_Pro,Heiti_TC,微軟正黑體,Microsoft_JhengHei_UI,Microsoft_JhengHei,sans-serif] text-sm leading-tight text-black/80 bg-[rgb(245,245,245)] pt-6"
+      className="[font-family:Roboto,SHPBurmese,SHPKhmer,Helvetica_Neue,Helvetica,Arial,文泉驛正黑,WenQuanYi_Zen_Hei,Hiragino_Sans_GB,儷黑_Pro,LiHei_Pro,Heiti_TC,微軟正黑體,Microsoft_JhengHei_UI,Microsoft_JhengHei,sans-serif] bg-[rgb(245,245,245)] pt-4 text-sm leading-tight text-black/80 sm:pt-6"
       id="component"
     >
       <section
         id="HomePageCarouselBannerSection"
-        className="justify-center w-full max-w-[1200px] mx-auto flex px-3 sm:px-4"
+        className="mx-auto flex w-full max-w-[1200px] justify-center px-3 sm:px-4"
         aria-label="Banner"
       >
-        <div className="w-full max-w-[1200px] h-48 sm:h-60 flex flex-col md:flex-row">
-          {mainBanners.length > 0 && <BannerCarousel banners={mainBanners} />}
-          {sideBanners.length > 0 && <SideBanners banners={sideBanners} />}
+        <div className="w-full max-w-[1200px]">
+          <div className="grid gap-1.5 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            {mainBanners.length > 0 && <BannerCarousel banners={mainBanners} />}
+            {sideBanners.length > 0 && <SideBanners banners={sideBanners} />}
+          </div>
         </div>
       </section>
       {featureIcons.length > 0 && <FeatureIcons icons={featureIcons} />}

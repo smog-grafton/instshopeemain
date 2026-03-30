@@ -6,7 +6,7 @@ import { DownloadHoverPopup } from "@/components/download-hover-popup";
 import type { NavbarConfig } from "./data";
 
 /** Seller Centre href: env if set, else https://seller.{root domain}. Strip www so www.instshopee.com.co → seller.instshopee.com.co (never seller.www.*). */
-function getSellerCentreHref(config: NavbarConfig): string {
+export function getSellerCentreHref(config: NavbarConfig): string {
   if (config.sellerCentreUrl && config.sellerCentreUrl !== "/portal") {
     return config.sellerCentreUrl;
   }

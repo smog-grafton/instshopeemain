@@ -9,10 +9,10 @@ export function VoucherCard({ voucher }: { voucher: ShopVoucher }) {
   const hasProgress = voucher.usedPercent != null;
 
   return (
-    <div className="touch-pan-y flex-shrink-0 overflow-x-hidden h-full">
-      <div className="h-[141px]">
-        <div className="pt-1.5 pb-2 h-[128px]">
-          <div className="flex justify-center rounded-[2px] shadow-[0_2px_5px_rgba(0,0,0,0.07)] h-[128px] overflow-visible relative w-full">
+    <div className="touch-pan-y h-full flex-shrink-0 overflow-x-hidden">
+      <div className="h-full">
+        <div className="h-full pb-2 pt-1.5">
+          <div className="relative flex h-[128px] w-full justify-center overflow-visible rounded-[2px] shadow-[0_2px_5px_rgba(0,0,0,0.07)]">
             {/* Tear-off left edge */}
             <div
               className="flex items-center justify-center rounded-l-[3px] border-t border-b min-w-[5px] ml-0.5 relative flex-shrink-0"

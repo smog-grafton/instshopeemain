@@ -48,29 +48,34 @@ export default function UserNotificationsShopeePage() {
 
   return (
     <UserDashboardLayout>
-      <div className="bg-white grow w-[980px] relative shadow-sm ml-7 rounded-sm min-h-[400px] overflow-x-hidden overflow-y-hidden flex flex-col text-sm leading-tight text-black/80">
-        <div className="pb-2.5 px-8">
-          <div className="[border-bottom-style:solid] py-5 border-b border-b-zinc-100 flex items-center justify-between gap-4">
+      <div className="min-w-0 w-full rounded-sm bg-white shadow-sm lg:ml-7 lg:w-[980px]">
+        <div className="px-4 pb-4 text-sm leading-tight text-black/80 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-3 border-b border-zinc-100 py-5 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h1 className="capitalize text-zinc-800 text-lg font-medium leading-6">
+              <h1 className="text-lg font-medium leading-6 text-zinc-800">
                 Shopee Updates
               </h1>
-              <div className="text-neutral-600 text-sm leading-4 mt-[0.1875rem]">
-                Platform news and tips
-              </div>
+              <p className="mt-1 text-sm leading-5 text-neutral-600">
+                Platform news, buyer tips, and service announcements.
+              </p>
             </div>
             <Link
               href="#"
-              className="text-black/26 hover:text-black/54 text-sm whitespace-nowrap focus:outline-none"
+              className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-200 px-4 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50"
             >
               Mark all as read
             </Link>
           </div>
-          {loading ? (
-            <div className="py-8 text-center text-gray-500">Loading shopee updates...</div>
-          ) : (
-            <ShopeeUpdatesListWithLoader baseUpdates={updates} />
-          )}
+
+          <div className="py-6">
+            {loading ? (
+              <div className="rounded-2xl border border-zinc-100 bg-zinc-50 px-4 py-10 text-center text-sm text-zinc-500 sm:px-6">
+                Loading shopee updates...
+              </div>
+            ) : (
+              <ShopeeUpdatesListWithLoader baseUpdates={updates} />
+            )}
+          </div>
         </div>
       </div>
     </UserDashboardLayout>

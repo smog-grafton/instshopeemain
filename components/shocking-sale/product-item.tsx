@@ -54,13 +54,13 @@ export function ProductItem({ product }: ProductItemProps) {
   return (
     <li className="touch-pan-y [overflow-x:unset] flex-shrink-0">
       <div className="h-full">
-        <div className="bg-white flex-col flex relative w-52 h-64 px-4">
+        <div className="relative flex h-[15.25rem] w-[10.75rem] flex-col bg-white px-3 sm:h-64 sm:w-52 sm:px-4">
           <Link
             href={product.href}
             className="no-underline active:outline-0 hover:outline-0"
             aria-label={`${product.name} promotion off ${product.discount}% current price RM${product.price} ${getStatusText()} click, enter flash sale`}
           >
-            <div className="relative h-44">
+            <div className="relative h-40 sm:h-44">
               {/* Product Image Container */}
               <div className="bg-white w-full h-full relative">
                 {/* Badges on Product Image - All on the left side */}
@@ -105,14 +105,7 @@ export function ProductItem({ product }: ProductItemProps) {
 
                 {/* Overlay at bottom left - larger and properly positioned */}
                 <div className="z-[3] absolute left-0 bottom-0">
-                  <Image
-                    src="/images/home/shocking/overlay.png"
-                    alt=""
-                    width={140}
-                    height={35}
-                    className="object-contain"
-                    unoptimized
-                  />
+                  <Image src="/images/home/shocking/overlay.png" alt="" width={140} height={35} className="object-contain" unoptimized />
                 </div>
 
                 {/* Product Image */}
@@ -142,10 +135,10 @@ export function ProductItem({ product }: ProductItemProps) {
             {/* Price and Status */}
             <div className="flex-1">
               <div className="h-[inherit] flex-col items-stretch flex py-4">
-                <div className="flex-col items-center flex mb-1.5">
-                  <div className="justify-center items-center w-full flex text-red-500 h-7 text-lg font-medium">
+                <div className="mb-1.5 flex flex-col items-center">
+                  <div className="flex h-7 w-full items-center justify-center text-base font-medium text-red-500 sm:text-lg">
                     <div className="text-ellipsis items-baseline flex overflow-x-hidden overflow-y-hidden">
-                      <span className="text-lg font-medium mr-0.5">RM</span>
+                      <span className="mr-0.5 text-base font-medium sm:text-lg">RM</span>
                       <strong>{product.price}</strong>
                     </div>
                   </div>

@@ -6,17 +6,17 @@ interface ProductGuaranteeProps {
 
 export function ProductGuarantee({ guaranteeText }: ProductGuaranteeProps) {
   return (
-    <section className="text-neutral-800 items-center flex -ml-1 -mt-1 mb-6 p-1">
-      <h2 className="text-neutral-500 capitalize w-24 shrink-0 items-center font-normal mr-2.5">
+    <section className="mb-5 flex flex-col gap-2 p-1 text-neutral-800 sm:mb-6 sm:flex-row sm:items-center">
+      <h2 className="mr-2.5 w-20 shrink-0 text-sm font-normal capitalize text-neutral-500 sm:w-24">
         Shopping Guarantee
       </h2>
       <div
         className="outline-0 flex relative focus-visible:before:content-[''] focus-visible:before:outline-2 focus-visible:before:outline-solid focus-visible:before:w-[calc(100%+2px)] focus-visible:before:h-[calc(100%+2px)] focus-visible:before:absolute focus-visible:before:-m-px focus-visible:before:p-px focus-visible:before:rounded-sm focus-visible:before:-left-px focus-visible:before:-top-px focus-visible:before:outline-black/87"
         tabIndex={0}
       >
-        <div className="text-ellipsis whitespace-nowrap items-center gap-y-2 gap-x-2 max-w-lg flex overflow-x-hidden overflow-y-hidden hover:cursor-pointer">
+        <div className="flex max-w-2xl items-start gap-x-2 gap-y-2 hover:cursor-pointer sm:items-center">
           <IconShieldCheck />
-          <div className="text-ellipsis whitespace-nowrap overflow-x-hidden overflow-y-hidden">
+          <div className="break-words">
             {guaranteeText}
           </div>
           <IconChevronDown />

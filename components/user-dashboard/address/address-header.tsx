@@ -53,20 +53,20 @@ export function AddressHeader({ onAddressAdded }: AddressHeaderProps = {}) {
   };
 
   return (
-    <div className="border-b border-b-[rgb(239,239,239)] box-border h-20 px-5 py-[22px] flex items-center">
+    <div className="box-border flex flex-col items-start gap-4 border-b border-b-[rgb(239,239,239)] px-4 py-4 sm:px-5 md:h-20 md:flex-row md:items-center md:py-[22px]">
       <div className="flex-1">
         <h1 className="text-[rgb(51,51,51)] text-lg font-medium leading-6">
           My Addresses
         </h1>
         <div className="text-[rgb(85,85,85)] text-sm leading-[17px] mt-[3px]" />
       </div>
-      <div>
-        <div className="ml-2.5">
+      <div className="w-full md:w-auto">
+        <div className="md:ml-2.5">
           <div className="flex">
             <button
               type="button"
               onClick={handleAddAddress}
-              className="bg-[rgb(238,77,45)] outline-none relative overflow-visible text-white select-none rounded-[2px] transition-opacity duration-200 shadow-[rgba(0,0,0,0.09)_0px_1px_1px_0px] cursor-pointer border-0 justify-center items-center text-sm font-light leading-[14px] flex h-10 px-5 hover:opacity-90"
+              className="relative flex h-10 w-full items-center justify-center overflow-visible rounded-[2px] border-0 bg-[rgb(238,77,45)] px-5 text-sm font-light leading-[14px] text-white shadow-[rgba(0,0,0,0.09)_0px_1px_1px_0px] outline-none transition-opacity duration-200 hover:opacity-90 md:w-auto"
             >
               <div className="w-full justify-between items-center flex">
                 <div className="mr-2.5 items-center flex">

@@ -8,6 +8,7 @@ import { CartProductListSection } from "@/components/cart/cart-product-list-sect
 import { CartFooter } from "@/components/cart/cart-footer";
 import { CartYouMayAlsoLike } from "@/components/cart/cart-you-may-also-like";
 import { useCart } from "@/components/cart";
+import { getCartItemKey } from "@/lib/cart-selection";
 
 export default function CartPage() {
   const { items, removeItem } = useCart();
@@ -15,7 +16,7 @@ export default function CartPage() {
 
   const getItemKey = useCallback(
     (slug: string, colorLabel?: string, size?: string) => {
-      return `${slug}-${colorLabel ?? ""}-${size ?? ""}`;
+      return getCartItemKey({ slug, colorLabel, size });
     },
     []
   );
@@ -33,7 +34,7 @@ export default function CartPage() {
 
   const handleDeleteSelected = useCallback(() => {
     selectedItems.forEach((key) => {
-      const [slug, colorLabel, size] = key.split("-");
+      const [slug, colorLabel, size] = key.split("::");
       removeItem(slug, colorLabel || undefined, size || undefined);
     });
     setSelectedItems(new Set());
@@ -47,7 +48,7 @@ export default function CartPage() {
         id="component"
         className="[font-family:Roboto,SHPBurmese,SHPKhmer,Helvetica_Neue,Helvetica,Arial,sans-serif] text-sm leading-tight text-black/80"
       >
-        <div className="w-[1200px] mx-auto py-6">
+        <div className="mx-auto w-full max-w-[1200px] px-3 py-4 sm:px-4 lg:px-0 lg:py-6">
           <CartProductListSection
             selectedItems={selectedItems}
             setSelectedItems={setSelectedItems}

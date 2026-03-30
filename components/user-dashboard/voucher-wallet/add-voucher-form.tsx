@@ -7,29 +7,36 @@ export function AddVoucherForm() {
   const isEmpty = !code.trim();
 
   return (
-    <div className="flex justify-center items-center mt-5 px-11 py-7 bg-black/5">
-      <div className="capitalize cursor-default text-base font-medium text-black/87">
-        add voucher
-      </div>
-      <div className="relative ml-3.5 mr-2">
-        <div className="text-neutral-800 bg-white items-center transition-colors duration-100 flex relative rounded-sm hover:shadow-inner w-96 h-11 shadow-inner p-3.5 border border-solid border-black/14">
-          <input
-            type="text"
-            placeholder="Please enter voucher code"
-            maxLength={255}
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            className="py-px outline-none flex-1 text-sm border-0 placeholder:text-zinc-400 text-zinc-800 min-w-0"
-          />
+    <div className="mt-5 rounded-3xl border border-zinc-100 bg-zinc-50 p-4 sm:p-6">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
+        <div className="min-w-0 lg:max-w-[220px]">
+          <p className="text-base font-semibold text-black/87">Add voucher</p>
+          <p className="mt-1 text-sm leading-6 text-zinc-500">
+            Paste a valid voucher code to add it to your wallet.
+          </p>
+        </div>
+        <div className="flex flex-1 flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
+            <div className="flex h-11 items-center rounded-xl border border-black/14 bg-white p-3.5 shadow-inner transition-colors duration-100 hover:border-zinc-300">
+              <input
+                type="text"
+                placeholder="Please enter voucher code"
+                maxLength={255}
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                className="min-w-0 flex-1 border-0 py-px text-sm text-zinc-800 outline-none placeholder:text-zinc-400"
+              />
+            </div>
+          </div>
+          <button
+            type="button"
+            disabled={isEmpty}
+            className="inline-flex h-11 items-center justify-center rounded-full bg-red-500 px-6 text-sm font-medium text-white shadow-sm transition hover:bg-red-600 disabled:cursor-not-allowed disabled:bg-black/10"
+          >
+            Redeem
+          </button>
         </div>
       </div>
-      <button
-        type="button"
-        disabled={isEmpty}
-        className="[appearance:auto] text-white capitalize bg-red-500 outline-none justify-center items-center w-24 h-11 font-medium flex shadow-sm rounded-sm border-0 disabled:bg-black/10 disabled:cursor-not-allowed"
-      >
-        Redeem
-      </button>
     </div>
   );
 }

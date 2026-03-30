@@ -43,28 +43,24 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -208, behavior: "smooth" });
+      scrollContainerRef.current.scrollBy({ left: -Math.max(scrollContainerRef.current.clientWidth * 0.82, 208), behavior: "smooth" });
     }
   };
 
   const scrollRight = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 208, behavior: "smooth" });
+      scrollContainerRef.current.scrollBy({ left: Math.max(scrollContainerRef.current.clientWidth * 0.82, 208), behavior: "smooth" });
     }
   };
-
-  // Calculate width based on number of products (each product is w-52 = 208px)
-  // We need enough width to show all products
-  const containerWidth = `${products.length * 208}px`;
 
   return (
     <div className="w-full h-full relative group/carousel">
       <div
         ref={scrollContainerRef}
-        className="touch-pan-y h-full overflow-x-hidden overflow-y-hidden"
+        className="touch-pan-y h-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         onScroll={handleScroll}
       >
-        <ul className="h-full flex relative" style={{ width: containerWidth }}>
+        <ul className="relative flex h-full w-max">
           {products.map((product) => (
             <ProductItem key={product.id} product={product} />
           ))}

@@ -38,7 +38,7 @@ export function FloatingPromo() {
 
   return (
     <div
-      className="fixed right-24 bottom-20 z-[1000] cursor-pointer"
+      className="fixed bottom-20 right-24 z-[1000] hidden cursor-pointer xl:block"
       role="img"
       aria-label="Promotional banner"
     >

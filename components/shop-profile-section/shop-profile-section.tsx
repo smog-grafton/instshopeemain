@@ -15,8 +15,8 @@ interface ShopProfileSectionProps {
  */
 export function ShopProfileSection({ data }: ShopProfileSectionProps) {
   return (
-    <div className="w-full bg-white py-5 shadow-[0_1px_1px_rgba(0,0,0,0.05)]">
-      <div className="mx-auto flex w-[1200px] max-w-[1200px] overflow-hidden pt-5">
+    <div className="w-full bg-white py-4 shadow-[0_1px_1px_rgba(0,0,0,0.05)] sm:py-5">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-4 overflow-hidden px-3 pt-3 sm:px-4 lg:flex-row lg:gap-6 lg:px-0 lg:pt-5">
         <ShopProfileCard data={data} />
         <ShopStatsGrid data={data} />
       </div>

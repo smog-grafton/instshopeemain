@@ -4,8 +4,10 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { CarouselNavButtons } from "@/components/shocking-sale/carousel-nav-buttons";
-import { getRecommendedProducts, type ApiProduct } from "@/lib/api-client";
+import { getRecommendedProducts } from "@/lib/api-client";
 import type { MallProduct } from "./data";
+import { normalizeBadgeList } from "@/lib/product-badges";
+import { isBackendImage } from "@/lib/utils";
 
 interface MallProductsSectionProps {
   products?: MallProduct[];
@@ -17,9 +19,9 @@ interface MallProductItemProps {
 
 function MallProductItem({ product }: MallProductItemProps) {
   return (
-    <li className="touch-pan-y overflow-x-hidden h-60 w-52 flex-shrink-0">
+    <li className="touch-pan-y h-[11rem] flex-shrink-0 overflow-x-hidden sm:h-60">
       <div className="h-full">
-        <div className="relative overflow-x-hidden overflow-y-hidden p-2.5 h-full">
+        <div className="relative h-full overflow-x-hidden overflow-y-hidden p-2.5">
           <Link
             href={product.href}
             className="active:outline-0 hover:outline-0 bg-[50%] bg-no-repeat bg-contain no-underline duration-200 ease-in-out block text-black/87"
@@ -30,12 +32,12 @@ function MallProductItem({ product }: MallProductItemProps) {
                 alt={product.name}
                 fill
                 className="inline align-bottom object-contain object-center w-full h-full duration-200 ease-in-out absolute left-0 top-0"
-                sizes="201px"
-                unoptimized
+                sizes="(max-width: 640px) 168px, 201px"
+                unoptimized={isBackendImage(product.imageSrc)}
               />
             </div>
           </Link>
-          <div className="text-center text-ellipsis [-webkit-line-clamp:1] [word-wrap:break-word] text-red-700 w-44 h-7 text-lg leading-7 [display:-webkit-box] absolute overflow-x-hidden overflow-y-hidden left-3.5 bottom-5">
+          <div className="absolute bottom-4 left-3.5 h-7 w-[8.25rem] overflow-hidden text-ellipsis text-center text-base leading-7 text-red-700 [display:-webkit-box] [-webkit-line-clamp:1] [word-wrap:break-word] sm:bottom-5 sm:w-44 sm:text-lg">
             Shop Now
           </div>
         </div>
@@ -46,7 +48,7 @@ function MallProductItem({ product }: MallProductItemProps) {
 
 function MallSeeAllItem() {
   return (
-    <li className="touch-pan-y overflow-x-hidden h-60 w-52 flex-shrink-0">
+    <li className="touch-pan-y h-[11rem] flex-shrink-0 overflow-x-hidden sm:h-60">
       <Link
         href="/mall"
         className="active:outline-0 hover:outline-0 text-red-700 whitespace-nowrap cursor-pointer no-underline block relative overflow-x-hidden overflow-y-hidden p-2.5 h-full"
@@ -86,8 +88,18 @@ export function MallProductsSection({ products: productsProp }: MallProductsSect
 
     async function fetchProducts() {
       try {
-        const apiProducts = await getRecommendedProducts(15);
-        const transformed: MallProduct[] = apiProducts.map((p, i) => ({
+        const apiProducts = await getRecommendedProducts(30);
+        const mallProducts = apiProducts.filter((product) => {
+          const badges = [
+            ...normalizeBadgeList(product.textBadges),
+            ...normalizeBadgeList(product.imageBadges),
+          ];
+
+          return badges.includes("mall");
+        });
+
+        const source = mallProducts.length > 0 ? mallProducts.slice(0, 15) : apiProducts.slice(0, 15);
+        const transformed: MallProduct[] = source.map((p, i) => ({
           id: i + 1,
           name: p.title,
           imageSrc: p.imageSrc,
@@ -133,36 +145,32 @@ export function MallProductsSection({ products: productsProp }: MallProductsSect
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -208 * 2, behavior: "smooth" });
+      scrollContainerRef.current.scrollBy({ left: -Math.max(scrollContainerRef.current.clientWidth * 0.8, 240), behavior: "smooth" });
     }
   };
 
   const scrollRight = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 208 * 2, behavior: "smooth" });
+      scrollContainerRef.current.scrollBy({ left: Math.max(scrollContainerRef.current.clientWidth * 0.8, 240), behavior: "smooth" });
     }
   };
 
-  const columnCount = Math.ceil((products.length + 1) / 2);
-  const containerWidth = `${columnCount * 208}px`;
-
   if (loading) {
     return (
-      <div className="py-8 text-center text-gray-500">Loading mall products...</div>
+      <div className="py-12 text-center text-gray-500">Loading mall products...</div>
     );
   }
 
   return (
-    <div className="[overflow:unset] bg-white w-full max-w-[50rem] inline-block align-top">
-      <div className="w-full relative transition-all group/carousel min-h-[320px] overflow-visible">
+    <div className="inline-block w-full min-w-0 align-top bg-white [overflow:unset]">
+      <div className="group/carousel relative min-h-[22rem] w-full overflow-visible transition-all sm:min-h-[320px]">
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="touch-pan-y overflow-x-auto overflow-y-hidden min-h-[300px] w-full [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="touch-pan-y min-h-[22rem] w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:min-h-[300px]"
         >
           <ul
-            className="relative grid grid-rows-2 auto-cols-[13rem] grid-flow-col gap-x-0 h-[472px] w-full"
-            style={{ width: containerWidth }}
+            className="relative grid h-[22rem] w-max grid-flow-col auto-cols-[10.75rem] grid-rows-2 gap-x-0 sm:h-[472px] sm:auto-cols-[13rem]"
           >
             {products.map((product) => (
               <MallProductItem key={product.id} product={product} />
@@ -180,4 +188,3 @@ export function MallProductsSection({ products: productsProp }: MallProductsSect
     </div>
   );
 }
-

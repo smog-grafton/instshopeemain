@@ -96,15 +96,15 @@ function InfoIcon() {
 }
 
 const valueClass = "inline-block text-[rgb(208,1,27)]";
-const rowClass = "flex flex-[0_0_50%] items-start overflow-hidden py-2.5 px-0";
-const cellClass = "flex items-center relative top-px mx-2.5 box-border text-[15px]";
-const labelClass = "block capitalize";
+const rowClass = "flex w-full items-start overflow-hidden border-b border-black/[0.05] px-0 py-3 last:border-b-0 sm:w-1/2 sm:pr-4 lg:flex-[0_0_50%] lg:border-b-0 lg:py-2.5 lg:pr-0";
+const cellClass = "relative top-px mx-2.5 flex items-center box-border text-[15px] lg:mx-2.5";
+const labelClass = "block min-w-0 text-sm capitalize leading-5 text-black/80";
 
 export function ShopStatsGrid({ data }: { data: ShopProfileData }) {
   const s = data.stats;
 
   return (
-    <div className="flex flex-1 flex-wrap items-start bg-white pl-[30px]">
+    <div className="flex w-full flex-wrap items-start bg-white px-1 sm:px-0 lg:flex-1 lg:pl-[30px]">
       <div className={`${rowClass} cursor-pointer select-none`}>
         <div className={cellClass}><ProductsIcon /></div>
         <div className={labelClass}>

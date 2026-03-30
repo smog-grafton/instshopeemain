@@ -119,21 +119,28 @@ export function ChatPanelThread({
 
   return (
     <div className="flex h-full flex-col bg-white">
-      <div className="shrink-0 border-b border-zinc-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="text-sm font-semibold text-zinc-800">{conversation.name}</span>
+      <div className="flex shrink-0 items-center justify-between border-b border-zinc-200 px-3 py-3 sm:px-4">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="h-9 w-9 shrink-0 overflow-hidden rounded-full border border-neutral-200 bg-neutral-100">
+            <img
+              src={conversation.avatarUrl || "/images/stores/profile/default.webp"}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          </div>
+          <span className="text-sm font-semibold text-zinc-800 truncate">{conversation.name}</span>
         </div>
         <button
           type="button"
           onClick={onToggleListOnly}
-          className="text-xs text-neutral-500 hover:text-neutral-700"
+          className="whitespace-nowrap text-xs text-neutral-500 hover:text-neutral-700"
         >
           Collapse
         </button>
       </div>
 
       {product && (
-        <div className="shrink-0 border-b border-neutral-200 bg-white px-4 py-3">
+        <div className="shrink-0 border-b border-neutral-200 bg-white px-3 py-3 sm:px-4">
           <div className="flex items-center gap-3">
             <div className="h-12 w-12 overflow-hidden rounded border border-neutral-200">
               <img src={product.image} alt="" className="h-full w-full object-cover" />
@@ -157,7 +164,7 @@ export function ChatPanelThread({
             {product.href && (
               <a
                 href={product.href}
-                className="inline-flex items-center justify-center h-8 rounded bg-red-500 px-3 text-xs font-medium text-white hover:bg-red-600 leading-none"
+                className="inline-flex h-8 shrink-0 items-center justify-center rounded bg-red-500 px-3 text-xs font-medium leading-none text-white hover:bg-red-600"
               >
                 Buy Now
               </a>
@@ -166,23 +173,23 @@ export function ChatPanelThread({
         </div>
       )}
 
-      <div ref={listRef} className="flex-1 overflow-y-auto bg-[rgb(245,245,245)] px-4 py-4">
+      <div ref={listRef} className="flex-1 overflow-y-auto bg-[rgb(245,245,245)] px-3 py-4 sm:px-4">
         <div className="mb-4 flex justify-center">
           <span className="rounded-full bg-white px-4 py-1 text-xs text-neutral-500 shadow">Today</span>
         </div>
 
-        <div className="mb-4 flex items-center gap-2 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-700 border border-amber-200">
+        <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-700 sm:flex-nowrap sm:px-4">
           <span className="text-amber-500">ⓘ</span>
           <span className="flex-1 text-amber-700">
             Safety Tip: Always chat and complete transactions within Shopee to protect yourself from scams.
           </span>
-          <a className="text-blue-600 text-sm" href="#">
+          <a className="shrink-0 text-sm text-blue-600" href="#">
             Learn More
           </a>
         </div>
 
         {conversation.assistantIntro && (
-          <div className="mb-4 max-w-[85%] rounded-lg bg-white p-4 text-sm text-zinc-800 shadow-sm">
+          <div className="mb-4 max-w-[92%] rounded-lg bg-white p-4 text-sm text-zinc-800 shadow-sm sm:max-w-[85%]">
             <div className="text-base font-medium">{conversation.assistantIntro}</div>
             {suggestions.length > 0 && (
               <>
@@ -203,8 +210,8 @@ export function ChatPanelThread({
                 </div>
               </>
             )}
-            <div className="mt-4 flex items-center gap-3">
-              <button className="h-9 rounded bg-orange-50 px-4 text-sm font-medium text-orange-600 border border-orange-200">
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <button className="h-9 rounded border border-orange-200 bg-orange-50 px-4 text-sm font-medium text-orange-600">
                 Chat with Seller
               </button>
               <button className="h-9 w-9 rounded border border-neutral-200 text-neutral-400">👍</button>
@@ -218,10 +225,10 @@ export function ChatPanelThread({
         )}
 
         <div className="flex flex-col gap-3">
-          {threadMessages.map((msg) => (
+          {threadMessages.map((msg, index) => (
             <div
-              key={msg.id}
-              className={`max-w-[85%] rounded-lg px-3 py-2 text-sm ${
+              key={`${conversation.id}-${String(msg.id)}-${index}-${msg.timestamp}`}
+              className={`max-w-[92%] rounded-lg px-3 py-2 text-sm sm:max-w-[85%] ${
                 msg.isFromUser
                   ? "ml-auto bg-red-500 text-white"
                   : "mr-auto bg-white text-zinc-800 shadow-sm"
@@ -240,13 +247,13 @@ export function ChatPanelThread({
         </div>
 
         {conversation.isTyping && (
-          <div className="mt-2 max-w-[60%] rounded-lg bg-white px-3 py-2 text-xs text-neutral-500 shadow-sm">
+          <div className="mt-2 max-w-[75%] rounded-lg bg-white px-3 py-2 text-xs text-neutral-500 shadow-sm sm:max-w-[60%]">
             Seller is typing...
           </div>
         )}
 
         {product && productPinned && (
-          <div className="relative mt-4 max-w-[92%] rounded-lg bg-white p-3 shadow-sm">
+          <div className="relative mt-4 max-w-[96%] rounded-lg bg-white p-3 shadow-sm sm:max-w-[92%]">
             <div className="absolute right-2 top-2 flex items-center gap-2 text-neutral-400">
               <button
                 type="button"
@@ -309,14 +316,16 @@ export function ChatPanelThread({
         )}
       </div>
 
-      <form onSubmit={handleSubmit} className="shrink-0 border-t border-zinc-200 px-4 py-3">
+      <form onSubmit={handleSubmit} className="shrink-0 border-t border-zinc-200 px-3 py-3 sm:px-4">
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-3 text-slate-400">
+          <div className="flex shrink-0 items-center gap-2 text-slate-400 sm:gap-3">
             <IconSmile />
             <IconImage />
-            <IconVideo />
-            <IconCamera />
-            <IconUpload />
+            <div className="hidden items-center gap-3 sm:flex">
+              <IconVideo />
+              <IconCamera />
+              <IconUpload />
+            </div>
           </div>
           <input
             type="text"

@@ -83,33 +83,30 @@ export function CartHeader() {
   const showDropdown = isFocused && (query.trim().length > 0 || liveSuggestions.length > 0);
 
   return (
-    <section className="bg-white border-b border-black/10 flex items-center h-[100px] min-w-[1200px]">
-      <div className="w-[1200px] mx-auto">
-        <div className="flex items-center">
-          {/* Logo + \"Shopping Cart\" label */}
-          <div className="flex flex-1 pl-[18px]">
-            <Link
-              href="/"
-              className="flex items-end text-black/87 no-underline bg-transparent"
-            >
-              <div>
-                <Image
-                  src="/images/svgs/header/logo-orange.svg"
-                  alt="Shopee Logo"
-                  width={160}
-                  height={48}
-                  className="block w-[8.125rem] h-[46px] overflow-hidden"
-                  priority
-                />
-              </div>
-              <div className="text-[20px] leading-[30px] h-[30px] mb-[1px] ml-[15px] pl-[15px] border-l border-[#ee4d2d] capitalize text-[#ee4d2d]">
-                shopping cart
-              </div>
-            </Link>
-          </div>
+    <section className="border-b border-black/10 bg-white">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col gap-3 px-3 py-4 sm:px-4 lg:h-[100px] lg:flex-row lg:items-center lg:gap-0 lg:px-0">
+        <div className="flex min-w-0 flex-1 lg:pl-[18px]">
+          <Link
+            href="/"
+            className="flex min-w-0 items-end text-black/87 no-underline bg-transparent"
+          >
+            <div>
+              <Image
+                src="/images/svgs/header/logo-orange.svg"
+                alt="Shopee Logo"
+                width={160}
+                height={48}
+                className="block h-9 w-auto overflow-hidden lg:h-[46px] lg:w-[8.125rem]"
+                priority
+              />
+            </div>
+            <div className="mb-[1px] ml-3 h-7 border-l border-[#ee4d2d] pl-3 text-lg capitalize leading-7 text-[#ee4d2d] lg:ml-[15px] lg:h-[30px] lg:pl-[15px] lg:text-[20px] lg:leading-[30px]">
+              shopping cart
+            </div>
+          </Link>
+        </div>
 
-          {/* Cart search bar */}
-          <div className="w-[38.8125rem] relative" ref={wrapperRef}>
+        <div className="relative w-full lg:w-[38.8125rem]" ref={wrapperRef}>
             <form
               role="search"
               autoComplete="off"
@@ -138,7 +135,7 @@ export function CartHeader() {
               </div>
               <button
                 type="submit"
-                className="flex h-9 w-20 cursor-pointer items-center justify-center border-0 bg-[#ee4d2d] text-sm text-white shadow-[rgba(0,0,0,0.09)_0px_1px_1px_0px] outline-none"
+                className="flex h-9 w-[60px] cursor-pointer items-center justify-center border-0 bg-[#ee4d2d] text-sm text-white shadow-[rgba(0,0,0,0.09)_0px_1px_1px_0px] outline-none sm:w-20"
               >
                 <Image
                   src="/images/svgs/header/search.svg"
@@ -218,10 +215,8 @@ export function CartHeader() {
                 )}
               </div>
             )}
-          </div>
         </div>
       </div>
     </section>
   );
 }
-

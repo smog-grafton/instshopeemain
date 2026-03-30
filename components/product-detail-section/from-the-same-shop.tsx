@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
 import { DailyDiscoverCard } from "@/components/daily-discover/daily-discover-card";
-import { dailyDiscoverProducts } from "@/components/daily-discover/data";
 import type { DailyDiscoverProduct } from "@/components/daily-discover/data";
 import type { ApiProduct } from "@/lib/api-client";
+import { normalizeBadgeList } from "@/lib/product-badges";
 import { formatPrice } from "@/lib/utils";
 
 const CARD_WIDTH_PX = 200;
@@ -55,9 +55,10 @@ export function FromTheSameShop({ shopSlug, products }: FromTheSameShopProps) {
           ? Math.round((1 - p.price / p.originalPrice) * 100)
           : 0;
         const badgeKeys = ["shopee-lagi-murah", "cod", "mall", "new-arrival", "preferred", "sea-shipping"] as const;
-        const badges = (p.textBadges ?? [])
+        const badges = [...normalizeBadgeList(p.textBadges), ...normalizeBadgeList(p.imageBadges)]
           .map((b) => typeof b === "string" && badgeKeys.includes(b.toLowerCase() as typeof badgeKeys[number]) ? b.toLowerCase() as typeof badgeKeys[number] : null)
-          .filter((b): b is (typeof badgeKeys)[number] => b != null);
+          .filter((b): b is (typeof badgeKeys)[number] => b != null)
+          .filter((badge, badgeIndex, allBadges) => allBadges.indexOf(badge) === badgeIndex);
         return {
           id: p.slug,
           slug: p.slug,
@@ -78,7 +79,7 @@ export function FromTheSameShop({ shopSlug, products }: FromTheSameShopProps) {
           promotionLabel: p.promotionLabel ?? undefined,
         };
       })
-    : dailyDiscoverProducts.slice(0, 10);
+    : [];
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [showPrev, setShowPrev] = useState(false);
   const [showNext, setShowNext] = useState(true);
@@ -128,6 +129,11 @@ export function FromTheSameShop({ shopSlug, products }: FromTheSameShopProps) {
       aria-label="From the same shop"
     >
       <FromSameShopHeader shopSlug={shopSlug} />
+      {displayProducts.length === 0 ? (
+        <div className="rounded-sm border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
+          This shop does not have other related products to show right now.
+        </div>
+      ) : (
       <div className="relative min-h-[320px] w-full overflow-visible transition-all group/carousel">
         <button
           type="button"
@@ -188,6 +194,7 @@ export function FromTheSameShop({ shopSlug, products }: FromTheSameShopProps) {
           </svg>
         </button>
       </div>
+      )}
     </section>
   );
 }

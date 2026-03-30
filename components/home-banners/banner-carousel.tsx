@@ -10,13 +10,23 @@ interface BannerCarouselProps {
 }
 
 export function BannerCarousel({ banners }: BannerCarouselProps) {
-  const [currentIndex, setCurrentIndex] = useState(banners.length);
+  const totalSlides = banners.length;
+  const [currentIndex, setCurrentIndex] = useState(totalSlides);
 
   // Duplicate banners for infinite scroll effect (start in the middle set)
-  const duplicatedBanners = [...banners, ...banners, ...banners];
-  const totalSlides = banners.length;
+  const duplicatedBanners = totalSlides > 0 ? [...banners, ...banners, ...banners] : [];
 
   useEffect(() => {
+    if (totalSlides > 0) {
+      setCurrentIndex(totalSlides);
+    }
+  }, [totalSlides]);
+
+  useEffect(() => {
+    if (totalSlides === 0) {
+      return undefined;
+    }
+
     const interval = setInterval(() => {
       setCurrentIndex((prev) => {
         const next = prev + 1;
@@ -29,6 +39,10 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
 
     return () => clearInterval(interval);
   }, [totalSlides, duplicatedBanners.length]);
+
+  if (totalSlides === 0) {
+    return null;
+  }
 
   const goToSlide = (index: number) => {
     setCurrentIndex(index + totalSlides);
@@ -54,25 +68,27 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
     });
   };
 
-  const displayIndex = currentIndex % totalSlides;
+  const displayIndex = ((currentIndex % totalSlides) + totalSlides) % totalSlides;
 
   return (
-    <div className="flex-[2] shadow-sm">
-      <div className="w-full h-full relative group">
-        <div className="w-full h-full relative overflow-hidden">
+    <div className="relative overflow-hidden rounded-sm shadow-sm md:h-[235px]">
+      <div className="group relative h-full w-full">
+        <div className="relative aspect-[16/9] h-full overflow-hidden sm:aspect-[16/7.2] md:aspect-auto">
           <ul
-            className="touch-pan-y h-full flex absolute overflow-x-hidden overflow-y-hidden inset-0 w-[900%]"
+            className="absolute inset-0 flex h-full touch-pan-y overflow-hidden"
             style={{
-              transform: `translateX(calc(-${currentIndex * (100 / 9)}%))`,
+              width: `${duplicatedBanners.length * 100}%`,
+              transform: `translateX(-${currentIndex * (100 / duplicatedBanners.length)}%)`,
               transition: "transform 0.5s ease-in-out",
             }}
           >
             {duplicatedBanners.map((banner, index) => (
               <li
                 key={index}
-                className="shrink-0 justify-center self-center items-center h-full flex overflow-x-hidden overflow-y-hidden w-[11.1111%]"
+                className="flex h-full shrink-0 items-center justify-center overflow-hidden"
+                style={{ width: `${100 / duplicatedBanners.length}%` }}
               >
-                <div className="w-full h-full [display:unset]">
+                <div className="h-full w-full [display:unset]">
                   <a
                     className="w-full no-underline block active:outline-0 hover:outline-0"
                     href={banner.href}
@@ -82,15 +98,9 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
                       alt={banner.alt}
                       width={797}
                       height={240}
-                      className="inline h-60 w-full rounded-sm align-bottom object-cover"
+                      className="inline h-full w-full align-bottom object-cover"
                       priority={index >= totalSlides && index < totalSlides + 2}
                       unoptimized={isBackendImage(banner.imageSrc)}
-                      onError={(e) => {
-                        console.error(`Failed to load banner image: ${banner.imageSrc}`);
-                        // Hide broken image
-                        const target = e.target as HTMLImageElement;
-                        target.style.display = 'none';
-                      }}
                     />
                   </a>
                 </div>
@@ -99,7 +109,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
           </ul>
         </div>
         <div
-          className="cursor-pointer select-none text-center opacity-0 justify-center items-center text-xl leading-5 transition-opacity duration-300 inline-flex absolute -translate-y-2/4 shadow top-2/4 text-black/87 fill-black/87 w-9 h-16 bg-black/18 rounded-tr-sm rounded-br-sm left-0 group-hover:opacity-100 hover:bg-black/32 z-10"
+          className="absolute left-0 top-2/4 z-10 hidden h-16 w-9 -translate-y-2/4 cursor-pointer items-center justify-center rounded-br-sm rounded-tr-sm bg-black/18 text-center text-xl leading-5 text-black/87 opacity-0 shadow transition-opacity duration-300 hover:bg-black/32 group-hover:opacity-100 md:inline-flex"
           onClick={goToPrevious}
         >
           <svg
@@ -115,7 +125,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
           </svg>
         </div>
         <div
-          className="cursor-pointer select-none text-center opacity-0 justify-center items-center text-xl leading-5 transition-opacity duration-300 inline-flex absolute -translate-y-2/4 shadow top-2/4 text-black/87 fill-black/87 w-9 h-16 bg-black/18 rounded-tl-sm rounded-bl-sm right-0 group-hover:opacity-100 hover:bg-black/32 z-10"
+          className="absolute right-0 top-2/4 z-10 hidden h-16 w-9 -translate-y-2/4 cursor-pointer items-center justify-center rounded-bl-sm rounded-tl-sm bg-black/18 text-center text-xl leading-5 text-black/87 opacity-0 shadow transition-opacity duration-300 hover:bg-black/32 group-hover:opacity-100 md:inline-flex"
           onClick={goToNext}
         >
           <svg
@@ -130,7 +140,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
             />
           </svg>
         </div>
-        <div className="text-center w-full transition-opacity duration-500 absolute -translate-x-2/4 left-2/4 bottom-4 z-10">
+        <div className="absolute bottom-3 left-2/4 z-10 w-full -translate-x-2/4 text-center transition-opacity duration-500 sm:bottom-4">
           {banners.map((_, index) => (
             <div
               key={index}

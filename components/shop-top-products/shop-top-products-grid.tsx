@@ -11,19 +11,9 @@ interface ShopTopProductsGridProps {
  */
 export function ShopTopProductsGrid({ products }: ShopTopProductsGridProps) {
   return (
-    <div
-      className="flex flex-wrap box-border -mx-1.5"
-      style={{ flex: "0 1 auto" }}
-    >
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
       {products.map((item) => (
-        <div
-          key={item.slug}
-          className="box-border w-full px-1.5"
-          style={{
-            flexBasis: "16.666%",
-            maxWidth: "16.666%",
-          }}
-        >
+        <div key={item.slug} className="min-w-0">
           <ShopTopProductCard item={item} />
         </div>
       ))}

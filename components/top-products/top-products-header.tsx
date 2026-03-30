@@ -10,7 +10,7 @@ export function TopProductsHeader() {
         <span className="text-red-500">Top Products</span>
       </div>
       <Link
-        href="/top_products"
+        href="/products"
         className="block active:outline-0 hover:outline-0 text-red-500 no-underline"
         tabIndex={0}
       >

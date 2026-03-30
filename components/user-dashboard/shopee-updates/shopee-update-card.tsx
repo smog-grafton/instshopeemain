@@ -11,39 +11,34 @@ export function ShopeeUpdateCard({ item }: ShopeeUpdateCardProps) {
   return (
     <a
       href={href}
-      className="cursor-pointer select-none flex p-5 hover:bg-stone-50 no-underline text-inherit"
+      className="group block cursor-pointer select-none p-4 no-underline text-inherit transition-colors hover:bg-zinc-50 sm:p-5"
     >
-      <div className="bg-neutral-100 shrink-0 justify-center items-center flex overflow-x-hidden overflow-y-hidden w-20 h-20 mr-5">
-        <div className="w-full h-full relative">
-          <Image
-            src={item.imageUrl}
-            alt=""
-            width={80}
-            height={80}
-            className="w-full h-full object-contain transition-opacity duration-200"
-          />
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+        <div className="mx-auto flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-zinc-100 bg-zinc-50 sm:mx-0">
+          <div className="relative h-full w-full">
+            <Image
+              src={item.imageUrl}
+              alt=""
+              width={80}
+              height={80}
+              className="h-full w-full object-contain transition-opacity duration-200"
+            />
+          </div>
         </div>
-      </div>
-      <div className="break-words text-black/54 mr-5 flex-1 min-w-0">
-        <h2 className="text-base font-normal mb-2.5 text-black/80">
-          {item.title}
-        </h2>
-        <div className="text-sm mb-1.5 leading-snug">{item.description}</div>
-        <div className="items-center flex">
-          <p className="text-sm leading-none text-black/54">{item.dateTime}</p>
+        <div className="min-w-0 flex-1 break-words">
+          <h2 className="text-base font-semibold text-zinc-800 sm:text-lg">
+            {item.title}
+          </h2>
+          <p className="mt-2 text-sm leading-6 text-zinc-600">{item.description}</p>
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs font-medium uppercase tracking-[0.08em] text-zinc-400 sm:text-sm">
+              {item.dateTime}
+            </p>
+            <span className="inline-flex h-10 w-full items-center justify-center rounded-full border border-zinc-200 px-4 text-sm font-medium text-zinc-700 transition group-hover:border-zinc-300 group-hover:bg-white sm:w-auto">
+              View details
+            </span>
+          </div>
         </div>
-      </div>
-      <div className="shrink-0 ml-auto">
-        <button
-          type="button"
-          className="[appearance:auto] cursor-pointer capitalize bg-white outline-0 shrink-0 min-w-20 h-8 text-xs font-light ml-auto px-2 rounded-sm border border-solid text-black/80 border-black/9 hover:text-red-500 hover:border-red-500"
-          onClick={(e) => {
-            e.preventDefault();
-            if (href !== "#") window.location.href = href;
-          }}
-        >
-          view details
-        </button>
       </div>
     </a>
   );

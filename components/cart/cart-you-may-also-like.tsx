@@ -4,11 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { DailyDiscoverCard } from "@/components/daily-discover/daily-discover-card";
 import { getRecommendedProducts, type ApiProduct } from "@/lib/api-client";
+import { normalizeBadgeList } from "@/lib/product-badges";
 import { formatPrice } from "@/lib/utils";
 import type { DailyDiscoverProduct } from "@/components/daily-discover/data";
 import { getDailyDiscoverImageSrc } from "@/components/daily-discover/data";
 
-const MAX_CART_RECOMMENDATIONS = 12; // 6 columns × 2 rows
+const MAX_CART_RECOMMENDATIONS = 12;
 
 function transformApiProductToDailyDiscover(p: ApiProduct, index: number): DailyDiscoverProduct {
   const discountPercent = p.originalPrice
@@ -27,17 +28,18 @@ function transformApiProductToDailyDiscover(p: ApiProduct, index: number): Daily
     href: `/product/${p.slug}`,
     findSimilarHref: `/search?keyword=${encodeURIComponent(p.title)}`,
     imageIndex: ((index % 7) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7,
+    imageSrc: p.imageSrc,
     hasVideo: false,
     badges: [
-      ...(p.textBadges || []),
-      ...(p.imageBadges || []),
+      ...normalizeBadgeList(p.textBadges),
+      ...normalizeBadgeList(p.imageBadges),
     ] as DailyDiscoverProduct["badges"],
     promotionLabel: p.promotionLabel || undefined,
     hasFlagLabel: false,
   };
 }
 
-/** Bottom section on /cart: 6×2 grid of recommended products. */
+/** Bottom section on /cart: responsive recommendation grid. */
 export function CartYouMayAlsoLike() {
   const [products, setProducts] = useState<DailyDiscoverProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -90,7 +92,7 @@ export function CartYouMayAlsoLike() {
         {loading ? (
           <div className="py-8 text-center text-gray-500">Loading recommendations...</div>
         ) : (
-          <div className="grid grid-cols-6 gap-x-2 gap-y-2">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:gap-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6">
             {products.map((product) => (
               <div key={product.id} className="min-w-0">
                 <DailyDiscoverCard product={product} variant="fromSameShop" />
@@ -102,4 +104,3 @@ export function CartYouMayAlsoLike() {
     </section>
   );
 }
-

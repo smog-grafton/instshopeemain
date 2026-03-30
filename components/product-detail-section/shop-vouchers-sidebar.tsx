@@ -85,16 +85,20 @@ function SidebarVoucherCard({ voucher }: { voucher: ShopVoucherEntry }) {
 }
 
 export function ShopVouchersSidebar({ voucherList }: ShopVouchersSidebarProps) {
+  if (voucherList.length === 0) {
+    return null;
+  }
+
   return (
-    <div className="w-60 ml-4 text-sm leading-tight text-black/80 shrink-0">
-      <div className="bg-white overflow-x-hidden overflow-y-hidden shadow-sm mt-4 p-2.5 rounded-sm">
+    <div className="mt-4 w-full shrink-0 text-sm leading-tight text-black/80 xl:ml-4 xl:mt-0 xl:w-60">
+      <div className="overflow-x-hidden overflow-y-hidden rounded-sm bg-white p-2.5 shadow-sm">
         <div
           className="mt-2.5 mb-5 text-black/40"
           tabIndex={0}
         >
           Shop Vouchers
         </div>
-        <div className="overflow-y-auto pl-1 max-h-96" tabIndex={-1}>
+        <div className="flex gap-3 overflow-x-auto overflow-y-hidden pl-1 xl:block xl:max-h-96 xl:overflow-y-auto" tabIndex={-1}>
           {voucherList.map((voucher, index) => (
             <SidebarVoucherCard
               key={`${voucher.offer}-${voucher.minSpend}-${index}`}

@@ -27,7 +27,7 @@ export default function UserAddressPage() {
 
   return (
     <UserDashboardLayout>
-      <div className="bg-white grow w-[980px] relative shadow-sm ml-7 rounded-sm min-h-[400px]">
+      <div className="relative grow min-h-[400px] rounded-sm bg-white shadow-sm lg:ml-7 lg:w-[980px]">
         <div className="flex-col min-h-full flex relative" role="main">
           <div className="contents">
             <AddressHeader onAddressAdded={loadAddresses} />

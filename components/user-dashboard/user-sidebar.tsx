@@ -55,10 +55,12 @@ function SidebarNavLink({
   item,
   isActive,
   isChildActive,
+  onNavigate,
 }: {
   item: NavItem;
   isActive: boolean;
   isChildActive?: boolean;
+  onNavigate?: () => void;
 }) {
   const pathname = usePathname();
   const expanded = isActive || isChildActive || (item.children && item.children.some((c) => pathname === c.href));
@@ -68,6 +70,7 @@ function SidebarNavLink({
       <div>
         <Link
           href={item.href}
+          onClick={onNavigate}
           className={`cursor-pointer capitalize items-center no-underline transition-colors duration-100 ease-in-out flex mb-4 text-black/87 active:outline-0 hover:outline-0 hover:text-red-500 ${isActive ? "text-red-500" : ""}`}
         >
           <div className="text-white text-center shrink-0 justify-center items-center w-5 h-5 leading-5 flex mr-2.5 rounded-[50%] overflow-hidden">
@@ -89,6 +92,7 @@ function SidebarNavLink({
                 <Link
                   key={child.href}
                   href={child.href}
+                  onClick={onNavigate}
                   className={`cursor-pointer no-underline block mb-4 active:outline-0 hover:outline-0 ${childActive ? "text-red-500" : "text-black/65"}`}
                 >
                   <span className="capitalize text-sm transition-colors duration-100 ease-in-out block hover:text-red-500">
@@ -104,7 +108,13 @@ function SidebarNavLink({
   );
 }
 
-export function UserSidebar() {
+export function UserSidebar({
+  className = "w-44",
+  onNavigate,
+}: {
+  className?: string;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const { user: authUser } = useAuth();
   const [userProfile, setUserProfile] = useState<ApiUserProfile | null>(null);
@@ -129,9 +139,13 @@ export function UserSidebar() {
   const avatarUrl = authUser?.avatarUrl ?? userProfile?.avatarUrl ?? null;
 
   return (
-    <div className="shrink-0 w-44">
+    <div className={`shrink-0 ${className}`}>
       <div className="[border-bottom-style:solid] flex py-4 border-b border-b-zinc-100">
-        <Link href="/user/account/profile" className="cursor-pointer no-underline active:outline-0 hover:outline-0">
+        <Link
+          href="/user/account/profile"
+          onClick={onNavigate}
+          className="cursor-pointer no-underline active:outline-0 hover:outline-0"
+        >
           <div className="w-12 h-12 inline-block relative rounded-[50%] border border-solid border-black/9 overflow-hidden">
             <div className="bg-neutral-100 w-full relative overflow-x-hidden overflow-y-hidden pt-[100%] rounded-[50%]">
               <AvatarPlaceholder />
@@ -157,6 +171,7 @@ export function UserSidebar() {
           <div>
             <Link
               href="/user/account/profile"
+              onClick={onNavigate}
               className="cursor-pointer text-zinc-500 capitalize no-underline active:outline-0 hover:outline-0"
             >
               <EditProfileIcon />
@@ -167,14 +182,16 @@ export function UserSidebar() {
       </div>
       <div className="cursor-pointer mt-7">
         {SIDEBAR_NAV.map((item) => {
-          const isActive = pathname === item.href;
+          const isExternal = item.href.startsWith("http://") || item.href.startsWith("https://");
+          const isActive = !isExternal && pathname === item.href;
           const isChildActive = item.children?.some((c) => pathname === c.href);
           return (
             <SidebarNavLink
-              key={item.href}
+              key={`${item.label}-${item.href}`}
               item={item}
               isActive={isActive}
               isChildActive={isChildActive}
+              onNavigate={onNavigate}
             />
           );
         })}

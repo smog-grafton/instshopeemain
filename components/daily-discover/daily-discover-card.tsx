@@ -3,6 +3,7 @@
 import Image from "next/image";
 import type { DailyDiscoverProduct } from "./data";
 import { getDailyDiscoverImageSrc, INFO_BAR_IMAGE } from "./data";
+import { isBackendImage } from "@/lib/utils";
 
 const BADGE_LABELS: Record<string, string> = {
   "shopee-lagi-murah": "Shopee Lagi Murah",
@@ -55,7 +56,7 @@ export interface DailyDiscoverCardProps {
 }
 
 export function DailyDiscoverCard({ product, variant = "default" }: DailyDiscoverCardProps) {
-  const imageSrc = getDailyDiscoverImageSrc(product.imageIndex);
+  const imageSrc = product.imageSrc || getDailyDiscoverImageSrc(product.imageIndex);
   const isFromSameShop = variant === "fromSameShop";
 
   return (
@@ -79,8 +80,8 @@ export function DailyDiscoverCard({ product, variant = "default" }: DailyDiscove
               alt={product.title}
               fill
               className="pointer-events-none object-contain"
-              sizes="(max-width: 1200px) 20vw, 200px"
-              unoptimized={imageSrc.endsWith(".jpeg") || imageSrc.endsWith(".webp")}
+              sizes="(max-width: 639px) 50vw, (max-width: 767px) 33vw, (max-width: 1023px) 25vw, (max-width: 1279px) 20vw, 200px"
+              unoptimized={isBackendImage(imageSrc) || imageSrc.endsWith(".jpeg") || imageSrc.endsWith(".webp")}
             />
             {/* Info bar overlay at bottom of image */}
             <div className="absolute bottom-0 left-0 z-10 w-full" aria-hidden>

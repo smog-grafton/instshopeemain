@@ -30,6 +30,17 @@ export const MYPURCHASE_ICON = "/images/common/user/account/mypurchase.png";
 export const NOTIFICATION_ICON = "/images/common/user/account/notification.png";
 export const MYVOUCHER_ICON = "/images/common/user/account/myvoucher.png";
 export const COIN_ICON = "/images/common/user/account/coin.png";
+/** Storefront icon for “Apply for a store” (seller centre). */
+export const APPLY_STORE_ICON = "/images/common/user/account/store.svg";
+
+/**
+ * Seller centre root — same as top navbar “Seller Centre” (`NEXT_PUBLIC_SELLER_CENTRE_URL`).
+ * The store app decides onboarding vs dashboard after login.
+ */
+export const APPLY_FOR_STORE_HREF = (() => {
+  const base = (process.env.NEXT_PUBLIC_SELLER_CENTRE_URL || "").replace(/\/$/, "");
+  return base || "#";
+})();
 
 export const SIDEBAR_NAV: NavItem[] = [
   {
@@ -38,6 +49,7 @@ export const SIDEBAR_NAV: NavItem[] = [
     iconPath: USER_ACCOUNT_ICON,
     children: [
       { label: "Profile", href: "/user/account/profile" },
+      { label: "Wallet", href: "/user/wallet" },
       { label: "Banks & Cards", href: "/user/account/payment" },
       { label: "Addresses", href: "/user/account/address" },
       { label: "Change Password", href: "/user/account/password" },
@@ -70,5 +82,10 @@ export const SIDEBAR_NAV: NavItem[] = [
     label: "My Shopee Coins",
     href: "/user/coin",
     iconPath: COIN_ICON,
+  },
+  {
+    label: "Apply for a store",
+    href: APPLY_FOR_STORE_HREF,
+    iconPath: APPLY_STORE_ICON,
   },
 ];

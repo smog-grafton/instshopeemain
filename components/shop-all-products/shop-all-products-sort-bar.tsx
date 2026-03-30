@@ -31,7 +31,7 @@ function PrevArrowIcon({ disabled }: { disabled: boolean }) {
   return (
     <svg
       viewBox="0 0 7 11"
-      className={`block h-[10px] w-2.5 mt-0.5 relative overflow-hidden ${disabled ? "fill-black/40" : "fill-[rgb(85,85,85)]"}`}
+      className={`relative mt-0.5 block h-[10px] w-2.5 overflow-hidden ${disabled ? "fill-black/40" : "fill-[rgb(85,85,85)]"}`}
       aria-hidden
     >
       <path
@@ -46,7 +46,7 @@ function NextArrowIcon({ disabled }: { disabled: boolean }) {
   return (
     <svg
       viewBox="0 0 7 11"
-      className={`block h-[10px] w-2.5 mt-0.5 relative overflow-hidden ${disabled ? "fill-black/40" : "fill-[rgb(85,85,85)]"}`}
+      className={`relative mt-0.5 block h-[10px] w-2.5 overflow-hidden ${disabled ? "fill-black/40" : "fill-[rgb(85,85,85)]"}`}
       aria-hidden
     >
       <path
@@ -102,105 +102,107 @@ export function ShopAllProductsSortBar({
       : sortOption;
 
   return (
-    <fieldset
-      className="border-0 bg-black/[0.03] rounded-sm justify-between items-center py-[13px] px-5 flex font-normal m-0"
-      style={{ marginLeft: 0, marginRight: 0 }}
-    >
+    <fieldset className="m-0 rounded-sm border-0 bg-black/[0.03] p-3 sm:p-4">
       <legend className="sr-only">Sort and pagination</legend>
-      <div className="text-[rgb(85,85,85)] mr-1">Sort by</div>
-      <div className="flex-1 flex justify-start items-stretch gap-2.5 min-w-0">
-        <section className="flex gap-2.5 ml-2.5">
-          {SORT_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              type="button"
-              aria-pressed={baseSort === opt.value}
-              onClick={() => onSortChange(opt.value)}
-              className={`h-[34px] leading-[34px] rounded-sm shadow-[0_1px_1px_rgba(0,0,0,0.02)] cursor-pointer select-none capitalize whitespace-nowrap box-border justify-center items-center min-w-[90px] px-4 flex relative outline-0 overflow-visible appearance-none text-sm font-normal ${
-                baseSort === opt.value
-                  ? "bg-[rgb(208,1,27)] text-white border-0"
-                  : "bg-white text-black/80 border-0 hover:bg-black/5"
-              }`}
-            >
-              <span aria-hidden>{opt.label.toLowerCase()}</span>
-            </button>
-          ))}
-        </section>
-        <section className="block" ref={dropdownRef}>
-          <div className="relative">
-            <button
-              type="button"
-              role="combobox"
-              aria-expanded={priceOpen}
-              aria-haspopup="listbox"
-              onClick={() => setPriceOpen((o) => !o)}
-              className="text-left cursor-pointer box-border bg-white border-0 rounded-sm justify-between items-center min-w-[200px] h-[34px] pl-3 leading-[34px] transition-[border-color] duration-100 flex relative shadow-[0_1px_1px_rgba(0,0,0,0.02)] appearance-none overflow-visible text-black/80 text-sm font-normal"
-            >
-              <span>{priceLabel}</span>
-              <ChevronDownIcon className="fill-[rgb(85,85,85)] w-3 h-3.5 mr-3 block relative overflow-hidden shrink-0" />
-            </button>
-            {priceOpen && (
-              <div
-                role="listbox"
-                className="absolute left-0 top-full mt-1 z-[999] bg-white rounded-sm shadow-[0_5px_10px_rgba(0,0,0,0.05)] min-w-[200px] py-2.5"
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 flex-col gap-3 lg:flex-1 lg:flex-row lg:items-center">
+          <div className="text-sm text-[rgb(85,85,85)]">Sort by</div>
+          <div className="flex min-w-0 gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:pb-0">
+            {SORT_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                aria-pressed={baseSort === opt.value}
+                onClick={() => onSortChange(opt.value)}
+                className={`flex h-[34px] min-w-[90px] items-center justify-center whitespace-nowrap rounded-sm px-4 text-sm font-normal shadow-[0_1px_1px_rgba(0,0,0,0.02)] ${
+                  baseSort === opt.value
+                    ? "border-0 bg-[rgb(208,1,27)] text-white"
+                    : "border-0 bg-white text-black/80 hover:bg-black/5"
+                }`}
               >
-                {PRICE_OPTIONS.filter((o) => o.value).map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    role="option"
-                    aria-selected={sortOption === opt.value}
-                    onClick={() => {
-                      onSortChange(opt.value as ShopAllProductsSort);
-                      setPriceOpen(false);
-                    }}
-                    className="w-full text-left px-3 py-0 leading-[34px] h-[34px] box-border flex items-center justify-between text-[rgb(34,34,34)] text-sm cursor-pointer hover:bg-black/5"
-                  >
-                    <span>{opt.label}</span>
-                  </button>
-                ))}
-              </div>
+                {opt.label}
+              </button>
+            ))}
+          </div>
+          <section className="block w-full sm:w-auto" ref={dropdownRef}>
+            <div className="relative">
+              <button
+                type="button"
+                role="combobox"
+                aria-expanded={priceOpen}
+                aria-haspopup="listbox"
+                onClick={() => setPriceOpen((o) => !o)}
+                className="flex h-[34px] w-full min-w-[180px] items-center justify-between rounded-sm border-0 bg-white pl-3 text-left text-sm font-normal text-black/80 shadow-[0_1px_1px_rgba(0,0,0,0.02)] sm:min-w-[200px]"
+              >
+                <span>{priceLabel}</span>
+                <ChevronDownIcon className="mr-3 block h-3.5 w-3 fill-[rgb(85,85,85)]" />
+              </button>
+              {priceOpen && (
+                <div
+                  role="listbox"
+                  className="absolute left-0 top-full z-[999] mt-1 min-w-full rounded-sm bg-white py-2.5 shadow-[0_5px_10px_rgba(0,0,0,0.05)]"
+                >
+                  {PRICE_OPTIONS.filter((o) => o.value).map((opt) => (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      role="option"
+                      aria-selected={sortOption === opt.value}
+                      onClick={() => {
+                        onSortChange(opt.value as ShopAllProductsSort);
+                        setPriceOpen(false);
+                      }}
+                      className="flex h-[34px] w-full items-center justify-between px-3 text-left text-sm text-[rgb(34,34,34)] hover:bg-black/5"
+                    >
+                      <span>{opt.label}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
+
+        <div className="flex items-center justify-between gap-3 lg:justify-end">
+          <div className="text-sm font-light">
+            <span className="text-[rgb(208,1,27)]">{currentPage}</span>/
+            <span>{totalPages}</span>
+          </div>
+          <div className="flex items-center">
+            {currentPage <= 1 ? (
+              <span
+                aria-disabled
+                className="flex h-[34px] w-9 items-center justify-center rounded-l-sm border border-[rgb(242,242,242)] bg-[rgb(249,249,249)] text-black/26"
+              >
+                <PrevArrowIcon disabled />
+              </span>
+            ) : (
+              <Link
+                href={buildPageHref(currentPage - 1)}
+                aria-label="Previous page"
+                className="flex h-[34px] w-9 items-center justify-center rounded-l-sm border border-[rgb(242,242,242)] bg-[rgb(249,249,249)] text-black/80 no-underline hover:bg-black/5"
+              >
+                <PrevArrowIcon disabled={false} />
+              </Link>
+            )}
+            {currentPage >= totalPages ? (
+              <span
+                aria-disabled
+                className="flex h-[34px] w-9 items-center justify-center rounded-r-sm border border-black/[0.09] bg-white text-black/26"
+              >
+                <NextArrowIcon disabled />
+              </span>
+            ) : (
+              <Link
+                href={buildPageHref(currentPage + 1)}
+                aria-label="Next page"
+                className="flex h-[34px] w-9 items-center justify-center rounded-r-sm border border-black/[0.09] bg-white text-black/80 no-underline hover:bg-black/5"
+              >
+                <NextArrowIcon disabled={false} />
+              </Link>
             )}
           </div>
-        </section>
-      </div>
-      <div className="flex items-center">
-        <div className="text-sm font-light">
-          <span className="text-[rgb(208,1,27)]">{currentPage}</span>/
-          <span>{totalPages}</span>
         </div>
-        {currentPage <= 1 ? (
-          <span
-            aria-disabled
-            className="ml-5 rounded-l-sm rounded-r-none w-9 h-[34px] shadow-[0_1px_1px_rgba(0,0,0,0.05)] pointer-events-none flex justify-center items-center text-sm font-light text-black/26 bg-[rgb(249,249,249)] border border-r border-[rgb(242,242,242)]"
-          >
-            <PrevArrowIcon disabled />
-          </span>
-        ) : (
-          <Link
-            href={buildPageHref(currentPage - 1)}
-            aria-label="Previous page"
-            className="ml-5 rounded-l-sm rounded-r-none w-9 h-[34px] shadow-[0_1px_1px_rgba(0,0,0,0.05)] flex justify-center items-center text-sm font-light text-black/80 bg-[rgb(249,249,249)] border border-r border-[rgb(242,242,242)] no-underline hover:bg-black/5 transition-colors"
-          >
-            <PrevArrowIcon disabled={false} />
-          </Link>
-        )}
-        {currentPage >= totalPages ? (
-          <span
-            aria-disabled
-            className="rounded-r-sm rounded-l-none w-9 h-[34px] shadow-[0_1px_1px_rgba(0,0,0,0.05)] pointer-events-none flex justify-center items-center text-sm font-light text-black/26 bg-white border border-black/[0.09]"
-          >
-            <NextArrowIcon disabled />
-          </span>
-        ) : (
-          <Link
-            href={buildPageHref(currentPage + 1)}
-            aria-label="Next page"
-            className="rounded-r-sm rounded-l-none w-9 h-[34px] shadow-[0_1px_1px_rgba(0,0,0,0.05)] flex justify-center items-center text-sm font-light text-black/80 bg-white no-underline hover:bg-black/5 transition-colors"
-          >
-            <NextArrowIcon disabled={false} />
-          </Link>
-        )}
       </div>
     </fieldset>
   );

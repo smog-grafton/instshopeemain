@@ -16,9 +16,9 @@ import {
   updateCartItem,
   syncCart,
   clearCart as clearCartApi,
-  type ApiCartItem,
 } from "@/lib/api-client";
 import { useAuth } from "@/components/auth/auth-context";
+import { getCartItemKey } from "@/lib/cart-selection";
 
 const CART_STORAGE_KEY = "instshopee_cart_v1";
 
@@ -38,23 +38,22 @@ export interface CartItem {
   id?: string;
   /** Currency symbol for display (e.g., "RM", "USD", "IDR") */
   currencySymbol?: string;
+  /** Added to checkout shipping when product came from wholesale catalog with a supplier shipping fee. */
+  catalogShippingFee?: number;
 }
 
 interface CartContextValue {
   items: CartItem[];
   itemCount: number;
-  addItem: (item: CartItem) => void;
-  removeItem: (slug: string, colorLabel?: string, size?: string) => void;
-  updateQuantity: (slug: string, quantity: number, colorLabel?: string, size?: string) => void;
-  clearCart: () => void;
+  addItem: (item: CartItem) => Promise<void>;
+  removeItem: (slug: string, colorLabel?: string, size?: string) => Promise<void>;
+  removeItemsByKeys: (keys: string[]) => Promise<void>;
+  updateQuantity: (slug: string, quantity: number, colorLabel?: string, size?: string) => Promise<void>;
+  clearCart: () => Promise<void>;
   isLoading: boolean;
 }
 
 const CartContext = createContext<CartContextValue | null>(null);
-
-function cartItemKey(item: CartItem): string {
-  return [item.slug, item.colorLabel ?? "", item.size ?? ""].join("::");
-}
 
 function loadCartFromStorage(): CartItem[] {
   if (typeof window === "undefined") return [];
@@ -198,8 +197,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
           // Use the response from backend directly instead of reloading
           if (response.item) {
             setItems((prev) => {
-              const key = cartItemKey(item);
-              const idx = prev.findIndex((i) => cartItemKey(i) === key);
+              const key = getCartItemKey(item);
+              const idx = prev.findIndex((i) => getCartItemKey(i) === key);
               if (idx >= 0) {
                 const next = [...prev];
                 next[idx] = { ...item, ...response.item, id: response.item.id };
@@ -222,8 +221,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
       // Update local state (for guests or if backend failed)
       setItems((prev) => {
-        const key = cartItemKey(item);
-        const idx = prev.findIndex((i) => cartItemKey(i) === key);
+        const key = getCartItemKey(item);
+        const idx = prev.findIndex((i) => getCartItemKey(i) === key);
         if (idx >= 0) {
           const next = [...prev];
           next[idx] = { ...next[idx], quantity: next[idx].quantity + item.quantity };
@@ -271,6 +270,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     },
     [items, isLoggedIn, hydrated]
+  );
+
+  const removeItemsByKeys = useCallback(
+    async (keys: string[]) => {
+      for (const key of keys) {
+        const [slug, colorLabel, size] = key.split("::");
+        await removeItem(slug, colorLabel || undefined, size || undefined);
+      }
+    },
+    [removeItem]
   );
 
   const updateQuantity = useCallback(
@@ -333,8 +342,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [isLoggedIn, hydrated]);
 
   const value = useMemo<CartContextValue>(
-    () => ({ items, itemCount, addItem, removeItem, updateQuantity, clearCart, isLoading }),
-    [items, itemCount, addItem, removeItem, updateQuantity, clearCart, isLoading]
+    () => ({
+      items,
+      itemCount,
+      addItem,
+      removeItem,
+      removeItemsByKeys,
+      updateQuantity,
+      clearCart,
+      isLoading,
+    }),
+    [items, itemCount, addItem, removeItem, removeItemsByKeys, updateQuantity, clearCart, isLoading]
   );
 
   return (

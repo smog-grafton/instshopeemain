@@ -51,14 +51,19 @@ export function ShopAllProductsPagination({
   totalPages,
   buildPageHref,
 }: ShopAllProductsPaginationProps) {
-  const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+  const windowSize = 5;
+  const startPage = Math.max(1, currentPage - Math.floor(windowSize / 2));
+  const endPage = Math.min(totalPages, startPage + windowSize - 1);
+  const pages = Array.from(
+    { length: endPage - startPage + 1 },
+    (_, i) => startPage + i
+  );
 
   return (
     <nav
       role="navigation"
       aria-label="Shop products pagination"
-      className="my-5 mb-[60px] flex justify-center"
-      style={{ margin: "20px 0 60px" }}
+      className="my-5 mb-10 flex justify-center sm:mb-[60px]"
     >
       {currentPage <= 1 ? (
         <span
@@ -77,6 +82,12 @@ export function ShopAllProductsPagination({
         </Link>
       )}
 
+      {startPage > 1 && (
+        <span className="mx-1 flex min-w-[32px] items-center justify-center text-sm text-black/40 sm:min-w-[40px]">
+          ...
+        </span>
+      )}
+
       {pages.map((page) => {
         const isActive = page === currentPage;
         return (
@@ -85,16 +96,22 @@ export function ShopAllProductsPagination({
             href={buildPageHref(page)}
             aria-label={`Page ${page}`}
             aria-current={isActive ? "page" : undefined}
-            className={`min-w-[40px] h-[30px] mx-2 flex justify-center items-center text-xl font-light no-underline transition-opacity ${
+            className={`mx-1 flex h-[30px] min-w-[32px] items-center justify-center rounded-sm text-base font-light no-underline transition-opacity sm:mx-2 sm:min-w-[40px] sm:text-xl ${
               isActive
                 ? "bg-[rgb(208,1,27)] text-white border-0 rounded-sm shadow-[0_1px_1px_rgba(0,0,0,0.09)] cursor-pointer"
-                : "text-black/40 bg-transparent border-0 cursor-pointer hover:bg-black/5 rounded-sm"
+                : "bg-transparent text-black/40 border-0 cursor-pointer hover:bg-black/5"
             }`}
           >
             {page}
           </Link>
         );
       })}
+
+      {endPage < totalPages && (
+        <span className="mx-1 flex min-w-[32px] items-center justify-center text-sm text-black/40 sm:min-w-[40px]">
+          ...
+        </span>
+      )}
 
       {currentPage >= totalPages ? (
         <span

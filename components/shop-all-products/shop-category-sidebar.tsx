@@ -29,7 +29,7 @@ function TriangleIcon({ active }: { active: boolean }) {
   return (
     <svg
       viewBox="0 0 4 7"
-      className={`h-[7px] w-[7px] left-0 mt-1 absolute block overflow-hidden shrink-0 ${
+      className={`absolute left-0 mt-1 hidden h-[7px] w-[7px] shrink-0 overflow-hidden lg:block ${
         active ? "opacity-100 fill-[rgb(208,1,27)]" : "opacity-0 fill-black/87"
       }`}
       aria-hidden
@@ -49,18 +49,14 @@ export function ShopCategorySidebar({
   currentShopCollection,
 }: ShopCategorySidebarProps) {
   return (
-    <div
-      className="shrink-0 overflow-hidden text-black/80"
-      style={{ flex: "0 0 180px", margin: "0 22px 0 0" }}
-    >
+    <div className="w-full shrink-0 overflow-hidden text-black/80 lg:mr-[22px] lg:w-[180px]">
       <div
-        className="flex items-center border-b border-black/[0.05] text-black/80 text-base font-bold h-[50px] leading-[50px] mb-2.5 capitalize no-underline"
-        style={{ marginBottom: "10px" }}
+        className="mb-3 flex items-center border-b border-black/[0.05] pb-3 text-base font-bold capitalize leading-6 text-black/80 no-underline lg:mb-2.5 lg:h-[50px] lg:pb-0 lg:leading-[50px]"
       >
         <BurgerIcon />
         Category
       </div>
-      <div>
+      <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:block lg:overflow-visible lg:pb-0">
         {categories.map((cat) => {
           const isAllProducts = cat.isAllProducts === true;
           const isActive =
@@ -68,21 +64,24 @@ export function ShopCategorySidebar({
               ? currentShopCollection == null
               : (currentShopCollection != null && cat.shopCollection === currentShopCollection);
           return (
-            <div key={cat.href + cat.label}>
+            <div key={cat.href + cat.label} className="lg:block">
               <Link
                 href={cat.href}
-                className={`block py-2 pl-3 pr-2.5 relative overflow-hidden text-ellipsis select-none line-clamp-3 max-h-12 overflow-wrap-break text-sm font-medium no-underline capitalize items-start ${
+                className={`relative flex-none overflow-hidden text-ellipsis text-sm font-medium capitalize no-underline ${
                   isActive
-                    ? "text-[rgb(208,1,27)]"
-                    : "text-black/87"
+                    ? "border-[rgb(208,1,27)] bg-[rgb(255,244,244)] text-[rgb(208,1,27)] lg:border-0 lg:bg-transparent"
+                    : "border-black/[0.09] bg-white text-black/87 lg:border-0"
                 }`}
                 style={{
                   lineHeight: "16px",
-                  minHeight: "32px",
                 }}
               >
-                <TriangleIcon active={isActive} />
-                <span className="pl-3">{cat.label}</span>
+                <div className="rounded-sm border px-3 py-2 lg:rounded-none lg:border-0 lg:px-0 lg:py-2">
+                  <TriangleIcon active={isActive} />
+                  <span className="block whitespace-nowrap lg:pl-3 lg:whitespace-normal">
+                    {cat.label}
+                  </span>
+                </div>
               </Link>
             </div>
           );

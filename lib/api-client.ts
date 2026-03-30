@@ -1,3 +1,5 @@
+import { normalizeBadgeList } from "@/lib/product-badges";
+
 const API_BASE = `${process.env.NEXT_PUBLIC_LARAVEL_API_URL}/v1`;
 const SANCTUM_BASE = process.env.NEXT_PUBLIC_LARAVEL_API_URL;
 
@@ -58,6 +60,9 @@ export async function apiFetch<T>(
         message = "Too many requests. Please try again later.";
       } else if (res.status === 401) {
         message = errorData?.message || "Unauthenticated";
+        if (useAuth && typeof window !== "undefined") {
+          window.dispatchEvent(new Event("instshopee:unauthenticated"));
+        }
       }
       
       const error = new Error(message) as any;
@@ -311,6 +316,8 @@ export interface ApiProductDetail extends ApiProduct {
   description?: string | null;
   favoriteCount?: number;
   inStock?: boolean;
+  /** Extra shipping from linked catalog product (wholesale centre), added at checkout. */
+  catalogShippingFee?: number;
   shippingText?: string | null;
   shippingSubtext?: string | null;
   guaranteeText?: string | null;
@@ -336,9 +343,24 @@ export interface ApiProductsResponse {
   };
 }
 
+function normalizeApiProduct<T extends ApiProduct>(product: T): T {
+  return {
+    ...product,
+    textBadges: normalizeBadgeList(product.textBadges),
+    imageBadges: normalizeBadgeList(product.imageBadges),
+  };
+}
+
+function normalizeApiProductsResponse<T extends { products: ApiProduct[] }>(response: T): T {
+  return {
+    ...response,
+    products: response.products.map((product) => normalizeApiProduct(product)),
+  };
+}
+
 export async function getProductBySlug(slug: string): Promise<ApiProductDetail> {
   const response = await apiFetch<{ product: ApiProductDetail }>(`/products/${slug}`);
-  return response.product;
+  return normalizeApiProduct(response.product);
 }
 
 export interface FavoriteResponse {
@@ -432,7 +454,8 @@ export async function getRelatedProducts(slug: string, params?: {
   if (params?.type) searchParams.set("type", params.type);
   if (params?.limit) searchParams.set("limit", String(params.limit));
   const query = searchParams.toString();
-  return apiFetch<{ products: ApiProduct[] }>(`/products/${slug}/related${query ? `?${query}` : ""}`);
+  const response = await apiFetch<{ products: ApiProduct[] }>(`/products/${slug}/related${query ? `?${query}` : ""}`);
+  return normalizeApiProductsResponse(response);
 }
 
 export async function getProducts(params?: {
@@ -449,7 +472,8 @@ export async function getProducts(params?: {
   if (params?.page) searchParams.set("page", String(params.page));
   if (params?.per_page) searchParams.set("per_page", String(params.per_page));
   const query = searchParams.toString();
-  return apiFetch<ApiProductsResponse>(`/products${query ? `?${query}` : ""}`);
+  const response = await apiFetch<ApiProductsResponse>(`/products${query ? `?${query}` : ""}`);
+  return normalizeApiProductsResponse(response);
 }
 
 // Categories API
@@ -552,17 +576,23 @@ export async function getCategoryProducts(
     searchParams.set("service_promotions", params.service_promotions.join(","));
   }
   const query = searchParams.toString();
-  return apiFetch<ApiCategoryProductsResponse>(`/categories/${id}/products${query ? `?${query}` : ""}`);
+  const response = await apiFetch<ApiCategoryProductsResponse>(`/categories/${id}/products${query ? `?${query}` : ""}`);
+  return normalizeApiProductsResponse(response);
 }
 
 // Shop types and functions
 export interface ApiShopProfile {
+  id: string;
   name: string;
   slug: string;
   status: string;
   profileImageUrl: string;
   coverImageUrl: string | null;
   isMall: boolean;
+  /** ISO currency code for this shop (from seller account / vendor). */
+  currencyCode?: string;
+  /** Display symbol, e.g. $ or RM */
+  currencySymbol?: string;
   stats: {
     products: number;
     followers: string;
@@ -591,6 +621,13 @@ export interface ApiShopVoucher {
   claimCount?: number | null;
 }
 
+export type ApiShopProductSort =
+  | "popular"
+  | "latest"
+  | "top_sales"
+  | "price_asc"
+  | "price_desc";
+
 export async function getShopBySlug(slug: string): Promise<ApiShopProfile> {
   const response = await apiFetch<{ shop: ApiShopProfile }>(`/shops/${slug}`);
   return response.shop;
@@ -598,13 +635,15 @@ export async function getShopBySlug(slug: string): Promise<ApiShopProfile> {
 
 export async function getShopProducts(
   slug: string,
-  params?: { page?: number; per_page?: number }
+  params?: { page?: number; per_page?: number; sort?: ApiShopProductSort }
 ): Promise<ApiProductsResponse> {
   const searchParams = new URLSearchParams();
   if (params?.page) searchParams.set("page", String(params.page));
   if (params?.per_page) searchParams.set("per_page", String(params.per_page));
+  if (params?.sort) searchParams.set("sort", params.sort);
   const query = searchParams.toString();
-  return apiFetch<ApiProductsResponse>(`/shops/${slug}/products${query ? `?${query}` : ""}`);
+  const response = await apiFetch<ApiProductsResponse>(`/shops/${slug}/products${query ? `?${query}` : ""}`);
+  return normalizeApiProductsResponse(response);
 }
 
 export async function getShopVouchers(slug: string): Promise<ApiShopVoucher[]> {
@@ -628,28 +667,67 @@ export async function getShopNavigation(slug: string): Promise<ApiShopNavigation
   return response;
 }
 
+/** Whether the current session follows this shop (false if logged out). */
+export async function getShopFollowStatus(slug: string): Promise<{ following: boolean }> {
+  return apiFetch<{ following: boolean }>(`/shops/${encodeURIComponent(slug)}/follow`);
+}
+
+export async function followShop(slug: string): Promise<{ following: boolean; followersCount?: number }> {
+  return apiFetch<{ following: boolean; followersCount?: number }>(
+    `/shops/${encodeURIComponent(slug)}/follow`,
+    { method: "POST" }
+  );
+}
+
+export async function unfollowShop(slug: string): Promise<{ following: boolean; followersCount?: number }> {
+  return apiFetch<{ following: boolean; followersCount?: number }>(
+    `/shops/${encodeURIComponent(slug)}/follow`,
+    { method: "DELETE" }
+  );
+}
+
 export async function getShopCollectionProducts(
   slug: string,
-  params?: { shopCollection?: string; limit?: number }
-): Promise<{ products: ApiProduct[] }> {
+  params?: {
+    shopCollection?: string;
+    limit?: number;
+    page?: number;
+    per_page?: number;
+    sort?: ApiShopProductSort;
+    keyword?: string;
+  }
+): Promise<{ products: ApiProduct[]; pagination?: ApiProductsResponse["pagination"] }> {
   const searchParams = new URLSearchParams();
   if (params?.shopCollection) searchParams.set("shopCollection", params.shopCollection);
   if (params?.limit) searchParams.set("limit", String(params.limit));
+  if (params?.page) searchParams.set("page", String(params.page));
+  if (params?.per_page) searchParams.set("per_page", String(params.per_page));
+  if (params?.sort) searchParams.set("sort", params.sort);
+  if (params?.keyword) searchParams.set("keyword", params.keyword);
   const query = searchParams.toString();
-  const response = await apiFetch<{ products: ApiProduct[] }>(`/shops/${slug}/collection-products${query ? `?${query}` : ""}`);
-  return response;
+  const response = await apiFetch<{ products: ApiProduct[]; pagination?: ApiProductsResponse["pagination"] }>(`/shops/${slug}/collection-products${query ? `?${query}` : ""}`);
+  return normalizeApiProductsResponse(response);
 }
 
 export async function searchShopProducts(
   slug: string,
-  params?: { keyword?: string; page?: number; per_page?: number }
+  params?: {
+    keyword?: string;
+    page?: number;
+    per_page?: number;
+    sort?: ApiShopProductSort;
+    shopCollection?: string;
+  }
 ): Promise<ApiProductsResponse> {
   const searchParams = new URLSearchParams();
   if (params?.keyword) searchParams.set("keyword", params.keyword);
   if (params?.page) searchParams.set("page", String(params.page));
   if (params?.per_page) searchParams.set("per_page", String(params.per_page));
+  if (params?.sort) searchParams.set("sort", params.sort);
+  if (params?.shopCollection) searchParams.set("shopCollection", params.shopCollection);
   const query = searchParams.toString();
-  return apiFetch<ApiProductsResponse>(`/shops/${slug}/search${query ? `?${query}` : ""}`);
+  const response = await apiFetch<ApiProductsResponse>(`/shops/${slug}/search${query ? `?${query}` : ""}`);
+  return normalizeApiProductsResponse(response);
 }
 
 // User dashboard types and functions
@@ -717,7 +795,7 @@ export async function getMallStores(): Promise<ApiMallStore[]> {
 // Recommended products
 export async function getRecommendedProducts(limit: number = 12): Promise<ApiProduct[]> {
   const response = await apiFetch<{ products: ApiProduct[] }>(`/products/recommended?limit=${limit}`);
-  return response.products;
+  return response.products.map((product) => normalizeApiProduct(product));
 }
 
 // Address types and functions
@@ -805,6 +883,68 @@ export interface ApiPaymentMethod {
   enabledForCheckout: boolean;
 }
 
+export interface ApiCheckoutConfig {
+  shippingPercent: number;
+  sellerCoversShipping: boolean;
+}
+
+export async function getBuyerWallet() {
+  return apiFetch<{
+    success: boolean;
+    wallet: {
+      balance: string;
+      available_balance: string;
+      pending_balance?: string;
+      currency: string;
+    };
+  }>(
+    "/wallet?scope=buyer",
+    {},
+    true,
+  );
+}
+
+export async function getWalletDepositMethods() {
+  return apiFetch<{ success: boolean; methods: Array<{ id: number; key: string; name: string; type: string; logo_url?: string | null; config?: Record<string, unknown> }> }>(
+    "/wallet/deposit-methods?scope=buyer",
+    {},
+    true,
+  );
+}
+
+export async function requestBuyerWalletTopup(data: {
+  amount: number;
+  payment_method_id: number;
+  reference?: string;
+  notes?: string;
+  proof?: File | null;
+}) {
+  const form = new FormData();
+  form.append("amount", String(data.amount));
+  form.append("payment_method_id", String(data.payment_method_id));
+  if (data.reference) form.append("reference", data.reference);
+  if (data.notes) form.append("notes", data.notes);
+  if (data.proof) form.append("proof", data.proof);
+  form.append("scope", "buyer");
+  const url = `${API_BASE}/wallet/topup/request`;
+  const res = await fetch(url, {
+    method: "POST",
+    body: form,
+    credentials: "include",
+    headers: {
+      "X-Requested-With": "XMLHttpRequest",
+      Accept: "application/json",
+    },
+  });
+  const body = (await res.json()) as { message?: string; success?: boolean };
+  if (!res.ok) {
+    const err = new Error(body.message || "Top-up request failed") as Error & { status?: number };
+    err.status = res.status;
+    throw err;
+  }
+  return body;
+}
+
 export async function getPaymentMethods(): Promise<ApiPaymentMethod[]> {
   try {
     const response = await apiFetch<{ paymentMethods: ApiPaymentMethod[] }>("/payment-methods");
@@ -821,6 +961,12 @@ export async function getPaymentMethods(): Promise<ApiPaymentMethod[]> {
     // Return empty array on error - checkout can proceed without payment methods
     return [];
   }
+}
+
+export async function getCheckoutConfig(): Promise<ApiCheckoutConfig> {
+  const response = await apiFetch<{ checkout: ApiCheckoutConfig }>("/checkout/config");
+
+  return response.checkout;
 }
 
 // Currencies (for price formatting; rateToUsd is manual, no live data)
@@ -926,7 +1072,8 @@ export async function searchProducts(params: {
   if (params.min_price) searchParams.set("min_price", params.min_price);
   if (params.max_price) searchParams.set("max_price", params.max_price);
   const query = searchParams.toString();
-  return apiFetch<ApiProductsResponse>(`/search${query ? `?${query}` : ""}`);
+  const response = await apiFetch<ApiProductsResponse>(`/search${query ? `?${query}` : ""}`);
+  return normalizeApiProductsResponse(response);
 }
 
 export interface AutocompleteSuggestion {
@@ -965,6 +1112,7 @@ export interface ApiNotification {
 export async function getNotifications(type?: string): Promise<ApiNotification[]> {
   const searchParams = new URLSearchParams();
   if (type) searchParams.set("type", type);
+  if (type === "wallet") searchParams.set("scope", "buyer");
   const query = searchParams.toString();
   const response = await apiFetch<{ notifications: ApiNotification[] }>(`/notifications${query ? `?${query}` : ""}`, {}, true);
   return response.notifications;
@@ -1121,6 +1269,25 @@ export async function updateProfile(data: {
     body: JSON.stringify(data),
   }, true);
   return response.user;
+}
+
+export async function changePassword(data: {
+  currentPassword: string;
+  newPassword: string;
+  passwordConfirmation: string;
+}): Promise<{ message: string }> {
+  return apiFetch<{ message: string }>(
+    "/auth/password",
+    {
+      method: "PUT",
+      body: JSON.stringify({
+        current_password: data.currentPassword,
+        password: data.newPassword,
+        password_confirmation: data.passwordConfirmation,
+      }),
+    },
+    true
+  );
 }
 
 // Vouchers with category filtering
@@ -1448,6 +1615,7 @@ export interface ApiCartItem {
   shopName?: string;
   shopSlug?: string;
   currencySymbol?: string;
+  catalogShippingFee?: number;
 }
 
 export interface ApiCartResponse {
@@ -1519,4 +1687,3 @@ export async function clearCart(): Promise<{ message: string }> {
     headers,
   }, false);
 }
-

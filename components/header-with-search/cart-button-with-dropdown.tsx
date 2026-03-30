@@ -13,7 +13,7 @@ export function CartButtonWithDropdown() {
   return (
     <div
       ref={anchorRef}
-      className="relative flex-1 justify-center items-center flex mx-2.5 pb-1.5"
+      className="relative flex shrink-0 justify-end"
       onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => setIsOpen(false)}
     >

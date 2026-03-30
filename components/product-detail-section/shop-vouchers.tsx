@@ -59,6 +59,10 @@ export function ShopVouchers({ badgeLabels, voucherList }: ShopVouchersProps) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
+  if (badgeLabels.length === 0 || voucherList.length === 0) {
+    return null;
+  }
+
   useEffect(() => {
     if (!open) return;
     const handleOutside = (e: MouseEvent) => {
@@ -76,7 +80,7 @@ export function ShopVouchers({ badgeLabels, voucherList }: ShopVouchersProps) {
       aria-haspopup="true"
       aria-expanded={open}
       id="miniVoucherPopoverLabel"
-      className="text-neutral-800 items-center flex -ml-1 -mt-1 mb-6 p-1 focus-visible:outline-2 focus-visible:outline-solid focus-visible:rounded-sm relative"
+      className="relative mb-5 -ml-1 -mt-1 p-1 text-neutral-800 focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-solid sm:mb-6"
       tabIndex={0}
       onMouseEnter={() => setOpen(true)}
       onMouseLeave={() => setOpen(false)}
@@ -86,11 +90,11 @@ export function ShopVouchers({ badgeLabels, voucherList }: ShopVouchersProps) {
       }}
     >
       <section className="w-full items-center flex">
-        <h2 className="text-neutral-500 capitalize w-24 shrink-0 font-normal mr-2.5">
+        <h2 className="mr-2.5 w-20 shrink-0 text-sm font-normal capitalize text-neutral-500 sm:w-24">
           Shop Vouchers
         </h2>
-        <div className="flex flex-[auto] w-0 min-w-[calc(100%-theme(spacing.60))] h-6">
-          <div className="flex-[auto] w-0 flex relative overflow-x-hidden overflow-y-hidden gap-2.5">
+        <div className="flex h-6 min-w-0 flex-[auto]">
+          <div className="relative flex w-full flex-[auto] gap-2 overflow-x-auto overflow-y-hidden pr-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
             {badgeLabels.map((label, i) => (
               <VoucherBadge key={`${label}-${i}`} label={label} className="mr-0" />
             ))}
@@ -101,7 +105,7 @@ export function ShopVouchers({ badgeLabels, voucherList }: ShopVouchersProps) {
       {/* Hover dropdown: white box, rounded, shadow, caret */}
       {open && (
         <div
-          className="absolute left-0 top-full mt-0 z-50 w-[420px] max-w-[calc(100vw-2rem)]"
+          className="absolute left-0 top-full z-50 mt-0 w-full max-w-[420px] sm:w-[420px] sm:max-w-[calc(100vw-2rem)]"
           role="dialog"
           aria-label="Shop Vouchers"
         >

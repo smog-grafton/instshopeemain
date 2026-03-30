@@ -12,7 +12,7 @@ interface ShopAllProductsGridProps {
  */
 export function ShopAllProductsGrid({ items }: ShopAllProductsGridProps) {
   return (
-    <div className="grid grid-cols-5 gap-x-2 gap-y-2 mt-3">
+    <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
       {items.map((item) => (
         <ShopAllProductsCard key={item.slug} item={item} />
       ))}

@@ -8,11 +8,11 @@ interface SideBannersProps {
 
 export function SideBanners({ banners }: SideBannersProps) {
   return (
-    <div className="flex-col flex-1 flex ml-1.5">
+    <div className="grid grid-cols-2 gap-1.5 md:ml-1.5 md:grid-cols-1">
       {banners.map((banner, index) => (
-        <div key={index} className={index > 0 ? "flex-1 mt-1.5" : "flex-1"}>
+        <div key={index} className="relative overflow-hidden rounded-sm shadow-sm md:h-[111.75px]">
           <a
-            className="w-full no-underline block active:outline-0 hover:outline-0"
+            className="block h-full w-full no-underline active:outline-0 hover:outline-0"
             href={banner.href}
           >
             <Image
@@ -20,14 +20,8 @@ export function SideBanners({ banners }: SideBannersProps) {
               alt={banner.alt}
               width={398}
               height={112}
-              className="inline h-28 w-full rounded-sm align-bottom object-cover"
+              className="inline aspect-[16/9] h-full w-full align-bottom object-cover"
               unoptimized={isBackendImage(banner.imageSrc)}
-              onError={(e) => {
-                console.error(`Failed to load side banner image: ${banner.imageSrc}`);
-                // Hide broken image
-                const target = e.target as HTMLImageElement;
-                target.style.display = 'none';
-              }}
             />
           </a>
         </div>

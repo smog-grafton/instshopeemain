@@ -8,6 +8,7 @@ import type { CollectionProductItem } from "./data";
 
 interface ShopRootBoosterLineSectionProps {
   shopSlug: string;
+  shopName?: string;
 }
 
 function transformApiProduct(p: ApiProduct, shopName: string): CollectionProductItem {
@@ -25,6 +26,7 @@ function transformApiProduct(p: ApiProduct, shopName: string): CollectionProduct
     promotionLabel: p.promotionLabel ?? undefined,
     textBadges: p.textBadges,
     imageBadges: p.imageBadges,
+    currencySymbol: p.currencySymbol ?? "RM",
     storeName: shopName,
   };
 }
@@ -36,6 +38,7 @@ function transformApiProduct(p: ApiProduct, shopName: string): CollectionProduct
  */
 export function ShopRootBoosterLineSection({
   shopSlug,
+  shopName,
 }: ShopRootBoosterLineSectionProps) {
   const [products, setProducts] = useState<CollectionProductItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,7 +50,9 @@ export function ShopRootBoosterLineSection({
           shopCollection: "246436636", // ROOT BOOSTER LINE collection ID from mock data
           limit: 6,
         });
-        const transformed = response.products.map((p) => transformApiProduct(p, shopSlug));
+        const transformed = response.products.map((p) =>
+          transformApiProduct(p, p.shopName || shopName || shopSlug)
+        );
         setProducts(transformed);
       } catch (error) {
         console.error("Failed to fetch root booster line products:", error);
@@ -56,7 +61,7 @@ export function ShopRootBoosterLineSection({
       }
     }
     fetchProducts();
-  }, [shopSlug]);
+  }, [shopName, shopSlug]);
 
   if (loading) {
     return (

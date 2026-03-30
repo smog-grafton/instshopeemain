@@ -47,32 +47,33 @@ export default function UserNotificationsPromotionPage() {
 
   return (
     <UserDashboardLayout>
-      <div className="bg-white grow w-[980px] relative shadow-sm ml-7 rounded-sm min-h-[400px]">
-        <div className="flex-col min-h-full flex relative" role="main">
-          <div className="contents">
-            <div className="pb-2.5 px-8">
-              <div className="[border-bottom-style:solid] py-5 border-b border-b-zinc-100 flex items-center justify-between gap-4">
-                <div>
-                  <h1 className="capitalize text-zinc-800 text-lg font-medium leading-6">
-                    Promotions
-                  </h1>
-                  <div className="text-neutral-600 text-sm leading-4 mt-[0.1875rem]">
-                    Deals and voucher notifications
-                  </div>
-                </div>
-                <Link
-                  href="#"
-                  className="text-black/80 text-sm whitespace-nowrap hover:underline focus:outline-none focus-visible:underline"
-                >
-                  Mark all as read
-                </Link>
-              </div>
-              {loading ? (
-                <div className="py-8 text-center text-gray-500">Loading promotions...</div>
-              ) : (
-                <PromotionsListWithLoader basePromos={promos} />
-              )}
+      <div className="min-w-0 w-full rounded-sm bg-white shadow-sm lg:ml-7 lg:w-[980px]">
+        <div className="px-4 pb-4 sm:px-6 lg:px-8" role="main">
+          <div className="flex flex-col gap-3 border-b border-zinc-100 py-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-lg font-medium leading-6 text-zinc-800">
+                Promotions
+              </h1>
+              <p className="mt-1 text-sm leading-5 text-neutral-600">
+                Deals, voucher alerts, and buyer campaign updates.
+              </p>
             </div>
+            <Link
+              href="#"
+              className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-200 px-4 text-sm font-medium text-zinc-700 transition hover:border-zinc-300 hover:bg-zinc-50"
+            >
+              Mark all as read
+            </Link>
+          </div>
+
+          <div className="py-6">
+            {loading ? (
+              <div className="rounded-2xl border border-zinc-100 bg-zinc-50 px-4 py-10 text-center text-sm text-zinc-500 sm:px-6">
+                Loading promotions...
+              </div>
+            ) : (
+              <PromotionsListWithLoader basePromos={promos} />
+            )}
           </div>
         </div>
       </div>

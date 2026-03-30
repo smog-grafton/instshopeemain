@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { UserDashboardLayout } from "@/components/user-dashboard";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, isBackendImage } from "@/lib/utils";
 import {
+  confirmOrderDelivery,
   getOrders,
   type OrderRecord,
   type OrderStatus,
@@ -51,24 +52,34 @@ const TAB_LABELS: { key: FilterTab; label: string }[] = [
 export function PurchaseContent() {
   const searchParams = useSearchParams();
   const highlightedOrderId = searchParams.get("orderId");
+  const highlightedOrderIds = useMemo(
+    () =>
+      (searchParams.get("orderIds") ?? "")
+        .split(",")
+        .map((value) => value.trim())
+        .filter(Boolean),
+    [searchParams]
+  );
   const [activeTab, setActiveTab] = useState<FilterTab>("all");
   const [orders, setOrders] = useState<OrderRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [confirmingOrderId, setConfirmingOrderId] = useState<string | null>(null);
+
+  const loadOrders = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = await getOrders();
+      setOrders(data);
+    } catch {
+      setOrders([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    let mounted = true;
-    getOrders()
-      .then((data) => {
-        if (mounted) {
-          setOrders(data);
-        }
-      })
-      .catch(() => {
-        if (mounted) setOrders([]);
-      });
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    void loadOrders();
+  }, [loadOrders]);
 
   const filteredOrders = useMemo(() => {
     if (activeTab === "all") return orders;
@@ -77,13 +88,23 @@ export function PurchaseContent() {
 
   const hasOrders = orders.length > 0;
 
+  const handleConfirmDelivery = async (orderId: string) => {
+    try {
+      setConfirmingOrderId(orderId);
+      await confirmOrderDelivery(orderId);
+      await loadOrders();
+    } finally {
+      setConfirmingOrderId(null);
+    }
+  };
+
   return (
     <UserDashboardLayout>
-      <div className="bg-white grow w-[980px] relative shadow-sm ml-7 rounded-sm min-h-[400px]">
+      <div className="relative min-h-[400px] grow rounded-sm bg-white shadow-sm lg:ml-7 lg:w-[980px]">
         <div className="flex-col min-h-full flex relative" role="main">
           <div className="contents">
-            <div className="pb-2.5 px-8">
-              <div className="[border-bottom-style:solid] py-5 border-b border-b-zinc-100">
+            <div className="px-4 pb-2.5 sm:px-6 lg:px-8">
+              <div className="border-b border-b-zinc-100 py-5 [border-bottom-style:solid]">
                 <h1 className="capitalize text-zinc-800 text-lg font-medium leading-6">
                   My Purchase
                 </h1>
@@ -93,7 +114,8 @@ export function PurchaseContent() {
               </div>
 
               {/* Tabs */}
-              <div className="flex gap-6 border-b border-b-zinc-100 mt-2">
+              <div className="-mx-4 mt-2 overflow-x-auto border-b border-b-zinc-100 px-4 sm:mx-0 sm:px-0">
+                <div className="flex min-w-max gap-6">
                 {TAB_LABELS.map((tab) => {
                   const isActive = activeTab === tab.key;
                   return (
@@ -112,10 +134,16 @@ export function PurchaseContent() {
                     </button>
                   );
                 })}
+                </div>
               </div>
 
-              {/* Empty state */}
-              {!hasOrders && (
+              {loading && (
+                <div className="py-10 text-center text-sm text-zinc-600">
+                  Loading your orders...
+                </div>
+              )}
+
+              {!loading && !hasOrders && (
                 <div className="flex flex-col items-center justify-center py-16 px-8">
                   <div className="relative w-48 h-48 mb-6">
                     <Image
@@ -133,16 +161,17 @@ export function PurchaseContent() {
               )}
 
               {/* Orders list */}
-              {hasOrders && filteredOrders.length === 0 && (
+              {!loading && hasOrders && filteredOrders.length === 0 && (
                 <div className="py-10 text-center text-sm text-zinc-600">
                   No orders in this tab yet.
                 </div>
               )}
 
-              {filteredOrders.length > 0 && (
+              {!loading && filteredOrders.length > 0 && (
                 <div className="mt-4 space-y-4">
                   {filteredOrders.map((order) => {
-                    const isHighlighted = order.id === highlightedOrderId;
+                    const isHighlighted =
+                      order.id === highlightedOrderId || highlightedOrderIds.includes(order.id);
                     const firstItem = order.items[0];
                     return (
                       <div
@@ -162,18 +191,29 @@ export function PurchaseContent() {
                             {statusToTab(order.status).replace("-", " ")}
                           </div>
                         </div>
-                        <div className="px-4 py-3 flex gap-3">
-                          <div className="w-16 h-16 flex-shrink-0">
-                            <Image
-                              src={firstItem.imageSrc}
-                              alt={firstItem.title}
-                              width={64}
-                              height={64}
-                              className="w-16 h-16 object-cover border border-zinc-200"
-                            />
+                        <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row">
+                          <div className="h-16 w-16 flex-shrink-0">
+                            {isBackendImage(firstItem.imageSrc) ? (
+                              <img
+                                src={firstItem.imageSrc}
+                                alt={firstItem.title}
+                                width={64}
+                                height={64}
+                                className="h-16 w-16 border border-zinc-200 object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <Image
+                                src={firstItem.imageSrc}
+                                alt={firstItem.title}
+                                width={64}
+                                height={64}
+                                className="h-16 w-16 border border-zinc-200 object-cover"
+                              />
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <div className="flex justify-between gap-4">
+                            <div className="flex flex-col gap-3 sm:flex-row sm:justify-between sm:gap-4">
                               <div className="min-w-0">
                                 <div className="text-sm text-zinc-800 truncate">
                                   {firstItem.title}
@@ -192,7 +232,7 @@ export function PurchaseContent() {
                                   {order.address.stateArea} {order.address.postalCode}
                                 </div>
                               </div>
-                              <div className="text-right text-sm text-zinc-700">
+                              <div className="text-left text-sm text-zinc-700 sm:text-right">
                                 <div className="text-xs text-zinc-500">
                                   Total Payment
                                 </div>
@@ -200,6 +240,21 @@ export function PurchaseContent() {
                                   {formatPrice(order.currencySymbol || "RM", order.totalPayment)}
                                 </div>
                               </div>
+                            </div>
+                            <div className="mt-3 flex flex-wrap items-center justify-between gap-3 border-t border-zinc-100 pt-3">
+                              <div className="text-xs text-zinc-500">
+                                Status: <span className="font-medium text-zinc-700">{order.status.replace("_", " ")}</span>
+                              </div>
+                              {order.status === "SHIPPED" && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleConfirmDelivery(order.id)}
+                                  disabled={confirmingOrderId === order.id}
+                                  className="inline-flex h-9 items-center justify-center rounded-[2px] border border-[#ee4d2d] px-4 text-[13px] font-medium text-[#ee4d2d] disabled:cursor-not-allowed disabled:opacity-60"
+                                >
+                                  {confirmingOrderId === order.id ? "Confirming..." : "Order Received"}
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>

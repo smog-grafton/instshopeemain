@@ -94,8 +94,8 @@ export function ProductReviewsSection({ data, productSlug }: ProductReviewsSecti
   const canGoNext = currentPage < totalPages;
 
   return (
-    <div className="mt-4 rounded-sm bg-white pt-6 px-6 shadow-sm text-sm leading-tight text-black/80">
-      <div className="mb-3.5 flex items-center justify-between">
+    <div className="mt-4 rounded-sm bg-white px-4 pt-5 text-sm leading-tight text-black/80 shadow-sm sm:px-6 sm:pt-6">
+      <div className="mb-3.5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative z-[999] inline-flex">
           <h2 className="capitalize text-lg font-medium text-black/87">Product Ratings</h2>
         </div>
@@ -112,8 +112,8 @@ export function ProductReviewsSection({ data, productSlug }: ProductReviewsSecti
 
       <div className="bg-white -mt-6">
         <section className="w-full min-h-0">
-          <div className="rounded-sm border border-solid border-rose-100 bg-stone-50 mb-4 flex min-h-20 items-center p-8">
-            <div className="mr-8 text-center">
+          <div className="mb-4 flex min-h-20 flex-col gap-6 rounded-sm border border-solid border-rose-100 bg-stone-50 p-4 sm:p-6 lg:flex-row lg:items-center lg:p-8">
+            <div className="text-center lg:mr-8">
               <div className="text-lg text-red-500">
                 <span className="text-3xl">{overallScore}</span>
                 <span> out of 5 </span>
@@ -130,7 +130,7 @@ export function ProductReviewsSection({ data, productSlug }: ProductReviewsSecti
                 </div>
               </div>
             </div>
-            <div className="ml-4 flex-1 flex flex-wrap gap-x-2 gap-y-1.5">
+            <div className="flex flex-1 flex-wrap gap-x-2 gap-y-1.5 lg:ml-4">
               {filterChips.map((chip, i) => (
                 <button
                   key={chip.label}
@@ -151,19 +151,26 @@ export function ProductReviewsSection({ data, productSlug }: ProductReviewsSecti
           </div>
 
           <div>
-            {paginatedReviews.map((review, idx) => (
-              <ReviewCard
-                key={`${review.username}-${review.date}-${start + idx}`}
-                review={review}
-                onMediaClick={openLightbox}
-              />
-            ))}
+            {paginatedReviews.length > 0 ? (
+              paginatedReviews.map((review, idx) => (
+                <ReviewCard
+                  key={`${review.username}-${review.date}-${start + idx}`}
+                  review={review}
+                  onMediaClick={openLightbox}
+                />
+              ))
+            ) : (
+              <div className="rounded-sm border border-dashed border-gray-200 px-4 py-8 text-center text-sm text-gray-500">
+                No reviews have been posted for this product yet.
+              </div>
+            )}
           </div>
 
+          {reviews.length > 0 && (
           <nav
             aria-label="Reviews pagination"
             role="navigation"
-            className="mt-5 flex justify-center pb-10 text-right"
+            className="mt-5 flex flex-wrap justify-center pb-10 text-right"
           >
             <button
               type="button"
@@ -221,6 +228,7 @@ export function ProductReviewsSection({ data, productSlug }: ProductReviewsSecti
               </svg>
             </button>
           </nav>
+          )}
         </section>
       </div>
 

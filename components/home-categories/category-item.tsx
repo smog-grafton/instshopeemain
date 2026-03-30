@@ -11,25 +11,25 @@ interface CategoryItemProps {
 
 export function CategoryItem({ category }: CategoryItemProps) {
   return (
-    <li className="touch-pan-y [overflow-x:unset] h-36 w-32">
+    <li className="touch-pan-y h-[7.5rem] w-full [overflow-x:unset] sm:h-36">
       <Link
         href={category.href}
-        className="text-center bg-white [border-bottom-style:solid] [border-right-style:solid] no-underline transition-all duration-100 ease-in-out block relative border-r border-b text-black/87 border-r-black/5 border-b-black/5 active:outline-0 hover:outline-0 before:content-[''] before:block before:pt-[126%] hover:shadow hover:border-l hover:border-t hover:border-black/12"
+        className="relative block bg-white text-center text-black/87 no-underline transition-all duration-100 ease-in-out active:outline-0 hover:border-black/12 hover:shadow hover:outline-0 before:block before:pt-[109%] before:content-[''] [border-bottom-style:solid] [border-right-style:solid] border-b border-r border-b-black/5 border-r-black/5 sm:before:pt-[126%]"
       >
-        <div className="flex-col justify-center items-center flex absolute inset-0 py-2">
-          <div className="w-8/12 h-[50%] mt-2 flex-shrink-0 mb-0">
+        <div className="absolute inset-0 flex flex-col items-center justify-center py-2">
+          <div className="mb-0 mt-1 h-[46%] w-8/12 flex-shrink-0 sm:mt-2 sm:h-[50%]">
             <Image
               width={320}
               height={320}
               loading="lazy"
-              className="inline align-bottom object-contain max-h-full"
+              className="inline max-h-full align-bottom object-contain"
               src={category.imageSrc}
               alt={category.label}
               unoptimized={isBackendImage(category.imageSrc)}
             />
           </div>
-          <div className="text-center w-11/12 flex-1 flex items-start justify-center px-1 pt-1">
-            <div className="[word-break:break-word] text-ellipsis [-webkit-line-clamp:2] text-sm [display:-webkit-box] overflow-x-hidden overflow-y-hidden text-black/80 leading-5 min-h-[2.5rem]">
+          <div className="flex flex-1 items-start justify-center px-1 pt-1 text-center w-11/12">
+            <div className="min-h-[2.2rem] overflow-hidden text-ellipsis text-[0.74rem] leading-4 text-black/80 [display:-webkit-box] [-webkit-line-clamp:2] [word-break:break-word] sm:min-h-[2.5rem] sm:text-sm sm:leading-5">
               {category.label}
             </div>
           </div>

@@ -44,8 +44,8 @@ export function CheckoutDeliveryAddress({ address, onChange }: CheckoutDeliveryA
           backgroundSize: "116px 3px",
         }}
       />
-      <div className="px-[30px] pt-7 pb-6">
-        <div className="flex justify-between items-center">
+      <div className="px-4 pb-5 pt-6 sm:px-6 lg:px-[30px] lg:pb-6 lg:pt-7">
+        <div className="flex items-center justify-between">
           <div
             className="flex flex-1 items-center mb-5 text-[18px] capitalize text-[#ee4d2d]"
           >
@@ -68,25 +68,25 @@ export function CheckoutDeliveryAddress({ address, onChange }: CheckoutDeliveryA
             </h2>
           </div>
         </div>
-        <div className="flex items-center">
-          <div>
-            <div className="flex items-center text-[16px] break-words">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+          <div className="min-w-0">
+            <div className="flex flex-col gap-2 break-words text-[16px] lg:flex-row lg:items-center">
               <div className="text-[#222] font-bold">
                 {address.fullName} ({phoneDisplay})
               </div>
-              <div className="ml-5 break-words">
+              <div className="break-words lg:ml-5">
                 {addressLine}
               </div>
               {address.setAsDefault && (
                 <div
-                  className="capitalize shrink-0 ml-[15px] px-1.5 py-0.5 text-[10px] rounded-[1px] border border-[#ee4d2d] text-[#ee4d2d]"
+                  className="w-fit shrink-0 rounded-[1px] border border-[#ee4d2d] px-1.5 py-0.5 text-[10px] capitalize text-[#ee4d2d] lg:ml-[15px]"
                 >
                   default
                 </div>
               )}
             </div>
           </div>
-          <div className="ml-10">
+          <div className="lg:ml-10">
             <button
               type="button"
               className="appearance-none border-0 bg-transparent p-0 text-[14px] font-medium leading-[21px] text-[#0055aa] capitalize cursor-pointer"

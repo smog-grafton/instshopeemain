@@ -34,13 +34,13 @@ function StarRating({ rating }: { rating: number }) {
 export function ProductTitleRating({ title, rating, ratingsCount, sold }: ProductTitleRatingProps) {
   return (
     <>
-      <div className="text-ellipsis [-webkit-line-clamp:2] align-sub break-words max-w-2xl text-xl font-medium leading-6 [display:-webkit-box] overflow-x-hidden overflow-y-hidden">
+      <div className="max-w-3xl break-words text-xl font-medium leading-6 text-ellipsis [-webkit-line-clamp:2] [display:-webkit-box] overflow-x-hidden overflow-y-hidden sm:text-2xl">
         <h1 className="align-middle inline m-[inherit]">{title}</h1>
       </div>
-      <div className="flex min-h-6 relative mt-2.5">
+      <div className="relative mt-2.5 flex flex-wrap items-center gap-y-2">
         <button
           type="button"
-          className="[appearance:auto] flex cursor-pointer items-center pr-4 border-0 bg-transparent"
+          className="[appearance:auto] flex cursor-pointer items-center border-0 bg-transparent pr-3 sm:pr-4"
         >
           <div className="[border-bottom-style:solid] text-base mr-1.5 pb-px border-b text-neutral-800 border-b-neutral-800">
             {rating}
@@ -49,7 +49,7 @@ export function ProductTitleRating({ title, rating, ratingsCount, sold }: Produc
         </button>
         <button
           type="button"
-          className="[appearance:auto] flex cursor-pointer items-center px-4 border-r-0 border-y-0 [border-left-style:solid] border-l border-l-black/14 bg-transparent"
+          className="[appearance:auto] flex cursor-pointer items-center border-y-0 border-r-0 bg-transparent px-3 [border-left-style:solid] border-l border-l-black/14 sm:px-4"
         >
           <div className="text-neutral-800 [border-bottom-style:solid] text-base mr-1.5 pb-px border-b border-b-neutral-600">
             {ratingsCount}
@@ -57,7 +57,7 @@ export function ProductTitleRating({ title, rating, ratingsCount, sold }: Produc
           <div className="text-neutral-500 capitalize text-sm mr-1.5 py-1">ratings</div>
         </button>
         <div
-          className="flex items-center px-4 [border-left-style:solid] border-l border-l-black/14"
+          className="flex items-center px-3 [border-left-style:solid] border-l border-l-black/14 sm:px-4"
           tabIndex={0}
         >
           <div className="text-neutral-500 capitalize text-sm mr-1.5 py-1">
@@ -72,7 +72,7 @@ export function ProductTitleRating({ title, rating, ratingsCount, sold }: Produc
         </div>
         <button
           type="button"
-          className="[appearance:auto] cursor-pointer text-sm ml-auto border-[unset] text-black/54 bg-transparent"
+          className="[appearance:auto] ml-0 cursor-pointer border-[unset] bg-transparent text-sm text-black/54 sm:ml-auto"
         >
           Report
         </button>

@@ -4,8 +4,7 @@ import { ShopProfileSection } from "@/components/shop-profile-section";
 import { ShopNavigationBar } from "@/components/shop-navigation";
 import { ShopVouchersSection } from "@/components/shop-vouchers";
 import { ShopTopProductsSection } from "@/components/shop-top-products";
-import { ShopRootBoosterLineSection } from "@/components/shop-root-booster-line";
-import { ShopNewRootTreatmentSection } from "@/components/shop-new-root-treatment";
+import { ShopCollectionPreviewSection } from "@/components/shop-collection-preview/shop-collection-preview-section";
 import { ShopAllProductsSection } from "@/components/shop-all-products";
 import { SiteFooter } from "@/components/site-footer";
 import {
@@ -19,23 +18,36 @@ interface ShopPageProps {
   params: Promise<{ slug: string }>;
 }
 
+function getShopCollectionFromHref(href: string): string | null {
+  const queryIndex = href.indexOf("?");
+  if (queryIndex === -1) return null;
+  const params = new URLSearchParams(href.slice(queryIndex + 1));
+  return params.get("shopCollection");
+}
+
 /**
  * Shop / store profile page (e.g. /shop/mandom-official-store).
  * Uses shop-specific header and shop profile section (store card + stats).
  */
 export default async function ShopPage({ params }: ShopPageProps) {
   const { slug } = await params;
-  
   let shopProfile;
   let shopVouchers;
   let shopProducts;
   let shopNav;
   try {
-    shopProfile = await getShopBySlugApi(slug);
-    shopVouchers = await getShopVouchersApi(slug);
-    const productsResponse = await getShopProductsApi(slug, { page: 1, per_page: 6 });
+    const [profileResponse, vouchersResponse, productsResponse, navigationResponse] =
+      await Promise.all([
+        getShopBySlugApi(slug),
+        getShopVouchersApi(slug),
+        getShopProductsApi(slug, { page: 1, per_page: 6 }),
+        getShopNavigationApi(slug),
+      ]);
+
+    shopProfile = profileResponse;
+    shopVouchers = vouchersResponse;
     shopProducts = productsResponse.products;
-    shopNav = await getShopNavigationApi(slug);
+    shopNav = navigationResponse;
   } catch (error) {
     // Handle error - could redirect to 404 or show error page
     throw error;
@@ -43,6 +55,7 @@ export default async function ShopPage({ params }: ShopPageProps) {
 
   // Transform API shop profile to component format
   const shopProfileData = {
+    id: shopProfile.id,
     name: shopProfile.name,
     status: shopProfile.status,
     profileImageUrl: shopProfile.profileImageUrl,
@@ -71,6 +84,7 @@ export default async function ShopPage({ params }: ShopPageProps) {
     if (p.promotionLabel != null) item.promotionLabel = p.promotionLabel;
     if (p.textBadges) item.textBadges = p.textBadges;
     if (p.imageBadges) item.imageBadges = p.imageBadges;
+    item.currencySymbol = p.currencySymbol ?? shopProfile.currencySymbol ?? "RM";
     return item;
   });
 
@@ -84,6 +98,25 @@ export default async function ShopPage({ params }: ShopPageProps) {
     claimCount: v.claimCount ?? undefined,
   }));
 
+  const previewCollections = [...shopNav.mainTabs, ...shopNav.moreItems]
+    .filter((tab) => tab.label !== "Home" && tab.label !== "All Products")
+    .map((tab) => {
+      const shopCollection = getShopCollectionFromHref(tab.href);
+      if (!shopCollection) return null;
+      return {
+        shopCollection,
+        title: tab.label,
+      };
+    })
+    .filter((item): item is { shopCollection: string; title: string } => item !== null)
+    .filter(
+      (item, index, items) =>
+        items.findIndex(
+          (candidate) => candidate.shopCollection === item.shopCollection,
+        ) === index,
+    )
+    .slice(0, 2);
+
   return (
     <div className="min-h-screen bg-[rgb(245,245,245)]">
       <TopNavbar variant="shop" />
@@ -96,13 +129,20 @@ export default async function ShopPage({ params }: ShopPageProps) {
       <ShopNavigationBar data={shopNav} shopSlug={slug} />
 
       {/* Voucher: white strip; Top Products: on grey (no section white bg) */}
-      <main className="mx-auto w-[1200px] max-w-[1200px] px-4 pb-8">
+      <main className="mx-auto w-full max-w-[1200px] px-3 pb-8 sm:px-4 lg:px-4">
         <ShopVouchersSection vouchers={transformedVouchers} />
-        <div className="mt-4 px-[30px] pb-5 pt-5">
+        <div className="mt-4 px-0 pb-5 pt-2 sm:pt-4 lg:px-[30px] lg:pt-5">
           <ShopTopProductsSection shopSlug={slug} products={topProducts} />
-          <ShopRootBoosterLineSection shopSlug={slug} />
-          <ShopNewRootTreatmentSection shopSlug={slug} />
-          <ShopAllProductsSection shopSlug={slug} />
+          {previewCollections.map((collection) => (
+            <ShopCollectionPreviewSection
+              key={collection.shopCollection}
+              shopSlug={slug}
+              shopCollection={collection.shopCollection}
+              title={collection.title}
+              shopName={shopProfile.name}
+            />
+          ))}
+          <ShopAllProductsSection shopSlug={slug} shopName={shopProfile.name} />
         </div>
       </main>
 

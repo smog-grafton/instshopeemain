@@ -4,9 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import type { ShopVoucher } from "./data";
 import { VoucherCard } from "./voucher-card";
 
-/** Same as top-products: card width for scroll-by amount and item width */
-const CARD_WIDTH_PX = 340;
-
 interface VoucherCarouselProps {
   vouchers: ShopVoucher[];
 }
@@ -73,35 +70,37 @@ export function VoucherCarousel({ vouchers }: VoucherCarouselProps) {
 
   const scrollLeft = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -CARD_WIDTH_PX * 2, behavior: "smooth" });
+      scrollContainerRef.current.scrollBy({
+        left: -Math.max(scrollContainerRef.current.clientWidth * 0.85, 280),
+        behavior: "smooth",
+      });
     }
   };
 
   const scrollRight = () => {
     if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: CARD_WIDTH_PX * 2, behavior: "smooth" });
+      scrollContainerRef.current.scrollBy({
+        left: Math.max(scrollContainerRef.current.clientWidth * 0.85, 280),
+        behavior: "smooth",
+      });
     }
   };
 
   if (vouchers.length === 0) return null;
 
   return (
-    <div className="relative w-full h-[141px] -mx-[30px]">
-      <div className="h-[141px] overflow-hidden touch-pan-y">
+    <div className="relative w-full">
+      <div className="overflow-hidden touch-pan-y">
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="h-[141px] overflow-x-auto overflow-y-hidden touch-pan-y pl-5 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="overflow-x-auto overflow-y-hidden touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
-          <ul
-            className="flex h-[141px] m-0 p-0 relative items-stretch list-none"
-            style={{ width: vouchers.length * CARD_WIDTH_PX, paddingLeft: 20 }}
-          >
+          <ul className="relative m-0 flex list-none items-stretch gap-3 p-0">
             {vouchers.map((v) => (
               <li
                 key={v.id}
-                className="touch-pan-y flex-shrink-0 overflow-x-hidden list-none px-2 box-border"
-                style={{ width: CARD_WIDTH_PX }}
+                className="touch-pan-y box-border w-[280px] flex-shrink-0 overflow-x-hidden list-none sm:w-[320px] lg:w-[340px]"
               >
                 <VoucherCard voucher={v} />
               </li>
@@ -117,7 +116,7 @@ export function VoucherCarousel({ vouchers }: VoucherCarouselProps) {
         role="button"
         tabIndex={0}
         aria-label="Scroll vouchers left"
-        className={`absolute left-0 top-1/2 -mt-[25px] w-[50px] h-[50px] flex items-center justify-center rounded-full bg-white shadow-[0_1px_12px_rgba(0,0,0,0.12)] cursor-pointer outline-0 text-xl leading-[50px] transition-all duration-100 ease-[cubic-bezier(0.4,0,0.6,1)] z-[2] ${
+        className={`absolute left-0 top-1/2 z-[2] hidden h-[50px] w-[50px] -translate-x-1/2 items-center justify-center rounded-full bg-white text-xl leading-[50px] shadow-[0_1px_12px_rgba(0,0,0,0.12)] outline-0 transition-all duration-100 ease-[cubic-bezier(0.4,0,0.6,1)] lg:flex ${
           showPrev ? "opacity-100 visible -translate-x-1/2" : "opacity-0 invisible pointer-events-none -translate-x-1/2"
         }`}
       >
@@ -131,7 +130,7 @@ export function VoucherCarousel({ vouchers }: VoucherCarouselProps) {
         role="button"
         tabIndex={0}
         aria-label="Scroll vouchers right"
-        className={`absolute right-0 top-1/2 -mt-[25px] w-[50px] h-[50px] flex items-center justify-center rounded-full bg-white shadow-[0_1px_12px_rgba(0,0,0,0.12)] cursor-pointer outline-0 text-xl leading-[50px] transition-all duration-100 ease-[cubic-bezier(0.4,0,0.6,1)] translate-x-1/2 z-[2] ${
+        className={`absolute right-0 top-1/2 z-[2] hidden h-[50px] w-[50px] translate-x-1/2 items-center justify-center rounded-full bg-white text-xl leading-[50px] shadow-[0_1px_12px_rgba(0,0,0,0.12)] outline-0 transition-all duration-100 ease-[cubic-bezier(0.4,0,0.6,1)] lg:flex ${
           showNext ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
         }`}
       >

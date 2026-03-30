@@ -134,7 +134,7 @@ export function NotificationSettings() {
 
   if (loading) {
     return (
-      <div className="w-[980px] ml-7">
+      <div className="w-full lg:ml-7 lg:w-[980px]">
         <div className="bg-white rounded-[2px] shadow-[0_1px_1px_0_rgba(0,0,0,0.05)] overflow-hidden">
           <div className="text-sm leading-tight text-black/80 px-6 py-4 shadow-inner">
             <p className="text-center text-black/54 py-10">Loading notification preferences...</p>
@@ -145,9 +145,9 @@ export function NotificationSettings() {
   }
 
   return (
-    <div className="w-[980px] ml-7">
+    <div className="w-full lg:ml-7 lg:w-[980px]">
       <div className="bg-white rounded-[2px] shadow-[0_1px_1px_0_rgba(0,0,0,0.05)] overflow-hidden">
-        <div className="text-sm leading-tight text-black/80 px-6 py-4 shadow-inner">
+        <div className="px-4 py-4 text-sm leading-tight text-black/80 shadow-inner sm:px-6">
           {sections.map((section, index) => (
             <div key={section.id}>
               {index > 0 && (
