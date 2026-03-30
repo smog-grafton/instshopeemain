@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-context";
 import { DashboardPageSkeleton } from "./dashboard-page-skeleton";
@@ -41,7 +41,7 @@ function getCurrentNavLabel(pathname: string): string {
  * Two-column layout: left sidebar (user info + nav) and main content slot.
  * Use for /user/purchase, /user/account/profile, etc.
  */
-export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
+function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -202,5 +202,13 @@ export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
         </div>
       </div>
     </div>
+  );
+}
+
+export function UserDashboardLayout({ children }: UserDashboardLayoutProps) {
+  return (
+    <Suspense fallback={<DashboardPageSkeleton />}>
+      <UserDashboardLayoutContent>{children}</UserDashboardLayoutContent>
+    </Suspense>
   );
 }

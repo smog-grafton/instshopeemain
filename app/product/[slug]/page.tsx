@@ -111,6 +111,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
 
   const thumbnailImage = productImages.find((image) => image.isThumbnail && image.imagePath) || productImages[0];
   const productImageSrc = thumbnailImage?.imagePath || product.imageSrc;
+  const safeOriginalPrice = product.originalPrice ?? 0;
 
   const productDetailData = {
     title: product.title,
@@ -124,7 +125,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
     priceMax: currentPriceLabel,
     originalMin: originalPriceLabel,
     originalMax: originalPriceLabel,
-    discountPercent: hasDiscount ? Math.round((1 - product.price / product.originalPrice) * 100) : 0,
+    discountPercent:
+      hasDiscount && safeOriginalPrice > 0
+        ? Math.round((1 - product.price / safeOriginalPrice) * 100)
+        : 0,
     priceTeaserText: product.promotionLabel ?? "",
     sold: formatCompact(product.soldCount),
     rating: product.rating,

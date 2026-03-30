@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import type { ReactElement } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-context";
@@ -13,7 +14,7 @@ type DockItem = {
   label: string;
   href: string;
   isActive: (pathname: string, hash: string) => boolean;
-  icon: (active: boolean) => JSX.Element;
+  icon: (active: boolean) => ReactElement;
 };
 
 function AccountIcon(active: boolean) {
