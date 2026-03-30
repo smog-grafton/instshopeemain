@@ -110,7 +110,7 @@ interface EditAddressFormValues {
 Add the Google Maps API key to your `.env.local`:
 
 ```env
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=AIzaSyAB8VvO8EuzDETo7j8Hp205XkX3DgCjqFg
+NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
 ```
 
 ### 2. Next.js Configuration
