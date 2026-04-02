@@ -3,7 +3,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { PolicyConfirmationModal } from "./policy-confirmation-modal";
 import {
   PasswordValidationList,
@@ -11,6 +10,7 @@ import {
 } from "./password-validation";
 import { registerBuyer, getGoogleAuthRedirectUrl } from "@/lib/api-client";
 import { useAuth } from "./auth-context";
+import { getSellerPortalBaseUrl } from "@/lib/account-routing";
 
 const BACKGROUND_IMAGE = "/images/auth/background.png";
 const FACEBOOK_ICON = "/images/auth/facebook.png";
@@ -21,7 +21,6 @@ const PRIVACY_URL = "https://help.shopee.com.my/portal/article/77216";
 type SignupStep = 1 | 2 | "success";
 
 export function SignupFormSection() {
-  const router = useRouter();
   const { login: setAuthLoggedIn } = useAuth();
   const [step, setStep] = useState<SignupStep>(1);
   const [phone, setPhone] = useState("");
@@ -81,12 +80,17 @@ export function SignupFormSection() {
             email: apiUser.email,
             role: apiUser.role,
             countryId: apiUser.countryId ?? null,
+            buyerPortalEnabled: apiUser.buyerPortalEnabled ?? false,
+            canAccessBuyerPortal: apiUser.canAccessBuyerPortal ?? false,
+            isSeller: apiUser.isSeller ?? false,
+            sellerStatus: apiUser.sellerStatus ?? null,
+            prefersSellerPortal: apiUser.prefersSellerPortal ?? false,
           },
         });
         setSignupSuccess(true);
         setStep("success");
         setTimeout(() => {
-          router.push("/");
+          window.location.href = getSellerPortalBaseUrl();
         }, 1500);
       })
       .catch((err: any) => {

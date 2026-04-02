@@ -14,6 +14,7 @@ import {
   fetchCurrentUser,
   logoutApi,
 } from "@/lib/api-client";
+import { clearStoredAddress } from "@/lib/address-storage";
 
 export interface AuthUser {
   id: number;
@@ -23,6 +24,11 @@ export interface AuthUser {
   email: string;
   role: string;
   countryId: number | null;
+  buyerPortalEnabled?: boolean;
+  canAccessBuyerPortal?: boolean;
+  isSeller?: boolean;
+  sellerStatus?: "pending" | "approved" | "rejected" | "suspended" | null;
+  prefersSellerPortal?: boolean;
 }
 
 interface AuthContextValue {
@@ -49,6 +55,11 @@ function mapApiUserToAuthUser(apiUser: ApiUser): AuthUser {
     email: apiUser.email,
     role: apiUser.role,
     countryId: apiUser.countryId ?? null,
+    buyerPortalEnabled: apiUser.buyerPortalEnabled ?? false,
+    canAccessBuyerPortal: apiUser.canAccessBuyerPortal ?? false,
+    isSeller: apiUser.isSeller ?? false,
+    sellerStatus: apiUser.sellerStatus ?? null,
+    prefersSellerPortal: apiUser.prefersSellerPortal ?? false,
   };
 }
 
@@ -79,6 +90,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const clearAuthState = useCallback(() => {
     setUser(null);
     setIsLoggedIn(false);
+    clearStoredAddress();
   }, []);
 
   const syncSession = useCallback(

@@ -2,6 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import {
+  ProductCardImage,
+  ProductCardLoadFrame,
+} from "@/components/common/product-card-media";
 import { ProductBadge } from "./product-badge";
 import type { ShockingSaleProduct } from "./data";
 import { isBackendImage } from "@/lib/utils";
@@ -10,14 +14,8 @@ interface ProductItemProps {
   product: ShockingSaleProduct;
 }
 
-const DEFAULT_IMAGE = "/images/home/shocking/default.jpeg";
-
 export function ProductItem({ product }: ProductItemProps) {
-  // Use backend image if available, otherwise fallback to default
-  // Only use DEFAULT_IMAGE if imageSrc is empty/null/undefined
-  const imageSrc = product.imageSrc || DEFAULT_IMAGE;
-  
-  // Check if image is from external backend
+  const imageSrc = product.imageSrc;
   const isExternalImage = isBackendImage(imageSrc);
 
   const getStatusText = () => {
@@ -54,7 +52,7 @@ export function ProductItem({ product }: ProductItemProps) {
   return (
     <li className="touch-pan-y [overflow-x:unset] flex-shrink-0">
       <div className="h-full">
-        <div className="relative flex h-[15.25rem] w-[10.75rem] flex-col bg-white px-3 sm:h-64 sm:w-52 sm:px-4">
+        <ProductCardLoadFrame className="relative flex h-[15.25rem] w-[10.75rem] flex-col overflow-hidden bg-white px-3 sm:h-64 sm:w-52 sm:px-4">
           <Link
             href={product.href}
             className="no-underline active:outline-0 hover:outline-0"
@@ -110,24 +108,15 @@ export function ProductItem({ product }: ProductItemProps) {
 
                 {/* Product Image */}
                 <div className="z-[2] w-full h-full absolute left-0 top-0">
-                  <div className="transition-opacity duration-200 z-[2] w-full h-full absolute left-0 top-0">
-                    {isExternalImage ? (
-                      <img
-                        src={imageSrc}
-                        alt={product.name}
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <Image
-                        src={imageSrc}
-                        alt={product.name}
-                        width={208}
-                        height={176}
-                        className="w-full h-full object-contain"
-                        unoptimized
-                      />
-                    )}
-                  </div>
+                  <ProductCardImage
+                    src={imageSrc}
+                    alt={product.name}
+                    width={208}
+                    height={176}
+                    className="w-full h-full object-contain"
+                    native={isExternalImage}
+                    unoptimized
+                  />
                 </div>
               </div>
             </div>
@@ -157,7 +146,7 @@ export function ProductItem({ product }: ProductItemProps) {
               </div>
             </div>
           </Link>
-        </div>
+        </ProductCardLoadFrame>
       </div>
     </li>
   );

@@ -11,7 +11,6 @@ import { useCart } from "@/components/cart";
 import {
   getStoredAddress,
   setStoredAddress,
-  hasStoredAddress,
   type StoredAddress,
 } from "@/lib/address-storage";
 import {
@@ -21,6 +20,10 @@ import {
   getCheckoutConfig,
 } from "@/lib/api-client";
 import { useAuth } from "@/components/auth/auth-context";
+import {
+  canAccessBuyerPortal,
+  getSellerPortalBaseUrl,
+} from "@/lib/account-routing";
 import {
   CheckoutProductsAndSummary,
   type ShopGroup,
@@ -36,8 +39,10 @@ const roundMoney = (value: number) => Math.round(value * 100) / 100;
 export function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const searchQuery = searchParams.toString();
   const from = searchParams.get("from") ?? "cart";
   const slug = searchParams.get("slug") ?? "";
+  const nextCheckoutPath = searchQuery ? `/checkout?${searchQuery}` : "/checkout";
 
   const [hasAddress, setHasAddress] = useState<boolean | null>(null);
   const [storedAddress, setStoredAddressState] = useState<StoredAddress | null>(
@@ -51,7 +56,10 @@ export function CheckoutContent() {
   const [checkoutShippingPercent, setCheckoutShippingPercent] = useState(0);
   const [shippingConfigLoading, setShippingConfigLoading] = useState(true);
   const { items } = useCart();
-  const { isLoggedIn } = useAuth();
+  const { authResolved, isLoggedIn, user } = useAuth();
+  const shouldRedirectToLogin = authResolved && !isLoggedIn;
+  const shouldRedirectToSellerPortal =
+    authResolved && isLoggedIn && !canAccessBuyerPortal(user);
 
   useEffect(() => {
     if (from !== "cart") {
@@ -96,6 +104,22 @@ export function CheckoutContent() {
   );
 
   useEffect(() => {
+    if (!shouldRedirectToLogin) {
+      return;
+    }
+
+    router.replace(`/login?next=${encodeURIComponent(nextCheckoutPath)}`);
+  }, [nextCheckoutPath, router, shouldRedirectToLogin]);
+
+  useEffect(() => {
+    if (!shouldRedirectToSellerPortal) {
+      return;
+    }
+
+    window.location.href = getSellerPortalBaseUrl();
+  }, [shouldRedirectToSellerPortal]);
+
+  useEffect(() => {
     let cancelled = false;
 
     getCheckoutConfig()
@@ -123,61 +147,55 @@ export function CheckoutContent() {
 
   useEffect(() => {
     async function loadAddresses() {
-      if (isLoggedIn) {
-        try {
-          setLoadingAddresses(true);
-          const addresses = await getAddresses();
-          setApiAddresses(addresses);
-          if (addresses.length > 0) {
-            const defaultAddr = addresses.find(a => a.setAsDefault) || addresses[0];
-            const stored: StoredAddress = {
-              region: defaultAddr.region,
-              fullName: defaultAddr.fullName,
-              phoneNumber: defaultAddr.phoneNumber,
-              stateArea: defaultAddr.stateArea,
-              postalCode: defaultAddr.postalCode,
-              unitNo: defaultAddr.unitNo,
-              streetAddress: defaultAddr.streetAddress,
-              labelAs: defaultAddr.labelAs,
-              setAsDefault: defaultAddr.setAsDefault,
-            };
-            setStoredAddressState(stored);
-            setStoredAddress(stored);
-            setHasAddress(true);
-          } else {
-            // Check localStorage as fallback
-            const ok = hasStoredAddress();
-            setHasAddress(ok);
-            if (ok) {
-              const addr = getStoredAddress();
-              if (addr) setStoredAddressState(addr);
-            }
-          }
-        } catch (error) {
-          console.error("Failed to load addresses:", error);
-          // Don't show error to user, just fallback to localStorage
-          const ok = hasStoredAddress();
-          setHasAddress(ok);
-          if (ok) {
-            const addr = getStoredAddress();
-            if (addr) setStoredAddressState(addr);
-          }
-        } finally {
-          setLoadingAddresses(false);
+      if (!authResolved) {
+        return;
+      }
+
+      if (!isLoggedIn || !canAccessBuyerPortal(user)) {
+        setStoredAddressState(null);
+        setHasAddress(null);
+        setLoadingAddresses(false);
+        return;
+      }
+
+      try {
+        setLoadingAddresses(true);
+        const addresses = await getAddresses();
+        setApiAddresses(addresses);
+
+        if (addresses.length > 0) {
+          const defaultAddr = addresses.find((address) => address.setAsDefault) || addresses[0];
+          const stored: StoredAddress = {
+            region: defaultAddr.region,
+            fullName: defaultAddr.fullName,
+            phoneNumber: defaultAddr.phoneNumber,
+            stateArea: defaultAddr.stateArea,
+            postalCode: defaultAddr.postalCode,
+            unitNo: defaultAddr.unitNo,
+            streetAddress: defaultAddr.streetAddress,
+            labelAs: defaultAddr.labelAs,
+            setAsDefault: defaultAddr.setAsDefault,
+          };
+          setStoredAddressState(stored);
+          setStoredAddress(stored);
+          setHasAddress(true);
+          return;
         }
-      } else {
-        // Not logged in, use localStorage
-        const ok = hasStoredAddress();
-        setHasAddress(ok);
-        if (ok) {
-          const addr = getStoredAddress();
-          if (addr) setStoredAddressState(addr);
-        }
+
+        const cachedAddress = getStoredAddress();
+        setStoredAddressState(cachedAddress);
+        setHasAddress(Boolean(cachedAddress));
+      } catch (error) {
+        console.error("Failed to load addresses:", error);
+        const cachedAddress = getStoredAddress();
+        setStoredAddressState(cachedAddress);
+        setHasAddress(Boolean(cachedAddress));
+      } finally {
         setLoadingAddresses(false);
       }
     }
-    loadAddresses();
-  }, [isLoggedIn]);
+    void loadAddresses();
+  }, [authResolved, isLoggedIn, user]);
 
   const handleCloseModal = () => {
     if (from === "cart") {
@@ -216,48 +234,46 @@ export function CheckoutContent() {
   });
 
   const handleSubmitAddress = async (values: NewAddressFormValues) => {
+    if (!isLoggedIn) {
+      router.replace(`/login?next=${encodeURIComponent(nextCheckoutPath)}`);
+      return;
+    }
+
     try {
-      if (isLoggedIn) {
-        const addrData = {
-          full_name: values.fullName,
-          phone: values.phoneNumber,
-          line1: values.streetAddress,
-          line2: values.unitNo || undefined,
-          city: values.stateArea.split(',')[0] || values.stateArea, // Use first part as city
-          state: values.stateArea,
-          postal_code: values.postalCode || undefined,
-          is_default: values.setAsDefault,
-          region: values.region,
-          label_as: values.labelAs,
-        };
-        const apiAddr = await createAddress(addrData);
-        const stored: StoredAddress = {
-          region: apiAddr.region,
-          fullName: apiAddr.fullName,
-          phoneNumber: apiAddr.phoneNumber,
-          stateArea: apiAddr.stateArea,
-          postalCode: apiAddr.postalCode,
-          unitNo: apiAddr.unitNo,
-          streetAddress: apiAddr.streetAddress,
-          labelAs: apiAddr.labelAs,
-          setAsDefault: apiAddr.setAsDefault,
-        };
-        setStoredAddressState(stored);
-        setStoredAddress(stored); // Also store in localStorage as fallback
-        // Reload addresses
-        try {
-          const addresses = await getAddresses();
-          setApiAddresses(addresses);
-        } catch (err) {
-          console.error("Failed to reload addresses:", err);
-        }
-      } else {
-        // Not logged in, use localStorage
-        const addr = addressPayload(values);
-        setStoredAddress(addr);
-        setStoredAddressState(addr);
+      const addrData = {
+        full_name: values.fullName,
+        phone: values.phoneNumber,
+        line1: values.streetAddress,
+        line2: values.unitNo || undefined,
+        city: values.stateArea.split(',')[0] || values.stateArea,
+        state: values.stateArea,
+        postal_code: values.postalCode || undefined,
+        is_default: values.setAsDefault,
+        region: values.region,
+        label_as: values.labelAs,
+      };
+      const apiAddr = await createAddress(addrData);
+      const stored: StoredAddress = {
+        region: apiAddr.region,
+        fullName: apiAddr.fullName,
+        phoneNumber: apiAddr.phoneNumber,
+        stateArea: apiAddr.stateArea,
+        postalCode: apiAddr.postalCode,
+        unitNo: apiAddr.unitNo,
+        streetAddress: apiAddr.streetAddress,
+        labelAs: apiAddr.labelAs,
+        setAsDefault: apiAddr.setAsDefault,
+      };
+      setStoredAddressState(stored);
+      setStoredAddress(stored);
+
+      try {
+        const addresses = await getAddresses();
+        setApiAddresses(addresses);
+      } catch (err) {
+        console.error("Failed to reload addresses:", err);
       }
-      
+
       // Close modals and update state
       setHasAddress(true);
       setShowEditAddressModal(false);
@@ -318,6 +334,25 @@ export function CheckoutContent() {
     merchandiseSubtotal + shippingSubtotal - shippingDiscount
   );
   const totalItems = checkoutItems.reduce((sum, i) => sum + i.quantity, 0);
+
+  if (!authResolved || shouldRedirectToLogin) {
+    return (
+      <div className="min-h-screen bg-[rgb(245,245,245)]">
+        <TopNavbar />
+        <CheckoutHeader />
+        <main className="mx-auto flex w-full max-w-[1200px] items-center justify-center px-4 py-20">
+          <div className="w-full max-w-md rounded-[3px] bg-white px-6 py-10 text-center shadow-[0_1px_1px_rgba(0,0,0,0.05)]">
+            <div className="text-base font-medium text-[#222]">
+              {authResolved ? "Redirecting to login..." : "Checking your account..."}
+            </div>
+            <div className="mt-2 text-sm text-black/60">
+              Checkout requires an authenticated account so we can load your address and order details safely.
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[rgb(245,245,245)]">

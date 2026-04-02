@@ -1,8 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import {
+  ProductCardImage,
+  ProductCardLoadFrame,
+} from "@/components/common/product-card-media";
 import { CarouselNavButtons } from "@/components/shocking-sale/carousel-nav-buttons";
 import { getRecommendedProducts } from "@/lib/api-client";
 import type { MallProduct } from "./data";
@@ -26,20 +29,22 @@ function MallProductItem({ product }: MallProductItemProps) {
             href={product.href}
             className="active:outline-0 hover:outline-0 bg-[50%] bg-no-repeat bg-contain no-underline duration-200 ease-in-out block text-black/87"
           >
-            <div className="w-full relative pt-[120%]">
-              <Image
-                src={product.imageSrc}
-                alt={product.name}
-                fill
-                className="inline align-bottom object-contain object-center w-full h-full duration-200 ease-in-out absolute left-0 top-0"
-                sizes="(max-width: 640px) 168px, 201px"
-                unoptimized={isBackendImage(product.imageSrc)}
-              />
-            </div>
+            <ProductCardLoadFrame className="block h-full">
+              <div className="w-full relative pt-[120%]">
+                <ProductCardImage
+                  src={product.imageSrc}
+                  alt={product.name}
+                  fill
+                  className="inline align-bottom object-contain object-center w-full h-full duration-200 ease-in-out absolute left-0 top-0"
+                  sizes="(max-width: 640px) 168px, 201px"
+                  unoptimized={isBackendImage(product.imageSrc)}
+                />
+              </div>
+              <div className="absolute bottom-4 left-3.5 h-7 w-[8.25rem] overflow-hidden text-ellipsis text-center text-base leading-7 text-red-700 [display:-webkit-box] [-webkit-line-clamp:1] [word-wrap:break-word] sm:bottom-5 sm:w-44 sm:text-lg">
+                Shop Now
+              </div>
+            </ProductCardLoadFrame>
           </Link>
-          <div className="absolute bottom-4 left-3.5 h-7 w-[8.25rem] overflow-hidden text-ellipsis text-center text-base leading-7 text-red-700 [display:-webkit-box] [-webkit-line-clamp:1] [word-wrap:break-word] sm:bottom-5 sm:w-44 sm:text-lg">
-            Shop Now
-          </div>
         </div>
       </div>
     </li>

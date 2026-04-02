@@ -1,7 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
+import {
+  ProductCardImage,
+  ProductCardLoadFrame,
+} from "@/components/common/product-card-media";
 import { TopBadge } from "./top-badge";
 import type { ShopTopProductItem } from "./data";
 
@@ -68,7 +71,7 @@ export function ShopTopProductCard({ item }: ShopTopProductCardProps) {
 
   return (
     <div className="h-full">
-      <div className="relative h-full min-h-[280px] rounded-sm border border-black/[0.09] transition-[border-color] duration-100">
+      <ProductCardLoadFrame className="h-full min-h-[280px] overflow-hidden rounded-sm border border-black/[0.09] transition-[border-color] duration-100">
         <Link
           href={productHref}
           className="contents text-black/80 no-underline cursor-pointer bg-transparent border-0"
@@ -76,7 +79,7 @@ export function ShopTopProductCard({ item }: ShopTopProductCardProps) {
           <div className="flex h-full min-h-[278px] cursor-pointer flex-col overflow-hidden rounded-sm bg-white">
             {/* Image area with TOP badge */}
             <div className="relative w-full flex-shrink-0" style={{ paddingTop: "100%" }}>
-              <Image
+              <ProductCardImage
                 src={imageSrc}
                 alt={title}
                 fill
@@ -161,7 +164,7 @@ export function ShopTopProductCard({ item }: ShopTopProductCardProps) {
             </div>
           </div>
         </Link>
-      </div>
+      </ProductCardLoadFrame>
     </div>
   );
 }

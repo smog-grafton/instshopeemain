@@ -8,11 +8,13 @@ import { useAuth } from "@/components/auth/auth-context";
 import { useChat } from "@/components/chat-widget/chat-context";
 import { getSellerCentreHref } from "@/components/top-navbar/left-section";
 import { mockNavbarConfig } from "@/components/top-navbar/data";
+import { getPrimaryAccountHref } from "@/lib/account-routing";
 
 type DockItem = {
   key: string;
   label: string;
   href: string;
+  external?: boolean;
   isActive: (pathname: string, hash: string) => boolean;
   icon: (active: boolean) => ReactElement;
 };
@@ -77,11 +79,20 @@ function DockLink({
 }) {
   const active = item.isActive(pathname, hash);
 
+  const className =
+    "flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-[0.68rem] font-medium tracking-[0.01em] text-neutral-500 transition-colors";
+
+  if (item.external) {
+    return (
+      <a href={item.href} className={className}>
+        {item.icon(active)}
+        <span className={`truncate ${active ? "text-[#ee4d2d]" : "text-neutral-500"}`}>{item.label}</span>
+      </a>
+    );
+  }
+
   return (
-    <Link
-      href={item.href}
-      className="flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-[0.68rem] font-medium tracking-[0.01em] text-neutral-500 transition-colors"
-    >
+    <Link href={item.href} className={className}>
       {item.icon(active)}
       <span className={`truncate ${active ? "text-[#ee4d2d]" : "text-neutral-500"}`}>{item.label}</span>
     </Link>
@@ -90,7 +101,7 @@ function DockLink({
 
 export function StorefrontMobileDock() {
   const pathname = usePathname();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, user } = useAuth();
   const { isOpen: isChatOpen } = useChat();
   const [hash, setHash] = useState("");
   const sellerHref = useMemo(() => getSellerCentreHref(mockNavbarConfig), []);
@@ -108,15 +119,18 @@ export function StorefrontMobileDock() {
     };
   }, []);
 
+  const primaryAccountHref = getPrimaryAccountHref(user ?? null);
   const accountHref = isLoggedIn
-    ? "/user/account/profile"
+    ? primaryAccountHref
     : `/login?next=${encodeURIComponent("/user/account/profile")}`;
+  const accountExternal = isLoggedIn && (accountHref.startsWith("http://") || accountHref.startsWith("https://"));
 
   const leftItems: DockItem[] = [
     {
       key: "account",
       label: "Account",
       href: accountHref,
+      external: accountExternal,
       isActive: (currentPath) => currentPath.startsWith("/user"),
       icon: AccountIcon,
     },

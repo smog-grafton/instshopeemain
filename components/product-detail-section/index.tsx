@@ -2,6 +2,11 @@
 
 import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/auth/auth-context";
+import {
+  canAccessBuyerPortal,
+  getSellerPortalBaseUrl,
+} from "@/lib/account-routing";
 import { ProductGallery } from "./product-gallery";
 import { ProductShareFavorite } from "./product-share-favorite";
 import { ProductTitleRating } from "./product-title-rating";
@@ -56,6 +61,7 @@ export function ProductDetailSection({ data: dataOverride }: ProductDetailSectio
   };
   const router = useRouter();
   const { addItem } = useCart();
+  const { isLoggedIn, user } = useAuth();
 
   const [selectedColorIndex, setSelectedColorIndex] = useState(0);
   const [selectedSizeIndex, setSelectedSizeIndex] = useState<number | null>(
@@ -99,7 +105,14 @@ export function ProductDetailSection({ data: dataOverride }: ProductDetailSectio
         catalogShippingFee: data.catalogShippingFee && data.catalogShippingFee > 0 ? data.catalogShippingFee : undefined,
       });
       setShowToast(true);
-      if (thenNavigate) router.push(data.slug ? `/checkout?from=buynow&slug=${encodeURIComponent(data.slug)}` : "/checkout?from=cart");
+      if (thenNavigate) {
+        if (isLoggedIn && !canAccessBuyerPortal(user)) {
+          window.location.href = getSellerPortalBaseUrl();
+          return;
+        }
+
+        router.push(data.slug ? `/checkout?from=buynow&slug=${encodeURIComponent(data.slug)}` : "/checkout?from=cart");
+      }
     },
     [
       data.slug,
@@ -112,8 +125,10 @@ export function ProductDetailSection({ data: dataOverride }: ProductDetailSectio
       selectedSizeIndex,
       quantity,
       addItem,
+      isLoggedIn,
       router,
       data.catalogShippingFee,
+      user,
     ]
   );
 

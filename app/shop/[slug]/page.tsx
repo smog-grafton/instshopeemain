@@ -7,6 +7,7 @@ import { ShopTopProductsSection } from "@/components/shop-top-products";
 import { ShopCollectionPreviewSection } from "@/components/shop-collection-preview/shop-collection-preview-section";
 import { ShopAllProductsSection } from "@/components/shop-all-products";
 import { SiteFooter } from "@/components/site-footer";
+import { notFound } from "next/navigation";
 import {
   getShopBySlug as getShopBySlugApi,
   getShopProducts as getShopProductsApi,
@@ -25,40 +26,46 @@ function getShopCollectionFromHref(href: string): string | null {
   return params.get("shopCollection");
 }
 
+function toFiniteNumber(value: unknown, fallback: number = 0): number {
+  const numeric = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(numeric) ? numeric : fallback;
+}
+
 /**
  * Shop / store profile page (e.g. /shop/mandom-official-store).
  * Uses shop-specific header and shop profile section (store card + stats).
  */
 export default async function ShopPage({ params }: ShopPageProps) {
   const { slug } = await params;
-  let shopProfile;
-  let shopVouchers;
-  let shopProducts;
-  let shopNav;
-  try {
-    const [profileResponse, vouchersResponse, productsResponse, navigationResponse] =
-      await Promise.all([
-        getShopBySlugApi(slug),
-        getShopVouchersApi(slug),
-        getShopProductsApi(slug, { page: 1, per_page: 6 }),
-        getShopNavigationApi(slug),
-      ]);
+  const shopProfile = await getShopBySlugApi(slug).catch(() => null);
 
-    shopProfile = profileResponse;
-    shopVouchers = vouchersResponse;
-    shopProducts = productsResponse.products;
-    shopNav = navigationResponse;
-  } catch (error) {
-    // Handle error - could redirect to 404 or show error page
-    throw error;
+  if (!shopProfile) {
+    notFound();
   }
+
+  const [shopVouchers, productsResponse, shopNav] = await Promise.all([
+    getShopVouchersApi(slug).catch(() => []),
+    getShopProductsApi(slug, { page: 1, per_page: 6 }).catch(() => ({
+      products: [],
+      pagination: { page: 1, per_page: 6, total: 0, last_page: 1 },
+    })),
+    getShopNavigationApi(slug).catch(() => ({
+      mainTabs: [
+        { label: "Home", href: `/shop/${slug}` },
+        { label: "All Products", href: `/shop/${slug}#product_list` },
+      ],
+      moreItems: [],
+    })),
+  ]);
+
+  const shopProducts = Array.isArray(productsResponse.products) ? productsResponse.products : [];
 
   // Transform API shop profile to component format
   const shopProfileData = {
-    id: shopProfile.id,
+    id: String(shopProfile.id ?? ""),
     name: shopProfile.name,
     status: shopProfile.status,
-    profileImageUrl: shopProfile.profileImageUrl,
+    profileImageUrl: shopProfile.profileImageUrl || "/images/stores/profile/default.webp",
     coverImageUrl: shopProfile.coverImageUrl,
     isMall: shopProfile.isMall,
     slug: shopProfile.slug,
@@ -70,13 +77,13 @@ export default async function ShopPage({ params }: ShopPageProps) {
     const item: any = {
       slug: p.slug,
       title: p.title,
-      shopId: p.shopId,
+      shopId: String(p.shopId ?? ""),
       categorySlug: p.categorySlug,
-      price: p.price,
-      originalPrice: p.originalPrice ?? undefined,
+      price: toFiniteNumber(p.price),
+      originalPrice: p.originalPrice == null ? undefined : toFiniteNumber(p.originalPrice),
       imageSrc: p.imageSrc,
-      soldCount: p.soldCount,
-      rating: p.rating,
+      soldCount: toFiniteNumber(p.soldCount),
+      rating: toFiniteNumber(p.rating),
       location: p.location,
       rank: i + 1,
       storeName: shopProfile.name,

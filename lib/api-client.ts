@@ -14,6 +14,11 @@ export interface ApiUser {
   phone?: string | null;
   gender?: "male" | "female" | "other" | null;
   dateOfBirth?: { date: number | null; month: number | null; year: number | null };
+  buyerPortalEnabled?: boolean;
+  canAccessBuyerPortal?: boolean;
+  isSeller?: boolean;
+  sellerStatus?: "pending" | "approved" | "rejected" | "suspended" | null;
+  prefersSellerPortal?: boolean;
 }
 
 export interface AuthResponse {
@@ -785,11 +790,18 @@ export interface ApiMallStore {
   name: string;
   logoUrl: string;
   href: string;
+  kind?: "store" | "collection";
+  secondaryText?: string;
 }
 
 export async function getMallStores(): Promise<ApiMallStore[]> {
   const response = await apiFetch<{ stores: ApiMallStore[] }>("/mall/stores");
   return response.stores;
+}
+
+export async function getMallHighlights(): Promise<ApiMallStore[]> {
+  const response = await apiFetch<{ highlights: ApiMallStore[] }>("/mall/highlights");
+  return response.highlights;
 }
 
 // Recommended products

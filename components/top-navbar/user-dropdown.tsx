@@ -3,15 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-context";
-
-const MENU_ITEMS = [
-  { label: "My Account", href: "/user/account/profile" },
-  { label: "My Purchase", href: "/user/purchase" },
-] as const;
+import { getAccountMenuItems } from "@/lib/account-routing";
 
 export function UserDropdown() {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
+  const menuItems = getAccountMenuItems(user);
 
   const handleLogout = () => {
     logout();
@@ -32,16 +29,27 @@ export function UserDropdown() {
         className="bg-white border border-black/[0.09] rounded-sm cursor-default flex flex-col max-w-[260px] min-w-[160px] overflow-hidden py-2.5 px-4 pb-3.5"
         style={{ boxShadow: "rgba(0, 0, 0, 0.12) 0px 0px 9px 0px" }}
       >
-        {MENU_ITEMS.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            role="menuitem"
-            className="text-black/87 text-sm leading-5 py-1.5 px-0 m-0 border-0 bg-transparent overflow-visible -m-1 rounded-sm p-1 text-left no-underline appearance-none cursor-pointer hover:bg-black/[0.04]"
-          >
-            <span className="rounded-sm">{item.label}</span>
-          </Link>
-        ))}
+        {menuItems.map((item) =>
+          item.external ? (
+            <a
+              key={item.label}
+              href={item.href}
+              role="menuitem"
+              className="text-black/87 text-sm leading-5 py-1.5 px-0 m-0 border-0 bg-transparent overflow-visible -m-1 rounded-sm p-1 text-left no-underline appearance-none cursor-pointer hover:bg-black/[0.04]"
+            >
+              <span className="rounded-sm">{item.label}</span>
+            </a>
+          ) : (
+            <Link
+              key={item.label}
+              href={item.href}
+              role="menuitem"
+              className="text-black/87 text-sm leading-5 py-1.5 px-0 m-0 border-0 bg-transparent overflow-visible -m-1 rounded-sm p-1 text-left no-underline appearance-none cursor-pointer hover:bg-black/[0.04]"
+            >
+              <span className="rounded-sm">{item.label}</span>
+            </Link>
+          )
+        )}
         <button
           type="button"
           onClick={handleLogout}

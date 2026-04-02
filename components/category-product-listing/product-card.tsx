@@ -1,5 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import {
+  ProductCardImage,
+  ProductCardLoadFrame,
+} from "@/components/common/product-card-media";
 import type { Product } from "./data";
 
 const INFO_BAR_IMAGE = "/images/home/daily-discover/bar/info-bar.png";
@@ -65,12 +69,12 @@ interface ProductCardProps {
 export function ProductCard({ product, variant = "default" }: ProductCardProps) {
   const bgClass = variant === "transparent" ? "bg-transparent" : "bg-white";
   return (
-    <div className="relative h-full border border-solid border-black/[0.09] transition-[border-color] duration-100 ease-in-out">
+    <ProductCardLoadFrame className="h-full overflow-hidden border border-solid border-black/[0.09] transition-[border-color] duration-100 ease-in-out">
       <Link href={product.href} className="contents">
         <div className={`flex h-full cursor-pointer flex-col overflow-hidden ${bgClass}`}>
           {/* Image block: square aspect + overlays (matches DailyDiscoverCard) */}
           <div className="relative z-0 w-full pt-[100%]">
-            <Image
+            <ProductCardImage
               src={product.imageSrc}
               alt={product.title}
               fill
@@ -184,6 +188,6 @@ export function ProductCard({ product, variant = "default" }: ProductCardProps) 
           </div>
         </div>
       </Link>
-    </div>
+    </ProductCardLoadFrame>
   );
 }

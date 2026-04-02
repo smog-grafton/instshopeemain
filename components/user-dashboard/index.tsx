@@ -6,6 +6,7 @@ import { useAuth } from "@/components/auth/auth-context";
 import { DashboardPageSkeleton } from "./dashboard-page-skeleton";
 import { SIDEBAR_NAV } from "./data";
 import { UserSidebar } from "./user-sidebar";
+import { getSellerPortalBaseUrl, shouldUseSellerPortal } from "@/lib/account-routing";
 
 interface UserDashboardLayoutProps {
   children: ReactNode;
@@ -45,10 +46,11 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const { isLoggedIn, authResolved, verifySession } = useAuth();
+  const { isLoggedIn, authResolved, verifySession, user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [guardLoading, setGuardLoading] = useState(true);
   const searchQuery = searchParams.toString();
+  const sellerPortalHref = useMemo(() => getSellerPortalBaseUrl(), []);
 
   const nextPath = useMemo(() => {
     return `${pathname}${searchQuery ? `?${searchQuery}` : ""}`;
@@ -73,6 +75,12 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
       return;
     }
 
+    if (shouldUseSellerPortal(user)) {
+      setGuardLoading(false);
+      window.location.href = sellerPortalHref;
+      return;
+    }
+
     let active = true;
     setGuardLoading(true);
 
@@ -88,10 +96,10 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
     return () => {
       active = false;
     };
-  }, [authResolved, isLoggedIn, loginHref, router, verifySession]);
+  }, [authResolved, isLoggedIn, loginHref, router, sellerPortalHref, user, verifySession]);
 
   useEffect(() => {
-    if (!authResolved || !isLoggedIn) return undefined;
+    if (!authResolved || !isLoggedIn || shouldUseSellerPortal(user)) return undefined;
 
     const revalidateSession = () => {
       void verifySession().then((valid) => {
@@ -117,7 +125,7 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
       window.removeEventListener("focus", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [authResolved, isLoggedIn, loginHref, router, verifySession]);
+  }, [authResolved, isLoggedIn, loginHref, router, user, verifySession]);
 
   useEffect(() => {
     if (!sidebarOpen) return undefined;
@@ -138,7 +146,7 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
     };
   }, [sidebarOpen]);
 
-  if (!authResolved || guardLoading || !isLoggedIn) {
+  if (!authResolved || guardLoading || !isLoggedIn || shouldUseSellerPortal(user)) {
     return <DashboardPageSkeleton />;
   }
 

@@ -1,5 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
+import {
+  ProductCardImage,
+  ProductCardLoadFrame,
+} from "@/components/common/product-card-media";
 import type { ShopsResultProduct } from "./types";
 
 interface ShopsResultsProductCardProps {
@@ -17,9 +20,9 @@ export function ShopsResultsProductCard({ product }: ShopsResultsProductCardProp
         className="border-solid border-gray-200 active:outline-0 hover:outline-0 after:border-solid after:border-gray-200 before:border-solid before:border-gray-200 disabled:cursor-default contents"
         href={product.href}
       >
-        <div className="border-solid border-gray-200 after:border-solid after:border-gray-200 before:border-solid before:border-gray-200 disabled:cursor-default relative z-0 flex h-full cursor-pointer flex-col bg-white">
+        <ProductCardLoadFrame className="border-solid border-gray-200 after:border-solid after:border-gray-200 before:border-solid before:border-gray-200 disabled:cursor-default relative z-0 flex h-full cursor-pointer flex-col overflow-hidden bg-white">
           <div className="border-solid border-gray-200 after:border-solid after:border-gray-200 before:border-solid before:border-gray-200 disabled:cursor-default relative z-0 w-full pt-[100%]">
-            <Image
+            <ProductCardImage
               src={product.imageSrc}
               alt={product.imageAlt}
               fill
@@ -55,7 +58,7 @@ export function ShopsResultsProductCard({ product }: ShopsResultsProductCardProp
               </div>
             </div>
           </div>
-        </div>
+        </ProductCardLoadFrame>
       </Link>
     </div>
   );

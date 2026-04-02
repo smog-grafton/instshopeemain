@@ -1,34 +1,36 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { getMallStores, type ApiMallStore } from "@/lib/api-client";
+import { getMallHighlights, type ApiMallStore } from "@/lib/api-client";
 import { WobbleLoader } from "@/components/common/wobble-loader";
+import { MallEntityImage } from "@/components/common/mall-entity-image";
 import { MallHeader } from "@/components/mall-header";
 import { mockMallHeaderConfig } from "@/components/mall-header/data";
 import { MallProductsSection } from "@/components/mall-header/mall-products-section";
-import { isBackendImage } from "@/lib/utils";
 
 function StoreTile({ store }: { store: ApiMallStore }) {
   return (
     <Link
       href={store.href}
-      className="group border border-black/5 bg-[linear-gradient(180deg,#ffffff_0%,#faf7f4_100%)] p-3 transition hover:border-black/10 hover:shadow-sm"
+      className="group border border-black/5 bg-[linear-gradient(180deg,#ffffff_0%,#faf7f4_100%)] p-2.5 transition hover:border-black/10 hover:shadow-sm"
     >
-      <div className="relative mx-auto aspect-square w-full max-w-[5.75rem]">
-        <Image
+      <div className="relative mx-auto aspect-square w-full max-w-[5.75rem] overflow-hidden rounded-sm bg-[#f1f1f1]">
+        <MallEntityImage
           src={store.logoUrl}
           alt={store.name}
-          fill
-          className="object-contain"
+          className="object-contain p-2.5"
           sizes="96px"
-          unoptimized={isBackendImage(store.logoUrl)}
         />
       </div>
-      <div className="mt-3 line-clamp-2 min-h-[2.4rem] text-center text-sm font-medium leading-5 text-neutral-800">
+      <div className="mt-2.5 line-clamp-2 min-h-[2.4rem] text-center text-sm font-medium leading-5 text-neutral-800">
         {store.name}
       </div>
+      {store.secondaryText ? (
+        <div className="mt-1 line-clamp-1 text-center text-xs text-neutral-500">
+          {store.secondaryText}
+        </div>
+      ) : null}
     </Link>
   );
 }
@@ -40,10 +42,10 @@ export function HomeMallSection() {
   useEffect(() => {
     async function fetchStores() {
       try {
-        const mallStores = await getMallStores();
+        const mallStores = await getMallHighlights();
         setStores(mallStores);
       } catch (error) {
-        console.error("Failed to fetch mall stores:", error);
+        console.error("Failed to fetch mall highlights:", error);
         setStores([]);
       } finally {
         setLoading(false);
@@ -68,7 +70,7 @@ export function HomeMallSection() {
                     Official Stores
                   </div>
                   <div className="mt-1 text-sm leading-5 text-neutral-700">
-                    Trusted brands from the backend Mall catalogue.
+                    Trusted brands and featured shop collections from the backend catalogue.
                   </div>
                 </div>
                 <Link href="/mall" className="shrink-0 text-sm font-medium text-[#ee4d2d] hover:text-[#d9481c]">

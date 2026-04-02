@@ -1,6 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import {
+  ProductCardImage,
+  ProductCardLoadFrame,
+} from "@/components/common/product-card-media";
 import type { DailyDiscoverProduct } from "./data";
 import { getDailyDiscoverImageSrc, INFO_BAR_IMAGE } from "./data";
 import { isBackendImage } from "@/lib/utils";
@@ -60,12 +64,12 @@ export function DailyDiscoverCard({ product, variant = "default" }: DailyDiscove
   const isFromSameShop = variant === "fromSameShop";
 
   return (
-    <div
+    <ProductCardLoadFrame
       className={`relative h-full border border-solid border-black/[0.09] transition-[border-color] duration-100 ease-in-out ${
         isFromSameShop
           ? "rounded-none"
           : "group rounded-md hover:z-10 hover:-translate-y-px hover:border-red-500 hover:shadow-sm"
-      }`}
+      } overflow-hidden`}
     >
       <a className="contents" href={product.href}>
         <div
@@ -75,7 +79,7 @@ export function DailyDiscoverCard({ product, variant = "default" }: DailyDiscove
         >
           {/* Image block: square aspect + overlays */}
           <div className={`relative z-0 w-full pt-[100%] ${isFromSameShop ? "rounded-none" : ""}`}>
-            <Image
+            <ProductCardImage
               src={imageSrc}
               alt={product.title}
               fill
@@ -145,6 +149,6 @@ export function DailyDiscoverCard({ product, variant = "default" }: DailyDiscove
           Find Similar
         </a>
       )}
-    </div>
+    </ProductCardLoadFrame>
   );
 }

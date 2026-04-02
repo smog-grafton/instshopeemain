@@ -502,3 +502,29 @@ body {
     }
   }
 }
+
+@keyframes product-card-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.product-card-shimmer {
+  overflow: hidden;
+  position: relative;
+}
+
+.product-card-shimmer::after {
+  animation: product-card-shimmer 1.4s ease-in-out infinite;
+  background:
+    linear-gradient(
+      110deg,
+      rgba(255, 255, 255, 0) 22%,
+      rgba(255, 255, 255, 0.78) 50%,
+      rgba(255, 255, 255, 0) 78%
+    );
+  content: "";
+  inset: 0;
+  position: absolute;
+  transform: translateX(-100%);
+}

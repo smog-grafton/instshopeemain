@@ -2,6 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import {
+  ProductCardImage,
+  ProductCardLoadFrame,
+} from "@/components/common/product-card-media";
 import type { FlashSaleGridProduct } from "./data";
 import { isBackendImage } from "@/lib/utils";
 
@@ -125,7 +129,7 @@ export function FlashSaleProductCard({ product, className = "" }: FlashSaleProdu
   const progressWidth = getProgressWidth(product);
 
   return (
-    <div
+    <ProductCardLoadFrame
       className={`bg-white flex-col flex relative w-full min-w-0 h-full hover:z-[1] hover:translate-y-[-0.0625rem] hover:shadow ${className}`}
     >
       <Link
@@ -150,22 +154,15 @@ export function FlashSaleProductCard({ product, className = "" }: FlashSaleProdu
               </div>
             )}
             <div className="z-[2] w-full h-full absolute left-0 top-0">
-              {product.imageSrc && isBackendImage(product.imageSrc) ? (
-                <img
-                  src={product.imageSrc}
-                  alt={product.name}
-                  className="w-full h-full object-contain"
-                />
-              ) : (
-                <Image
-                  src={product.imageSrc || "/images/stores/products/1.webp"}
-                  alt={product.name}
-                  width={288}
-                  height={288}
-                  className="w-full h-full object-contain"
-                  unoptimized
-                />
-              )}
+              <ProductCardImage
+                src={product.imageSrc}
+                alt={product.name}
+                width={288}
+                height={288}
+                className="w-full h-full object-contain"
+                native={Boolean(product.imageSrc && isBackendImage(product.imageSrc))}
+                unoptimized
+              />
             </div>
             <div className="z-[1] absolute left-0 bottom-0 w-full h-8 flex items-end">
               <Image
@@ -254,6 +251,6 @@ export function FlashSaleProductCard({ product, className = "" }: FlashSaleProdu
           </div>
         </div>
       </Link>
-    </div>
+    </ProductCardLoadFrame>
   );
 }

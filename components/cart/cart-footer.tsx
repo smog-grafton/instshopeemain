@@ -4,6 +4,11 @@ import Image from "next/image";
 import { useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/components/cart";
+import { useAuth } from "@/components/auth/auth-context";
+import {
+  canAccessBuyerPortal,
+  getSellerPortalBaseUrl,
+} from "@/lib/account-routing";
 import { formatPrice } from "@/lib/utils";
 import { getCartItemKey, saveCheckoutSelection } from "@/lib/cart-selection";
 
@@ -16,6 +21,7 @@ interface CartFooterProps {
 export function CartFooter({ selectedItems, onSelectAll, onDeleteSelected }: CartFooterProps) {
   const router = useRouter();
   const { items } = useCart();
+  const { isLoggedIn, user } = useAuth();
 
   const selectedCartItems = useMemo(() => {
     if (!selectedItems || selectedItems.size === 0) return [];
@@ -37,6 +43,11 @@ export function CartFooter({ selectedItems, onSelectAll, onDeleteSelected }: Car
 
   const handleCheckout = () => {
     if (selectedLineCount === 0) return;
+
+    if (isLoggedIn && !canAccessBuyerPortal(user)) {
+      window.location.href = getSellerPortalBaseUrl();
+      return;
+    }
 
     saveCheckoutSelection(selectedCartItems.map((item) => getCartItemKey(item)));
     router.push("/checkout?from=cart");

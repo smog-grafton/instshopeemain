@@ -16,6 +16,7 @@ import {
 import type { SearchSuggestion } from "./data";
 import { useCart } from "@/components/cart";
 import { useAuth } from "@/components/auth/auth-context";
+import { getPrimaryAccountHref } from "@/lib/account-routing";
 import { isBackendImage } from "@/lib/utils";
 
 const DEFAULT_PLACEHOLDER = "Daily 25% Off Voucher only with ShopeeVIP👑! Subscribe Now 👉";
@@ -124,7 +125,8 @@ export function HeaderWithSearch() {
     cartItemCount: 0,
   };
 
-  const accountHref = isLoggedIn ? "/user/account/profile" : "/login";
+  const accountHref = isLoggedIn ? getPrimaryAccountHref(authUser) : "/login";
+  const accountIsExternal = accountHref.startsWith("http://") || accountHref.startsWith("https://");
   const accountLabel = isLoggedIn ? authUser?.username ?? "Account" : "Log In";
 
   return (
@@ -146,18 +148,30 @@ export function HeaderWithSearch() {
               />
             </Link>
             <div className="flex min-w-0 shrink-0 items-center gap-3">
-              <Link
-                href={accountHref}
-                className="flex min-w-0 items-center gap-2 no-underline text-white"
-              >
-                <MobileAccountIcon
-                  username={accountLabel}
-                  avatarUrl={authUser?.avatarUrl ?? null}
-                />
-                <span className="hidden max-w-[84px] truncate text-xs font-medium leading-4 text-white min-[390px]:block">
-                  {accountLabel}
-                </span>
-              </Link>
+              {accountIsExternal ? (
+                <a href={accountHref} className="flex min-w-0 items-center gap-2 no-underline text-white">
+                  <MobileAccountIcon
+                    username={accountLabel}
+                    avatarUrl={authUser?.avatarUrl ?? null}
+                  />
+                  <span className="hidden max-w-[84px] truncate text-xs font-medium leading-4 text-white min-[390px]:block">
+                    {accountLabel}
+                  </span>
+                </a>
+              ) : (
+                <Link
+                  href={accountHref}
+                  className="flex min-w-0 items-center gap-2 no-underline text-white"
+                >
+                  <MobileAccountIcon
+                    username={accountLabel}
+                    avatarUrl={authUser?.avatarUrl ?? null}
+                  />
+                  <span className="hidden max-w-[84px] truncate text-xs font-medium leading-4 text-white min-[390px]:block">
+                    {accountLabel}
+                  </span>
+                </Link>
+              )}
               <CartButton itemCount={itemCount} compact />
             </div>
           </div>

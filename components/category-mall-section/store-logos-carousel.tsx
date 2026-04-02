@@ -1,9 +1,9 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
 import { getMallStores, type ApiMallStore } from "@/lib/api-client";
+import { MallEntityImage } from "@/components/common/mall-entity-image";
 import { CATEGORY_MALL_SEE_ALL_HREF } from "./data";
 
 const COLUMN_WIDTH_PX = 200;
@@ -31,13 +31,11 @@ function StoreLogoCell({ href, logoUrl, alt }: { href: string; logoUrl: string; 
         className="block cursor-pointer bg-contain bg-no-repeat no-underline outline-0 hover:outline-0 active:outline-0 text-black/87 bg-[50%] duration-200 ease-in-out"
       >
         <div className="relative w-full bg-contain bg-no-repeat pt-[56.25%] duration-200 ease-in-out bg-[50%]">
-          <Image
+          <MallEntityImage
             src={logoUrl}
             alt={alt}
-            fill
-            className="object-contain"
+            className="object-contain p-3"
             sizes={`${COLUMN_WIDTH_PX}px`}
-            unoptimized={logoUrl.startsWith("http")}
           />
         </div>
       </Link>

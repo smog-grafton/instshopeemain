@@ -2,6 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import {
+  ProductCardImage,
+  ProductCardLoadFrame,
+} from "@/components/common/product-card-media";
 import type { ShopAllProductItem } from "./data";
 
 const FLAG_ICON = "/images/stores/logos/sate-icon.jpeg";
@@ -57,7 +61,7 @@ export function ShopAllProductsCard({ item }: ShopAllProductsCardProps) {
 
   return (
     <div className="min-w-0 h-full">
-      <div className="relative h-full overflow-hidden rounded-sm border border-black/[0.09] bg-white transition-[border-color] duration-100">
+      <ProductCardLoadFrame className="h-full overflow-hidden rounded-sm border border-black/[0.09] bg-white transition-[border-color] duration-100">
         <Link
           href={productHref}
           className="contents text-black/80 no-underline cursor-pointer"
@@ -65,7 +69,7 @@ export function ShopAllProductsCard({ item }: ShopAllProductsCardProps) {
           <div className="flex h-full cursor-pointer flex-col overflow-hidden bg-white">
             {/* Image area */}
             <div className="relative w-full flex-shrink-0" style={{ paddingTop: "100%" }}>
-              <Image
+              <ProductCardImage
                 src={imageSrc}
                 alt={title}
                 fill
@@ -170,7 +174,7 @@ export function ShopAllProductsCard({ item }: ShopAllProductsCardProps) {
             </div>
           </div>
         </Link>
-      </div>
+      </ProductCardLoadFrame>
     </div>
   );
 }

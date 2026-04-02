@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { getMallStores, type ApiMallStore } from "@/lib/api-client";
+import { MallEntityImage } from "@/components/common/mall-entity-image";
 
 export function MallStoresListing() {
   const [stores, setStores] = useState<ApiMallStore[]>([]);
@@ -49,14 +49,12 @@ export function MallStoresListing() {
               href={store.href}
               className="flex flex-col items-center p-4 border border-black/5 rounded-sm hover:shadow-md transition-shadow bg-white"
             >
-              <div className="relative w-full aspect-square mb-3">
-                <Image
+              <div className="relative mb-3 aspect-square w-full overflow-hidden rounded-2xl bg-[#f1f1f1]">
+                <MallEntityImage
                   src={store.logoUrl}
                   alt={store.name}
-                  fill
-                  className="object-contain"
+                  className="object-contain p-4"
                   sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 200px"
-                  unoptimized={store.logoUrl.startsWith("http")}
                 />
               </div>
               <h3 className="text-sm font-medium text-center text-black/87 line-clamp-2">

@@ -2,6 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import {
+  ProductCardImage,
+  ProductCardLoadFrame,
+} from "@/components/common/product-card-media";
 import type { CollectionProductItem } from "./data";
 
 const FLAG_ICON = "/images/stores/logos/sate-icon.jpeg";
@@ -90,7 +94,7 @@ export function CollectionProductCard({ item }: CollectionProductCardProps) {
 
   return (
     <div className="h-full">
-      <div className="relative h-full min-h-[296px] rounded-sm border border-black/[0.09] transition-[border-color] duration-100">
+      <ProductCardLoadFrame className="h-full min-h-[296px] overflow-hidden rounded-sm border border-black/[0.09] transition-[border-color] duration-100">
         <Link
           href={productHref}
           className="contents text-black/80 no-underline cursor-pointer bg-transparent border-0"
@@ -101,7 +105,7 @@ export function CollectionProductCard({ item }: CollectionProductCardProps) {
               className="relative w-full flex-shrink-0"
               style={{ paddingTop: "100%" }}
             >
-              <Image
+              <ProductCardImage
                 src={imageSrc}
                 alt={title}
                 fill
@@ -245,7 +249,7 @@ export function CollectionProductCard({ item }: CollectionProductCardProps) {
             </div>
           </div>
         </Link>
-      </div>
+      </ProductCardLoadFrame>
     </div>
   );
 }

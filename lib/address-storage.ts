@@ -40,3 +40,12 @@ export function setStoredAddress(address: StoredAddress): void {
 export function hasStoredAddress(): boolean {
   return getStoredAddress() != null;
 }
+
+export function clearStoredAddress(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // ignore
+  }
+}

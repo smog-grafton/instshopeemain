@@ -1,8 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import {
+  ProductCardImage,
+  ProductCardLoadFrame,
+} from "@/components/common/product-card-media";
 import type { TopProduct } from "./data";
 import { getTopProductImageSrc } from "./data";
 import { isBackendImage } from "@/lib/utils";
@@ -24,34 +27,36 @@ function TopProductCard({ product }: { product: TopProduct }) {
         href={product.href}
         className="block w-full px-2.5 py-4 no-underline active:outline-0 hover:outline-0 focus-visible:outline-2 focus-visible:outline-black/87 focus-visible:outline-offset-[-2px] sm:py-5"
       >
-        {/* Image block: full width, square aspect, with TOP badge and sales bar */}
-        <div className="relative w-full block">
-          {/* TOP badge: ribbon/banner shape with pointed bottom */}
-          <div
-            className="bg-[#ee4d2d] z-[1] w-8 h-10 absolute left-0 top-0 flex items-center justify-center pt-0.5"
-            style={{
-              clipPath: "polygon(0 0, 100% 0, 100% 78%, 50% 100%, 0 78%)",
-            }}
-          >
-            <span className="text-white text-[10px] font-semibold leading-tight uppercase">TOP</span>
+        <ProductCardLoadFrame className="block">
+          {/* Image block: full width, square aspect, with TOP badge and sales bar */}
+          <div className="relative w-full block">
+            {/* TOP badge: ribbon/banner shape with pointed bottom */}
+            <div
+              className="bg-[#ee4d2d] z-[1] w-8 h-10 absolute left-0 top-0 flex items-center justify-center pt-0.5"
+              style={{
+                clipPath: "polygon(0 0, 100% 0, 100% 78%, 50% 100%, 0 78%)",
+              }}
+            >
+              <span className="text-white text-[10px] font-semibold leading-tight uppercase">TOP</span>
+            </div>
+            <div className="w-full pt-[100%] relative overflow-hidden">
+              <ProductCardImage
+                src={src}
+                alt={product.name}
+                fill
+                className="object-contain"
+                sizes="(max-width: 640px) 172px, 208px"
+                unoptimized={isBackendImage(src)}
+              />
+            </div>
+            <div className="text-white text-center w-full h-6 font-medium leading-6 absolute left-0 bottom-0 bg-black/26 flex items-center justify-center text-sm">
+              Monthly Sales {product.monthlySales}
+            </div>
           </div>
-          <div className="w-full pt-[100%] relative overflow-hidden">
-            <Image
-              src={src}
-              alt={product.name}
-              fill
-              className="object-contain transition-opacity duration-200"
-              sizes="(max-width: 640px) 172px, 208px"
-              unoptimized={isBackendImage(src)}
-            />
+          <div className="mt-4 min-h-[2.7rem] line-clamp-2 text-left text-[0.92rem] font-medium capitalize leading-5 text-neutral-600 sm:mt-5 sm:min-h-[3rem] sm:text-base sm:leading-6">
+            {product.name}
           </div>
-          <div className="text-white text-center w-full h-6 font-medium leading-6 absolute left-0 bottom-0 bg-black/26 flex items-center justify-center text-sm">
-            Monthly Sales {product.monthlySales}
-          </div>
-        </div>
-        <div className="mt-4 min-h-[2.7rem] line-clamp-2 text-left text-[0.92rem] font-medium capitalize leading-5 text-neutral-600 sm:mt-5 sm:min-h-[3rem] sm:text-base sm:leading-6">
-          {product.name}
-        </div>
+        </ProductCardLoadFrame>
       </Link>
     </li>
   );

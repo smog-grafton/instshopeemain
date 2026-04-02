@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "./auth-context";
 import { loginWithEmailPassword, getGoogleAuthRedirectUrl } from "@/lib/api-client";
+import { resolvePostAuthHref } from "@/lib/account-routing";
 
 const BACKGROUND_IMAGE = "/images/auth/background.png";
 const FACEBOOK_ICON = "/images/auth/facebook.png";
@@ -43,19 +44,20 @@ export function LoginFormSection() {
           email: apiUser.email,
           role: apiUser.role,
           countryId: apiUser.countryId ?? null,
+          buyerPortalEnabled: apiUser.buyerPortalEnabled ?? false,
+          canAccessBuyerPortal: apiUser.canAccessBuyerPortal ?? false,
+          isSeller: apiUser.isSeller ?? false,
+          sellerStatus: apiUser.sellerStatus ?? null,
+          prefersSellerPortal: apiUser.prefersSellerPortal ?? false,
         },
       });
-      
-      // Redirect to next URL or home
-      if (nextUrl && nextUrl !== '/') {
-        // If nextUrl is external (seller portal), use window.location
-        if (nextUrl.startsWith('http://') || nextUrl.startsWith('https://')) {
-          window.location.href = nextUrl;
-        } else {
-          router.push(nextUrl);
-        }
+
+      const destination = resolvePostAuthHref(apiUser, nextUrl);
+
+      if (destination.startsWith("http://") || destination.startsWith("https://")) {
+        window.location.href = destination;
       } else {
-        router.push("/");
+        router.push(destination);
       }
     } catch (err: any) {
       setError(err?.message || "Invalid email or password.");
