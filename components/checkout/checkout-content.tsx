@@ -127,6 +127,8 @@ export function CheckoutContent() {
   const [userAddresses, setUserAddresses] = useState<ApiAddress[]>([]);
   const [adminAddresses, setAdminAddresses] = useState<ApiAddress[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
+  const [addressLoadError, setAddressLoadError] = useState<string | null>(null);
+  const [addressReloadKey, setAddressReloadKey] = useState(0);
   const [showAddressBookModal, setShowAddressBookModal] = useState(false);
   const [showNewAddressModal, setShowNewAddressModal] = useState(false);
   const [checkoutSelectionKeys, setCheckoutSelectionKeys] = useState<string[] | null>(
@@ -244,6 +246,7 @@ export function CheckoutContent() {
         setUserAddresses([]);
         setAdminAddresses([]);
         applySelectedAddress(null);
+        setAddressLoadError(null);
         setShowAddressBookModal(false);
         setShowNewAddressModal(false);
         setLoadingAddresses(false);
@@ -252,9 +255,10 @@ export function CheckoutContent() {
 
       try {
         setLoadingAddresses(true);
+        setAddressLoadError(null);
         const [addresses, templates] = await Promise.all([
-          getAddresses(),
-          getShippingAddressTemplates(),
+          getAddresses({ suppressErrors: false }),
+          getShippingAddressTemplates(undefined, 1000, { suppressErrors: false }),
         ]);
 
         if (cancelled) {
@@ -296,11 +300,16 @@ export function CheckoutContent() {
         }
 
         const cachedAddress = getStoredAddress();
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "We couldn't load your saved addresses right now.";
         setUserAddresses([]);
         setAdminAddresses([]);
         applySelectedAddress(cachedAddress);
+        setAddressLoadError(errorMessage);
         setShowAddressBookModal(false);
-        setShowNewAddressModal(!cachedAddress);
+        setShowNewAddressModal(false);
       } finally {
         if (!cancelled) {
           setLoadingAddresses(false);
@@ -314,7 +323,13 @@ export function CheckoutContent() {
     return () => {
       cancelled = true;
     };
-  }, [applySelectedAddress, authResolved, isLoggedIn, user]);
+  }, [addressReloadKey, applySelectedAddress, authResolved, isLoggedIn, user]);
+
+  const handleRetryAddressLoad = () => {
+    setAddressLoadError(null);
+    setLoadingAddresses(true);
+    setAddressReloadKey((current) => current + 1);
+  };
 
   const handleCloseCheckout = () => {
     if (from === "cart") {
@@ -406,6 +421,7 @@ export function CheckoutContent() {
   };
 
   const handleOpenNewAddressModal = () => {
+    setAddressLoadError(null);
     setShowAddressBookModal(false);
     setShowNewAddressModal(true);
   };
@@ -536,6 +552,33 @@ export function CheckoutContent() {
             </div>
             <div className="mt-2 text-sm text-black/60">
               We&apos;re checking your saved addresses and the admin-managed shipping address list.
+            </div>
+          </div>
+        </main>
+      )}
+
+      {!loadingAddresses && !selectedAddress && addressLoadError && (
+        <main className="mx-auto flex w-full max-w-[1200px] items-center justify-center px-4 py-20">
+          <div className="w-full max-w-lg rounded-[3px] bg-white px-6 py-10 text-center shadow-[0_1px_1px_rgba(0,0,0,0.05)]">
+            <div className="text-base font-medium text-[#222]">
+              We couldn&apos;t load your address options.
+            </div>
+            <div className="mt-2 text-sm text-black/60">{addressLoadError}</div>
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-center">
+              <button
+                type="button"
+                onClick={handleRetryAddressLoad}
+                className="inline-flex h-10 items-center justify-center rounded-[3px] bg-[#ee4d2d] px-4 text-sm font-medium text-white"
+              >
+                Retry loading addresses
+              </button>
+              <button
+                type="button"
+                onClick={handleOpenNewAddressModal}
+                className="inline-flex h-10 items-center justify-center rounded-[3px] border border-black/10 px-4 text-sm font-medium text-black/70"
+              >
+                Add a new address
+              </button>
             </div>
           </div>
         </main>

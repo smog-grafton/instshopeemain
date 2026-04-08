@@ -830,7 +830,9 @@ export interface ApiAddress {
   summaryLabel?: string;
 }
 
-export async function getAddresses(): Promise<ApiAddress[]> {
+export async function getAddresses(options?: {
+  suppressErrors?: boolean;
+}): Promise<ApiAddress[]> {
   try {
     const response = await apiFetch<{ addresses: ApiAddress[] }>("/addresses", {}, true);
     return response.addresses || [];
@@ -839,8 +841,12 @@ export async function getAddresses(): Promise<ApiAddress[]> {
     if (error?.status === 401 || error?.message?.includes('Unauthenticated')) {
       return [];
     }
+
+    if (options?.suppressErrors === false) {
+      throw error;
+    }
+
     console.error("Failed to fetch addresses:", error);
-    // Return empty array on error (user might not be authenticated or have no addresses)
     return [];
   }
 }
@@ -852,7 +858,10 @@ export async function getAddress(id: string): Promise<ApiAddress> {
 
 export async function getShippingAddressTemplates(
   search?: string,
-  limit: number = 1000
+  limit: number = 1000,
+  options?: {
+    suppressErrors?: boolean;
+  }
 ): Promise<ApiAddress[]> {
   const params = new URLSearchParams();
   params.set("limit", String(limit));
@@ -871,6 +880,10 @@ export async function getShippingAddressTemplates(
   } catch (error: any) {
     if (error?.status === 401 || error?.message?.includes("Unauthenticated")) {
       return [];
+    }
+
+    if (options?.suppressErrors === false) {
+      throw error;
     }
 
     console.error("Failed to fetch shipping address templates:", error);
