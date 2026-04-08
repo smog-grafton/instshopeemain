@@ -822,6 +822,12 @@ export interface ApiAddress {
   streetAddress: string;
   labelAs: string;
   setAsDefault: boolean;
+  city?: string;
+  state?: string | null;
+  countryId?: number | null;
+  isTemplate?: boolean;
+  sourceAddressId?: string | null;
+  summaryLabel?: string;
 }
 
 export async function getAddresses(): Promise<ApiAddress[]> {
@@ -842,6 +848,34 @@ export async function getAddresses(): Promise<ApiAddress[]> {
 export async function getAddress(id: string): Promise<ApiAddress> {
   const response = await apiFetch<{ address: ApiAddress }>(`/addresses/${id}`, {}, true);
   return response.address;
+}
+
+export async function getShippingAddressTemplates(
+  search?: string,
+  limit: number = 1000
+): Promise<ApiAddress[]> {
+  const params = new URLSearchParams();
+  params.set("limit", String(limit));
+
+  if (search?.trim()) {
+    params.set("search", search.trim());
+  }
+
+  try {
+    const response = await apiFetch<{ addresses: ApiAddress[] }>(
+      `/addresses/templates?${params.toString()}`,
+      {},
+      true
+    );
+    return response.addresses || [];
+  } catch (error: any) {
+    if (error?.status === 401 || error?.message?.includes("Unauthenticated")) {
+      return [];
+    }
+
+    console.error("Failed to fetch shipping address templates:", error);
+    return [];
+  }
 }
 
 export async function createAddress(data: {
@@ -872,6 +906,8 @@ export async function updateAddress(id: string, data: Partial<{
   state?: string;
   postal_code?: string;
   is_default?: boolean;
+  region?: string;
+  label_as?: string;
 }>): Promise<ApiAddress> {
   const response = await apiFetch<{ address: ApiAddress }>(`/addresses/${id}`, {
     method: "PUT",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { TopNavbar } from "@/components/top-navbar";
 import { SiteFooter } from "@/components/site-footer";
@@ -9,15 +9,18 @@ import { NewAddressModal } from "@/components/user-dashboard/address/new-address
 import type { NewAddressFormValues } from "@/components/user-dashboard/address/new-address-modal";
 import { useCart } from "@/components/cart";
 import {
+  clearStoredAddress,
   getStoredAddress,
   setStoredAddress,
   type StoredAddress,
+  type StoredAddressKind,
 } from "@/lib/address-storage";
 import {
-  getAddresses,
   createAddress,
-  type ApiAddress,
+  getAddresses,
   getCheckoutConfig,
+  getShippingAddressTemplates,
+  type ApiAddress,
 } from "@/lib/api-client";
 import { useAuth } from "@/components/auth/auth-context";
 import {
@@ -25,16 +28,90 @@ import {
   getSellerPortalBaseUrl,
 } from "@/lib/account-routing";
 import {
+  CheckoutAddressBookModal,
+  CheckoutDeliveryAddress,
+} from "@/components/checkout";
+import {
   CheckoutProductsAndSummary,
   type ShopGroup,
 } from "@/components/checkout/checkout-products-summary";
-import {
-  CheckoutDeliveryAddress,
-  CheckoutAddressBookModal,
-} from "@/components/checkout";
 import { getCartItemKey, readCheckoutSelection } from "@/lib/cart-selection";
 
 const roundMoney = (value: number) => Math.round(value * 100) / 100;
+
+function toStoredAddress(
+  address: ApiAddress,
+  kind: StoredAddressKind
+): StoredAddress {
+  return {
+    id: address.id,
+    kind,
+    sourceAddressId: address.sourceAddressId ?? null,
+    region: address.region ?? "general",
+    fullName: address.fullName,
+    phoneNumber: address.phoneNumber,
+    stateArea: address.stateArea,
+    postalCode: address.postalCode,
+    unitNo: address.unitNo,
+    streetAddress: address.streetAddress,
+    labelAs: address.labelAs,
+    setAsDefault: address.setAsDefault,
+    city: address.city,
+    state: address.state ?? null,
+    countryId: address.countryId ?? null,
+    isTemplate: kind === "template" || Boolean(address.isTemplate),
+    summaryLabel: address.summaryLabel,
+  };
+}
+
+function matchesStoredAddress(
+  storedAddress: StoredAddress,
+  address: ApiAddress,
+  kind: StoredAddressKind
+): boolean {
+  const storedKind =
+    storedAddress.kind === "template" || storedAddress.isTemplate
+      ? "template"
+      : "user";
+
+  if (storedKind !== kind) {
+    return false;
+  }
+
+  if (storedAddress.id) {
+    return storedAddress.id === address.id;
+  }
+
+  return (
+    storedAddress.fullName === address.fullName &&
+    storedAddress.phoneNumber === address.phoneNumber &&
+    storedAddress.streetAddress === address.streetAddress &&
+    storedAddress.unitNo === address.unitNo &&
+    storedAddress.postalCode === address.postalCode
+  );
+}
+
+function resolveSelectedAddress(
+  cachedAddress: StoredAddress | null,
+  userAddresses: ApiAddress[],
+  adminAddresses: ApiAddress[]
+): StoredAddress | null {
+  if (!cachedAddress) {
+    return null;
+  }
+
+  const cachedKind =
+    cachedAddress.kind === "template" || cachedAddress.isTemplate
+      ? "template"
+      : "user";
+  const sourceAddresses =
+    cachedKind === "template" ? adminAddresses : userAddresses;
+  const matchedAddress = sourceAddresses.find((address) =>
+    matchesStoredAddress(cachedAddress, address, cachedKind)
+  );
+
+  return matchedAddress ? toStoredAddress(matchedAddress, cachedKind) : null;
+}
 
 export function CheckoutContent() {
   const router = useRouter();
@@ -44,15 +121,17 @@ export function CheckoutContent() {
   const slug = searchParams.get("slug") ?? "";
   const nextCheckoutPath = searchQuery ? `/checkout?${searchQuery}` : "/checkout";
 
-  const [hasAddress, setHasAddress] = useState<boolean | null>(null);
-  const [storedAddress, setStoredAddressState] = useState<StoredAddress | null>(
+  const [selectedAddress, setSelectedAddressState] = useState<StoredAddress | null>(
     null
   );
-  const [, setApiAddresses] = useState<ApiAddress[]>([]);
+  const [userAddresses, setUserAddresses] = useState<ApiAddress[]>([]);
+  const [adminAddresses, setAdminAddresses] = useState<ApiAddress[]>([]);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
   const [showAddressBookModal, setShowAddressBookModal] = useState(false);
-  const [showEditAddressModal, setShowEditAddressModal] = useState(false);
-  const [checkoutSelectionKeys, setCheckoutSelectionKeys] = useState<string[] | null>(null);
+  const [showNewAddressModal, setShowNewAddressModal] = useState(false);
+  const [checkoutSelectionKeys, setCheckoutSelectionKeys] = useState<string[] | null>(
+    null
+  );
   const [checkoutShippingPercent, setCheckoutShippingPercent] = useState(0);
   const [shippingConfigLoading, setShippingConfigLoading] = useState(true);
   const { items } = useCart();
@@ -60,6 +139,16 @@ export function CheckoutContent() {
   const shouldRedirectToLogin = authResolved && !isLoggedIn;
   const shouldRedirectToSellerPortal =
     authResolved && isLoggedIn && !canAccessBuyerPortal(user);
+
+  const applySelectedAddress = useCallback((address: StoredAddress | null) => {
+    setSelectedAddressState(address);
+
+    if (address) {
+      setStoredAddress(address);
+    } else {
+      clearStoredAddress();
+    }
+  }, []);
 
   useEffect(() => {
     if (from !== "cart") {
@@ -152,52 +241,82 @@ export function CheckoutContent() {
       }
 
       if (!isLoggedIn || !canAccessBuyerPortal(user)) {
-        setStoredAddressState(null);
-        setHasAddress(null);
+        setUserAddresses([]);
+        setAdminAddresses([]);
+        applySelectedAddress(null);
+        setShowAddressBookModal(false);
+        setShowNewAddressModal(false);
         setLoadingAddresses(false);
         return;
       }
 
       try {
         setLoadingAddresses(true);
-        const addresses = await getAddresses();
-        setApiAddresses(addresses);
+        const [addresses, templates] = await Promise.all([
+          getAddresses(),
+          getShippingAddressTemplates(),
+        ]);
 
-        if (addresses.length > 0) {
-          const defaultAddr = addresses.find((address) => address.setAsDefault) || addresses[0];
-          const stored: StoredAddress = {
-            region: defaultAddr.region,
-            fullName: defaultAddr.fullName,
-            phoneNumber: defaultAddr.phoneNumber,
-            stateArea: defaultAddr.stateArea,
-            postalCode: defaultAddr.postalCode,
-            unitNo: defaultAddr.unitNo,
-            streetAddress: defaultAddr.streetAddress,
-            labelAs: defaultAddr.labelAs,
-            setAsDefault: defaultAddr.setAsDefault,
-          };
-          setStoredAddressState(stored);
-          setStoredAddress(stored);
-          setHasAddress(true);
+        if (cancelled) {
+          return;
+        }
+
+        setUserAddresses(addresses);
+        setAdminAddresses(templates);
+
+        const cachedAddress = getStoredAddress();
+        const restoredAddress = resolveSelectedAddress(
+          cachedAddress,
+          addresses,
+          templates
+        );
+        const defaultAddress =
+          addresses.find((address) => address.setAsDefault) ?? addresses[0] ?? null;
+        const nextSelectedAddress =
+          restoredAddress ??
+          (defaultAddress ? toStoredAddress(defaultAddress, "user") : null);
+
+        applySelectedAddress(nextSelectedAddress);
+
+        if (nextSelectedAddress) {
+          setShowAddressBookModal(false);
+          setShowNewAddressModal(false);
+        } else if (templates.length > 0 || addresses.length > 0) {
+          setShowAddressBookModal(true);
+          setShowNewAddressModal(false);
+        } else {
+          setShowAddressBookModal(false);
+          setShowNewAddressModal(true);
+        }
+      } catch (error) {
+        console.error("Failed to load addresses:", error);
+
+        if (cancelled) {
           return;
         }
 
         const cachedAddress = getStoredAddress();
-        setStoredAddressState(cachedAddress);
-        setHasAddress(Boolean(cachedAddress));
-      } catch (error) {
-        console.error("Failed to load addresses:", error);
-        const cachedAddress = getStoredAddress();
-        setStoredAddressState(cachedAddress);
-        setHasAddress(Boolean(cachedAddress));
+        setUserAddresses([]);
+        setAdminAddresses([]);
+        applySelectedAddress(cachedAddress);
+        setShowAddressBookModal(false);
+        setShowNewAddressModal(!cachedAddress);
       } finally {
-        setLoadingAddresses(false);
+        if (!cancelled) {
+          setLoadingAddresses(false);
+        }
       }
     }
-    void loadAddresses();
-  }, [authResolved, isLoggedIn, user]);
 
-  const handleCloseModal = () => {
+    let cancelled = false;
+    void loadAddresses();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [applySelectedAddress, authResolved, isLoggedIn, user]);
+
+  const handleCloseCheckout = () => {
     if (from === "cart") {
       router.replace("/cart");
     } else if (from === "buynow" && slug) {
@@ -207,32 +326,6 @@ export function CheckoutContent() {
     }
   };
 
-  const addressPayload = (values: NewAddressFormValues) => ({
-    region: values.region,
-    fullName: values.fullName,
-    phoneNumber: values.phoneNumber,
-    stateArea: values.stateArea,
-    postalCode: values.postalCode,
-    unitNo: values.unitNo,
-    streetAddress: values.streetAddress,
-    labelAs: values.labelAs,
-    setAsDefault: values.setAsDefault,
-  });
-
-  const storedAddressToFormValues = (
-    addr: StoredAddress
-  ): NewAddressFormValues => ({
-    region: addr.region as NewAddressFormValues["region"],
-    fullName: addr.fullName,
-    phoneNumber: addr.phoneNumber,
-    stateArea: addr.stateArea,
-    postalCode: addr.postalCode,
-    unitNo: addr.unitNo,
-    streetAddress: addr.streetAddress,
-    labelAs: addr.labelAs as NewAddressFormValues["labelAs"],
-    setAsDefault: addr.setAsDefault,
-  });
-
   const handleSubmitAddress = async (values: NewAddressFormValues) => {
     if (!isLoggedIn) {
       router.replace(`/login?next=${encodeURIComponent(nextCheckoutPath)}`);
@@ -240,60 +333,109 @@ export function CheckoutContent() {
     }
 
     try {
-      const addrData = {
+      const createdAddress = await createAddress({
         full_name: values.fullName,
         phone: values.phoneNumber,
         line1: values.streetAddress,
         line2: values.unitNo || undefined,
-        city: values.stateArea.split(',')[0] || values.stateArea,
+        city: values.stateArea.split(",")[0] || values.stateArea,
         state: values.stateArea,
         postal_code: values.postalCode || undefined,
         is_default: values.setAsDefault,
         region: values.region,
         label_as: values.labelAs,
-      };
-      const apiAddr = await createAddress(addrData);
-      const stored: StoredAddress = {
-        region: apiAddr.region,
-        fullName: apiAddr.fullName,
-        phoneNumber: apiAddr.phoneNumber,
-        stateArea: apiAddr.stateArea,
-        postalCode: apiAddr.postalCode,
-        unitNo: apiAddr.unitNo,
-        streetAddress: apiAddr.streetAddress,
-        labelAs: apiAddr.labelAs,
-        setAsDefault: apiAddr.setAsDefault,
-      };
-      setStoredAddressState(stored);
-      setStoredAddress(stored);
+      });
 
-      try {
-        const addresses = await getAddresses();
-        setApiAddresses(addresses);
-      } catch (err) {
-        console.error("Failed to reload addresses:", err);
-      }
+      const nextUserAddresses = createdAddress.setAsDefault
+        ? userAddresses.map((address) => ({ ...address, setAsDefault: false }))
+        : [...userAddresses];
 
-      // Close modals and update state
-      setHasAddress(true);
-      setShowEditAddressModal(false);
+      nextUserAddresses.unshift(createdAddress);
+      setUserAddresses(nextUserAddresses);
+
+      const nextSelectedAddress = toStoredAddress(createdAddress, "user");
+      applySelectedAddress(nextSelectedAddress);
+      setShowNewAddressModal(false);
+      setShowAddressBookModal(false);
     } catch (error) {
       console.error("Failed to save address:", error);
-      // Fallback to localStorage
-      const addr = addressPayload(values);
-      setStoredAddress(addr);
-      setStoredAddressState(addr);
-      setHasAddress(true);
-      setShowEditAddressModal(false);
+      alert(
+        error instanceof Error
+          ? error.message
+          : "Failed to save address. Please try again."
+      );
+      throw error;
     }
   };
 
-  const showModal = hasAddress === false;
-  const showChangeModal = showEditAddressModal;
-  const showContent = hasAddress === true;
+  const handleSelectAddress = (
+    address: ApiAddress,
+    kind: StoredAddressKind
+  ) => {
+    applySelectedAddress(toStoredAddress(address, kind));
+    setShowAddressBookModal(false);
+  };
+
+  const handleAddressUpdated = (updatedAddress: ApiAddress) => {
+    const nextUserAddresses = userAddresses.map((address) => {
+      if (address.id === updatedAddress.id) {
+        return updatedAddress;
+      }
+
+      if (updatedAddress.setAsDefault && address.setAsDefault) {
+        return {
+          ...address,
+          setAsDefault: false,
+        };
+      }
+
+      return address;
+    });
+
+    setUserAddresses(nextUserAddresses);
+
+    if (selectedAddress?.kind === "user" && selectedAddress.id) {
+      const refreshedSelection = nextUserAddresses.find(
+        (address) => address.id === selectedAddress.id
+      );
+
+      if (refreshedSelection) {
+        applySelectedAddress(toStoredAddress(refreshedSelection, "user"));
+      }
+    }
+  };
+
+  const handleOpenNewAddressModal = () => {
+    setShowAddressBookModal(false);
+    setShowNewAddressModal(true);
+  };
+
+  const handleCloseNewAddressModal = () => {
+    if (selectedAddress) {
+      setShowNewAddressModal(false);
+      return;
+    }
+
+    if (userAddresses.length > 0 || adminAddresses.length > 0) {
+      setShowNewAddressModal(false);
+      setShowAddressBookModal(true);
+      return;
+    }
+
+    handleCloseCheckout();
+  };
+
+  const handleCloseAddressBookModal = () => {
+    if (selectedAddress) {
+      setShowAddressBookModal(false);
+      return;
+    }
+
+    handleCloseCheckout();
+  };
 
   const merchandiseSubtotal = checkoutItems.reduce(
-    (sum, i) => sum + i.price * i.quantity,
+    (sum, item) => sum + item.price * item.quantity,
     0
   );
   const shippingBreakdown = useMemo(
@@ -333,7 +475,7 @@ export function CheckoutContent() {
   const totalPayment = roundMoney(
     merchandiseSubtotal + shippingSubtotal - shippingDiscount
   );
-  const totalItems = checkoutItems.reduce((sum, i) => sum + i.quantity, 0);
+  const totalItems = checkoutItems.reduce((sum, item) => sum + item.quantity, 0);
 
   if (!authResolved || shouldRedirectToLogin) {
     return (
@@ -359,70 +501,71 @@ export function CheckoutContent() {
       <TopNavbar />
       <CheckoutHeader />
 
-      {(showModal || loadingAddresses) && (
+      {showNewAddressModal && (
         <NewAddressModal
           open={true}
-          onClose={loadingAddresses ? () => {} : handleCloseModal}
+          onClose={handleCloseNewAddressModal}
           onSubmit={handleSubmitAddress}
-          isFirstAddress={true}
-          subtitle={loadingAddresses ? "Loading addresses..." : "To place order, please add a delivery address"}
-        />
-      )}
-
-      {showChangeModal && (
-        <NewAddressModal
-          open={true}
-          onClose={() => setShowEditAddressModal(false)}
-          onSubmit={handleSubmitAddress}
-          isFirstAddress={false}
-          subtitle="Update your delivery address"
-          initialValues={
-            storedAddress ? storedAddressToFormValues(storedAddress) : undefined
+          isFirstAddress={userAddresses.length === 0}
+          subtitle={
+            selectedAddress
+              ? "Add a new delivery address for this checkout."
+              : "Choose a delivery address to place your order."
           }
         />
       )}
 
-      {showAddressBookModal && storedAddress && (
+      {showAddressBookModal && (
         <CheckoutAddressBookModal
           open={true}
-          onClose={() => setShowAddressBookModal(false)}
-          address={storedAddress}
-          onAddNew={() => {
-            setShowAddressBookModal(false);
-            setShowEditAddressModal(true);
-          }}
+          onClose={handleCloseAddressBookModal}
+          selectedAddress={selectedAddress}
+          userAddresses={userAddresses}
+          adminAddresses={adminAddresses}
+          onSelectAddress={handleSelectAddress}
+          onAddNew={handleOpenNewAddressModal}
+          onAddressUpdated={handleAddressUpdated}
         />
       )}
 
-      {showContent && (
+      {loadingAddresses && (
+        <main className="mx-auto flex w-full max-w-[1200px] items-center justify-center px-4 py-20">
+          <div className="w-full max-w-md rounded-[3px] bg-white px-6 py-10 text-center shadow-[0_1px_1px_rgba(0,0,0,0.05)]">
+            <div className="text-base font-medium text-[#222]">
+              Loading your addresses...
+            </div>
+            <div className="mt-2 text-sm text-black/60">
+              We&apos;re checking your saved addresses and the admin-managed shipping address list.
+            </div>
+          </div>
+        </main>
+      )}
+
+      {!loadingAddresses && selectedAddress && (
         <main
           role="main"
           className="mx-auto mb-[70px] w-full max-w-[1200px] px-3 text-sm leading-tight text-black/80 sm:px-4 lg:px-0"
         >
-          {/* Delivery address card */}
-          {storedAddress && (
-            <div className="mt-3 bg-white rounded-[3px] overflow-hidden shadow-[0_1px_1px_rgba(0,0,0,0.05)]">
-              <CheckoutDeliveryAddress
-                address={storedAddress}
-                onChange={() => setShowAddressBookModal(true)}
-              />
-            </div>
-          )}
+          <div className="mt-3 overflow-hidden rounded-[3px] bg-white shadow-[0_1px_1px_rgba(0,0,0,0.05)]">
+            <CheckoutDeliveryAddress
+              address={selectedAddress}
+              onChange={() => setShowAddressBookModal(true)}
+            />
+          </div>
 
-          {/* Products Ordered card */}
           <div className="mt-3 shadow-[0_1px_1px_rgba(0,0,0,0.05)]">
             <div className="hidden h-[50px] items-center rounded-t bg-white px-[30px] pt-6 shadow-[0_1px_1px_rgba(0,0,0,0.09)] lg:flex">
               <div className="flex h-[30px] w-full items-center text-[14px] text-black/54">
                 <div className="flex-[4_1_0%] text-left">
-                  <h2 className="text-lg font-normal text-[#222] m-0 p-0">
+                  <h2 className="m-0 p-0 text-lg font-normal text-[#222]">
                     Products Ordered
                   </h2>
                 </div>
                 <div className="flex-[2_1_0%] text-center" />
-                <div className="flex-[2_1_0%] text-right text-center">
+                <div className="flex-[2_1_0%] text-center text-right">
                   Unit Price
                 </div>
-                <div className="flex-[2_1_0%] text-right text-center">
+                <div className="flex-[2_1_0%] text-center text-right">
                   Amount
                 </div>
                 <div className="flex-[2_1_0%] text-right">
@@ -435,7 +578,7 @@ export function CheckoutContent() {
             </div>
 
             {checkoutItems.length === 0 ? (
-              <div className="bg-white rounded-b p-10 text-center text-black/60">
+              <div className="rounded-b bg-white p-10 text-center text-black/60">
                 No products are selected for checkout yet. Return to your cart and
                 choose the items you want to place an order for.
               </div>
@@ -445,17 +588,17 @@ export function CheckoutContent() {
                 merchandiseSubtotal={merchandiseSubtotal}
                 shippingSubtotal={shippingSubtotal}
                 shippingDiscount={shippingDiscount}
-        totalPayment={totalPayment}
-        totalItems={totalItems}
-        address={storedAddress}
-        shippingConfigLoading={shippingConfigLoading}
-      />
+                totalPayment={totalPayment}
+                totalItems={totalItems}
+                address={selectedAddress}
+                shippingConfigLoading={shippingConfigLoading}
+              />
             )}
           </div>
         </main>
       )}
 
-      {showContent && <SiteFooter />}
+      {!loadingAddresses && selectedAddress && <SiteFooter />}
     </div>
   );
 }

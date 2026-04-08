@@ -46,6 +46,27 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+function areAuthUsersEqual(a: AuthUser | null, b: AuthUser): boolean {
+  if (!a) {
+    return false;
+  }
+
+  return (
+    a.id === b.id &&
+    a.name === b.name &&
+    a.username === b.username &&
+    a.avatarUrl === b.avatarUrl &&
+    a.email === b.email &&
+    a.role === b.role &&
+    a.countryId === b.countryId &&
+    a.buyerPortalEnabled === b.buyerPortalEnabled &&
+    a.canAccessBuyerPortal === b.canAccessBuyerPortal &&
+    a.isSeller === b.isSeller &&
+    a.sellerStatus === b.sellerStatus &&
+    a.prefersSellerPortal === b.prefersSellerPortal
+  );
+}
+
 function mapApiUserToAuthUser(apiUser: ApiUser): AuthUser {
   return {
     id: apiUser.id,
@@ -83,7 +104,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [user]);
 
   const applyAuthenticatedUser = useCallback((apiUser: ApiUser) => {
-    setUser(mapApiUserToAuthUser(apiUser));
+    const nextUser = mapApiUserToAuthUser(apiUser);
+    setUser((currentUser) =>
+      areAuthUsersEqual(currentUser, nextUser) ? currentUser : nextUser
+    );
     setIsLoggedIn(true);
   }, []);
 

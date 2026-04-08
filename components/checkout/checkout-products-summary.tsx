@@ -88,7 +88,16 @@ export function CheckoutProductsAndSummary({
     async function fetchPaymentMethods() {
       try {
         const methods = await getPaymentMethods();
-        setPaymentMethods(methods.filter(m => m.enabledForCheckout));
+        const checkoutMethods = methods
+          .filter((method) => method.enabledForCheckout)
+          .sort((left, right) => {
+            if (left.key === "wallet") return -1;
+            if (right.key === "wallet") return 1;
+
+            return left.name.localeCompare(right.name);
+          });
+
+        setPaymentMethods(checkoutMethods);
       } catch (error) {
         console.error("Failed to fetch payment methods:", error);
         // Set empty array on error
@@ -105,16 +114,12 @@ export function CheckoutProductsAndSummary({
       return null;
     }
 
-    if (isLoggedIn && walletMethodAvailable && walletCanCoverOrder) {
+    if (walletMethodAvailable) {
       return "wallet";
     }
 
-    const preferredNonWallet = paymentMethods.find(
-      (method) => method.key !== "wallet"
-    );
-
-    return (preferredNonWallet ?? paymentMethods[0]).key as PaymentMethodKey;
-  }, [isLoggedIn, paymentMethods, walletCanCoverOrder, walletMethodAvailable]);
+    return paymentMethods[0].key as PaymentMethodKey;
+  }, [paymentMethods, walletMethodAvailable]);
 
   useEffect(() => {
     if (!isLoggedIn || loadingPaymentMethods || !walletMethodAvailable) {
@@ -662,6 +667,11 @@ export function CheckoutProductsAndSummary({
                         {walletAutoApplied && walletCanCoverOrder && (
                           <p className="m-0 rounded-[2px] border border-[#b7e4c7] bg-[#eefaf3] px-2 py-1 text-[#1c7c54]">
                             Account funds are available, so this order will be paid from your wallet automatically.
+                          </p>
+                        )}
+                        {!walletAutoApplied && (
+                          <p className="m-0 rounded-[2px] border border-[#d9e6ff] bg-[#f4f8ff] px-2 py-1 text-[#2952a3]">
+                            Account funds are the default checkout payment method.
                           </p>
                         )}
                         <p className="m-0 text-black/80">

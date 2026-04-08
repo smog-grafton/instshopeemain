@@ -84,6 +84,11 @@ export function CheckoutDeliveryAddress({ address, onChange }: CheckoutDeliveryA
                   default
                 </div>
               )}
+              {(address.kind === "template" || address.isTemplate) && (
+                <div className="w-fit shrink-0 rounded-[1px] border border-black/15 px-1.5 py-0.5 text-[10px] text-black/60 lg:ml-[15px]">
+                  admin address
+                </div>
+              )}
             </div>
           </div>
           <div className="lg:ml-10">

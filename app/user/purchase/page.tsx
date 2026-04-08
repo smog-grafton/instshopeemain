@@ -1,15 +1,9 @@
 import { Suspense } from "react";
-import { UserDashboardLayout } from "@/components/user-dashboard";
+import { DashboardPageSkeleton } from "@/components/user-dashboard/dashboard-page-skeleton";
 import { PurchaseContent } from "./purchase-content";
 
 function PurchaseFallback() {
-  return (
-    <UserDashboardLayout>
-      <div className="bg-white grow w-[980px] relative shadow-sm ml-7 rounded-sm min-h-[400px] flex items-center justify-center text-zinc-500 text-sm">
-        Loading…
-      </div>
-    </UserDashboardLayout>
-  );
+  return <DashboardPageSkeleton />;
 }
 
 export default function UserPurchasePage() {

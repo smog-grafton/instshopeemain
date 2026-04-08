@@ -4,7 +4,7 @@
  * Country-based mode (future): region = MY | BN; field labels change per region.
  */
 
-export type AddressRegionCode = "MY" | "BN" | "general";
+export type AddressRegionCode = "MY" | "BN" | "CN" | "general";
 
 export type AddressLabel = "home" | "work";
 

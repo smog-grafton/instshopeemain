@@ -51,6 +51,7 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
   const [guardLoading, setGuardLoading] = useState(true);
   const searchQuery = searchParams.toString();
   const sellerPortalHref = useMemo(() => getSellerPortalBaseUrl(), []);
+  const shouldRedirectToSellerPortal = shouldUseSellerPortal(user);
 
   const nextPath = useMemo(() => {
     return `${pathname}${searchQuery ? `?${searchQuery}` : ""}`;
@@ -75,7 +76,7 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
       return;
     }
 
-    if (shouldUseSellerPortal(user)) {
+    if (shouldRedirectToSellerPortal) {
       setGuardLoading(false);
       window.location.href = sellerPortalHref;
       return;
@@ -96,10 +97,10 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
     return () => {
       active = false;
     };
-  }, [authResolved, isLoggedIn, loginHref, router, sellerPortalHref, user, verifySession]);
+  }, [authResolved, isLoggedIn, loginHref, router, sellerPortalHref, shouldRedirectToSellerPortal, verifySession]);
 
   useEffect(() => {
-    if (!authResolved || !isLoggedIn || shouldUseSellerPortal(user)) return undefined;
+    if (!authResolved || !isLoggedIn || shouldRedirectToSellerPortal) return undefined;
 
     const revalidateSession = () => {
       void verifySession().then((valid) => {
@@ -125,7 +126,7 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
       window.removeEventListener("focus", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [authResolved, isLoggedIn, loginHref, router, user, verifySession]);
+  }, [authResolved, isLoggedIn, loginHref, router, shouldRedirectToSellerPortal, verifySession]);
 
   useEffect(() => {
     if (!sidebarOpen) return undefined;
@@ -146,7 +147,7 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
     };
   }, [sidebarOpen]);
 
-  if (!authResolved || guardLoading || !isLoggedIn || shouldUseSellerPortal(user)) {
+  if (!authResolved || guardLoading || !isLoggedIn || shouldRedirectToSellerPortal) {
     return <DashboardPageSkeleton />;
   }
 

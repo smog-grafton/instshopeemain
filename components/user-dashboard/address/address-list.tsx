@@ -52,6 +52,8 @@ export function AddressList({ addresses, onRefresh }: AddressListProps) {
         state: values.stateArea,
         postal_code: values.postalCode || undefined,
         is_default: values.setAsDefault,
+        region: values.region,
+        label_as: values.labelAs,
       });
       setEditingAddress(null);
       onRefresh();
