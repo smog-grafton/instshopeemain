@@ -1,7 +1,13 @@
 import { normalizeBadgeList } from "@/lib/product-badges";
 
-const API_BASE = `${process.env.NEXT_PUBLIC_LARAVEL_API_URL}/v1`;
-const SANCTUM_BASE = process.env.NEXT_PUBLIC_LARAVEL_API_URL;
+const RAW_API_URL = (process.env.NEXT_PUBLIC_LARAVEL_API_URL ?? "").replace(/\/+$/, "");
+const API_PREFIX = RAW_API_URL
+  ? RAW_API_URL.endsWith("/api")
+    ? RAW_API_URL
+    : `${RAW_API_URL}/api`
+  : "";
+const API_BASE = API_PREFIX ? `${API_PREFIX}/v1` : "";
+const SANCTUM_BASE = API_PREFIX ? API_PREFIX.replace(/\/api$/, "") : "";
 
 export interface ApiUser {
   id: number;
@@ -138,6 +144,7 @@ export interface ChatThread {
   avatarUrl?: string;
   lastMessage: string;
   lastMessageAt: string;
+  lastMessageBy?: string;
   unread: boolean;
   product?: {
     id?: number;
@@ -174,7 +181,7 @@ export async function startChatThread(vendorId: number, productId?: number) {
 
 export async function getChatMessages(threadId: string, afterId?: number) {
   const query = afterId ? `?after_id=${afterId}` : "";
-  return apiFetch<{ success: boolean; messages: { id: string; text: string; sender_type: string; timestamp: string }[] }>(
+  return apiFetch<{ success: boolean; messages: { id: string; text: string; sender_type: string; sender_label?: string; timestamp: string }[] }>(
     `/chat/threads/${threadId}/messages${query}`,
     {},
     true
@@ -182,7 +189,7 @@ export async function getChatMessages(threadId: string, afterId?: number) {
 }
 
 export async function sendChatMessage(threadId: string, message: string, productId?: number) {
-  return apiFetch<{ success: boolean; message: { id: string; text: string; sender_type: string; timestamp: string } }>(
+  return apiFetch<{ success: boolean; message: { id: string; text: string; sender_type: string; sender_label?: string; timestamp: string } }>(
     `/chat/threads/${threadId}/send`,
     {
       method: "POST",
@@ -289,8 +296,15 @@ export async function logoutApi(): Promise<void> {
   // Session cookie cleared by Laravel automatically
 }
 
-export function getGoogleAuthRedirectUrl(): string {
-  return `${API_BASE}/auth/google/redirect`;
+export function getGoogleAuthRedirectUrl(nextUrl?: string | null): string {
+  const url = new URL(`${API_BASE}/auth/google/redirect`);
+  const normalizedNext = typeof nextUrl === "string" ? nextUrl.trim() : "";
+
+  if (normalizedNext) {
+    url.searchParams.set("next", normalizedNext);
+  }
+
+  return url.toString();
 }
 
 // Product types and functions

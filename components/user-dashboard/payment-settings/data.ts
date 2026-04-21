@@ -28,7 +28,7 @@ export const PAYMENT_SECTIONS: PaymentSectionConfig[] = [
   {
     id: "bank",
     title: "My Bank Accounts",
-    emptyMessage: "You don't have bank accounts yet.",
+    emptyMessage: "You don't have bank accounts yet. Adding one is optional until you actually need it.",
     buttonLabel: "Add New Bank Account",
     buttonHref: "/user/account/payment/bank/add",
   },

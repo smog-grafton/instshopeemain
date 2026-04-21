@@ -10,7 +10,7 @@ import {
 } from "./password-validation";
 import { registerBuyer, getGoogleAuthRedirectUrl } from "@/lib/api-client";
 import { useAuth } from "./auth-context";
-import { getSellerPortalBaseUrl } from "@/lib/account-routing";
+import { resolvePostAuthHref } from "@/lib/account-routing";
 
 const BACKGROUND_IMAGE = "/images/auth/background.png";
 const FACEBOOK_ICON = "/images/auth/facebook.png";
@@ -90,7 +90,7 @@ export function SignupFormSection() {
         setSignupSuccess(true);
         setStep("success");
         setTimeout(() => {
-          window.location.href = getSellerPortalBaseUrl();
+          window.location.href = resolvePostAuthHref(apiUser);
         }, 1500);
       })
       .catch((err: any) => {

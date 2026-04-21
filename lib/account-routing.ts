@@ -142,13 +142,8 @@ export function shouldUseSellerPortal(user?: AccountSurfaceUser | null): boolean
     return user.prefersSellerPortal;
   }
 
-  if (typeof user.canAccessBuyerPortal === "boolean") {
-    return !user.canAccessBuyerPortal;
-  }
-
   return (
     user.role === "seller" ||
-    user.buyerPortalEnabled === false ||
     Boolean(user.isSeller) ||
     SELLER_PORTAL_STATUSES.includes(user.sellerStatus)
   );
@@ -163,8 +158,8 @@ export function canAccessBuyerPortal(user?: AccountSurfaceUser | null): boolean 
     return user.canAccessBuyerPortal;
   }
 
-  if (typeof user.prefersSellerPortal === "boolean") {
-    return !user.prefersSellerPortal;
+  if (typeof user.buyerPortalEnabled === "boolean") {
+    return user.buyerPortalEnabled && !shouldUseSellerPortal(user);
   }
 
   return !shouldUseSellerPortal(user);

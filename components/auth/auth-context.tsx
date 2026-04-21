@@ -15,6 +15,7 @@ import {
   logoutApi,
 } from "@/lib/api-client";
 import { clearStoredAddress } from "@/lib/address-storage";
+import { resolvePostAuthHref } from "@/lib/account-routing";
 
 export interface AuthUser {
   id: number;
@@ -93,11 +94,40 @@ function isUnauthenticatedError(error: unknown): boolean {
   return status === 401 || message.includes("Unauthenticated");
 }
 
+function isAbsoluteUrl(value: string): boolean {
+  return value.startsWith("http://") || value.startsWith("https://");
+}
+
+function buildCleanAuthUrl(): string {
+  const url = new URL(window.location.href);
+
+  ["auth", "status", "error", "next", "token"].forEach((key) => {
+    url.searchParams.delete(key);
+  });
+
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
+function buildGoogleLoginUrl(error: string, nextUrl?: string | null): string {
+  const url = new URL("/login", window.location.origin);
+
+  if (error) {
+    url.searchParams.set("error", error);
+  }
+
+  if (typeof nextUrl === "string" && nextUrl.trim()) {
+    url.searchParams.set("next", nextUrl.trim());
+  }
+
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authResolved, setAuthResolved] = useState(false);
   const userRef = useRef<AuthUser | null>(null);
+  const handledGoogleAuthRef = useRef<string | null>(null);
 
   useEffect(() => {
     userRef.current = user;
@@ -140,6 +170,87 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     void syncSession({ preserveOnUnknownFailure: false });
   }, [syncSession]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return undefined;
+
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("auth") !== "google") {
+      return undefined;
+    }
+
+    const signature = `${url.pathname}?${url.searchParams.toString()}`;
+    if (handledGoogleAuthRef.current === signature) {
+      return undefined;
+    }
+    handledGoogleAuthRef.current = signature;
+
+    const nextUrl = url.searchParams.get("next");
+    const error = url.searchParams.get("error");
+    const cleanUrl = buildCleanAuthUrl();
+
+    if (error) {
+      clearAuthState();
+      setAuthResolved(true);
+
+      const loginUrl = buildGoogleLoginUrl(error, nextUrl);
+      if (window.location.pathname === "/login") {
+        window.history.replaceState({}, "", loginUrl);
+      } else {
+        window.location.replace(loginUrl);
+      }
+
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const finalizeGoogleAuth = async () => {
+      try {
+        const res = await fetchCurrentUser();
+        if (cancelled) return;
+
+        applyAuthenticatedUser(res.user);
+        setAuthResolved(true);
+
+        const destination = resolvePostAuthHref(res.user, nextUrl);
+
+        if (isAbsoluteUrl(destination)) {
+          if (destination !== window.location.href) {
+            window.location.replace(destination);
+            return;
+          }
+        } else if (destination && destination !== cleanUrl) {
+          window.location.replace(destination);
+          return;
+        }
+
+        window.history.replaceState({}, "", cleanUrl);
+      } catch {
+        if (cancelled) return;
+
+        clearAuthState();
+        setAuthResolved(true);
+
+        const loginUrl = buildGoogleLoginUrl(
+          "Google sign-in could not be completed. Please try again.",
+          nextUrl
+        );
+
+        if (window.location.pathname === "/login") {
+          window.history.replaceState({}, "", loginUrl);
+        } else {
+          window.location.replace(loginUrl);
+        }
+      }
+    };
+
+    void finalizeGoogleAuth();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [applyAuthenticatedUser, clearAuthState]);
 
   const login = useCallback((payload: { user: AuthUser }) => {
     setUser(payload.user);

@@ -1,24 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatPanelHeader } from "./chat-panel-header";
 import { ChatPanelSidebar } from "./chat-panel-sidebar";
-import { ChatPanelWelcome } from "./chat-panel-welcome";
 import { ChatPanelThread } from "./chat-panel-thread";
-import {
-  mockConversations,
-  type ChatFilter,
-  type ChatConversation,
-  type ChatMessage,
-} from "./data";
+import { ChatPanelWelcome } from "./chat-panel-welcome";
+import type { ChatFilter, ChatConversation, ChatMessage } from "./data";
 import type { ChatOpenPayload } from "@/components/chat-widget/chat-context";
-import {
-  getChatThreads,
-  getChatMessages,
-  sendChatMessage,
-  setChatThreadProduct,
-  startChatThread,
-} from "@/lib/api-client";
+import { getChatMessages, getChatThreads, sendChatMessage, setChatThreadProduct, startChatThread } from "@/lib/api-client";
 
 interface ChatPanelProps {
   onMinimize: () => void;
@@ -26,16 +15,14 @@ interface ChatPanelProps {
   onPayloadConsumed?: () => void;
 }
 
-function toSlug(value?: string | null) {
-  if (!value) return "shop";
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
-
 function isNumericId(value: string | null) {
   return Boolean(value && /^\d+$/.test(value));
+}
+
+function getStreamBaseUrl() {
+  const raw = (process.env.NEXT_PUBLIC_LARAVEL_API_URL ?? "").replace(/\/+$/, "");
+  if (!raw) return "";
+  return raw.endsWith("/api") ? raw : `${raw}/api`;
 }
 
 function normalizeProduct(product?: any) {
@@ -46,39 +33,40 @@ function normalizeProduct(product?: any) {
   };
 }
 
-function mapThreadToConversation(t: any, fallback?: ChatConversation): ChatConversation {
-  const normalizedProduct = normalizeProduct(t.product) || fallback?.product;
-  const normalizedRecent = Array.isArray(t.recentProducts)
-    ? t.recentProducts.map((p: any) => normalizeProduct(p))
-    : fallback?.recentProducts || [];
+function mapApiMessage(message: any): ChatMessage {
   return {
-    id: t.id,
-    name: t.shopName,
-    avatarUrl: t.avatarUrl || "/images/stores/profile/default.webp",
-    lastMessage: t.lastMessage || "",
-    lastMessageAt: t.lastMessageAt || "",
-    unread: t.unread,
+    id: String(message.id),
+    text: message.text ?? "",
+    isFromUser: message.sender_type === "buyer",
+    senderType: message.sender_type ?? "seller",
+    senderLabel: message.sender_label,
+    timestamp: message.timestamp ?? "",
+  };
+}
+
+function mapThreadToConversation(thread: any, fallback?: ChatConversation): ChatConversation {
+  const normalizedProduct = normalizeProduct(thread.product) || fallback?.product;
+  const normalizedRecent = Array.isArray(thread.recentProducts)
+    ? thread.recentProducts.map((product: any) => normalizeProduct(product)).filter(Boolean)
+    : fallback?.recentProducts || [];
+
+  return {
+    id: String(thread.id),
+    name: thread.shopName || fallback?.name || "Shop",
+    avatarUrl: thread.avatarUrl || fallback?.avatarUrl || "/images/stores/profile/default.webp",
+    lastMessage: thread.lastMessage || "",
+    lastMessageAt: thread.lastMessageAt || "",
+    unread: Boolean(thread.unread),
     pinned: fallback?.pinned ?? false,
     product: normalizedProduct,
-    recentProducts: normalizedRecent.filter(Boolean),
+    recentProducts: normalizedRecent,
     isTyping: fallback?.isTyping ?? false,
-    assistantIntro:
-      fallback?.assistantIntro ||
-      "Hi there! Thanks for your interest! Want to know more about this product? I’ve got all the details you need — just ask away!",
-    assistantTimestamp: t.lastMessageAt || fallback?.assistantTimestamp || "now",
-    suggestions: fallback?.suggestions || [
-      "Can I request for an exchange instead of raising a refund?",
-      "Can I add more products to a paid order?",
-      "Can you wrap my parcel using a bubble wrap or cardboard?",
-    ],
     messages: fallback?.messages || [],
   };
 }
 
 export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPanelProps) {
-  const [conversations, setConversations] = useState<ChatConversation[]>(() =>
-    mockConversations.map((c) => ({ ...c, messages: [...c.messages] }))
-  );
+  const [conversations, setConversations] = useState<ChatConversation[]>([]);
   const [filter, setFilter] = useState<ChatFilter>("all");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [listOnly, setListOnly] = useState(false);
@@ -111,10 +99,10 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
   useEffect(() => {
     getChatThreads()
       .then((res) => {
-        const threads = res.threads.map((t) => mapThreadToConversation(t));
-        if (threads.length > 0) {
-          setConversations(threads);
-          if (!selectedId) setSelectedId(threads[0].id);
+        const threads = res.threads.map((thread) => mapThreadToConversation(thread));
+        setConversations(threads);
+        if (!selectedId && threads.length > 0) {
+          setSelectedId(threads[0].id);
         }
       })
       .catch(() => {});
@@ -124,102 +112,39 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
     const interval = setInterval(() => {
       getChatThreads()
         .then((res) => {
-          const apiThreads: ChatConversation[] = res.threads.map((t: any) => {
-            const existing = conversationsRef.current.find((c) => c.id === t.id);
-            return mapThreadToConversation(t, existing);
-          });
-          setConversations((prev) => {
-            const existingIds = new Set(apiThreads.map((t) => t.id));
-            const extras = prev.filter((c) => !existingIds.has(c.id));
-            return [...apiThreads, ...extras];
-          });
+          setConversations((prev) =>
+            res.threads.map((thread) => {
+              const existing = prev.find((conversation) => conversation.id === String(thread.id));
+              return mapThreadToConversation(thread, existing);
+            })
+          );
         })
         .catch(() => {});
     }, 10000);
+
     return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
     if (!openPayload) return;
-    if (openPayload.vendorId) {
-      startChatThread(openPayload.vendorId, openPayload.product?.id)
-        .then((res) => {
-          const t = res.thread;
-          const next: ChatConversation = mapThreadToConversation(t);
-          setConversations((prev) => {
-            const exists = prev.find((c) => c.id === t.id);
-            return exists ? prev.map((c) => (c.id === t.id ? { ...c, ...next } : c)) : [next, ...prev];
-          });
-          setSelectedId(t.id);
-        })
-        .finally(() => onPayloadConsumed?.());
+
+    if (!openPayload.vendorId) {
+      onPayloadConsumed?.();
       return;
     }
-    const shopName = openPayload.shopName || "Shop";
-    const shopSlug = openPayload.shopSlug || shopName;
-    const convoId = `shop-${toSlug(shopSlug)}`;
-    const fallbackProducts = [
-      {
-        title: "WRIMO Flex Run Sneakers",
-        image: "/images/products/2.webp",
-        price: "RM19.90",
-        originalPrice: "RM59.00",
-        badges: ["Popular"],
-        href: "/product/wrimo-flex-run",
-      },
-    ];
-    setConversations((prev) => {
-      const existing = prev.find((c) => c.id === convoId);
-      if (existing) {
-        return prev.map((c) =>
-          c.id === convoId
-            ? {
-                ...c,
-                name: shopName,
-                product: openPayload.product ?? c.product,
-                recentProducts: openPayload.product
-                  ? [openPayload.product, ...(c.recentProducts || fallbackProducts)]
-                  : c.recentProducts,
-                lastMessage: c.lastMessage || "Hi there! Thanks for your interest...",
-                lastMessageAt: c.lastMessageAt || "now",
-              }
-            : c
-        );
-      }
-      const intro =
-        "Hi there! Thanks for your interest! Want to know more about this product? I’ve got all the details you need — just ask away!";
-      return [
-        {
-          id: convoId,
-          name: shopName,
-          avatarUrl: "/images/profile/shop/default.webp",
-          lastMessage: "Hi there! Thanks for your interest...",
-          lastMessageAt: "now",
-          unread: false,
-          pinned: false,
-          product: openPayload.product,
-          recentProducts: openPayload.product ? [openPayload.product, ...fallbackProducts] : fallbackProducts,
-          assistantIntro: intro,
-          assistantTimestamp: "now",
-          suggestions: [
-            "Can I request for an exchange instead of raising a refund?",
-            "Can I add more products to a paid order?",
-            "Can you wrap my parcel using a bubble wrap or cardboard?",
-          ],
-          messages: [
-            {
-              id: `m-${Date.now()}`,
-              text: "Hi there! Thanks for your interest!",
-              isFromUser: false,
-              timestamp: "now",
-            },
-          ],
-        },
-        ...prev,
-      ];
-    });
-    setSelectedId(convoId);
-    onPayloadConsumed?.();
+
+    startChatThread(openPayload.vendorId, openPayload.product?.id)
+      .then((res) => {
+        const nextConversation = mapThreadToConversation(res.thread);
+        setConversations((prev) => {
+          const existing = prev.find((conversation) => conversation.id === nextConversation.id);
+          return existing
+            ? prev.map((conversation) => (conversation.id === nextConversation.id ? { ...conversation, ...nextConversation } : conversation))
+            : [nextConversation, ...prev];
+        });
+        setSelectedId(nextConversation.id);
+      })
+      .finally(() => onPayloadConsumed?.());
   }, [openPayload, onPayloadConsumed]);
 
   useEffect(() => {
@@ -229,21 +154,18 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
 
   useEffect(() => {
     if (!selectedId || !isNumericId(selectedId)) return;
+
     getChatMessages(selectedId)
       .then((res) => {
         setConversations((prev) =>
-          prev.map((c) =>
-            c.id === selectedId
+          prev.map((conversation) =>
+            conversation.id === selectedId
               ? {
-                  ...c,
-                  messages: res.messages.map((m) => ({
-                    id: m.id,
-                    text: m.text,
-                    isFromUser: m.sender_type === "buyer",
-                    timestamp: m.timestamp,
-                  })),
+                  ...conversation,
+                  unread: false,
+                  messages: res.messages.map(mapApiMessage),
                 }
-              : c
+              : conversation
           )
         );
       })
@@ -252,38 +174,33 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
 
   useEffect(() => {
     if (!selectedId || !isNumericId(selectedId)) return;
-    const base = process.env.NEXT_PUBLIC_LARAVEL_API_URL;
-    if (!base) return;
-    const thread = conversationsRef.current.find((c) => c.id === selectedId);
+
+    const streamBase = getStreamBaseUrl();
+    if (!streamBase) return;
+
+    const thread = conversationsRef.current.find((conversation) => conversation.id === selectedId);
     const lastId = thread?.messages
-      .map((m) => Number(m.id))
+      .map((message) => Number(message.id))
       .filter((id) => !Number.isNaN(id))
       .reduce((max, id) => (id > max ? id : max), 0);
-    const url = `${base}/v1/chat/threads/${selectedId}/stream${lastId && lastId > 0 ? `?last_id=${lastId}` : ""}`;
+    const url = `${streamBase}/v1/chat/threads/${selectedId}/stream${lastId && lastId > 0 ? `?last_id=${lastId}` : ""}`;
     const source = new EventSource(url, { withCredentials: true });
 
     source.addEventListener("message", (event) => {
       try {
-        const data = JSON.parse(event.data);
+        const data = mapApiMessage(JSON.parse(event.data));
         setConversations((prev) =>
-          prev.map((c) => {
-            if (c.id !== selectedId) return c;
-            if (c.messages.some((m) => m.id === data.id)) return c;
+          prev.map((conversation) => {
+            if (conversation.id !== selectedId) return conversation;
+            if (conversation.messages.some((message) => message.id === data.id)) return conversation;
+
             return {
-              ...c,
+              ...conversation,
               isTyping: false,
-              lastMessage: data.text,
-              lastMessageAt: data.timestamp || c.lastMessageAt,
               unread: false,
-              messages: [
-                ...c.messages,
-                {
-                  id: data.id,
-                  text: data.text,
-                  isFromUser: data.sender_type === "buyer",
-                  timestamp: data.timestamp,
-                },
-              ],
+              lastMessage: data.text,
+              lastMessageAt: data.timestamp || conversation.lastMessageAt,
+              messages: [...conversation.messages, data],
             };
           })
         );
@@ -296,7 +213,9 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
       try {
         const data = JSON.parse(event.data);
         setConversations((prev) =>
-          prev.map((c) => (c.id === selectedId ? { ...c, isTyping: Boolean(data.typing) } : c))
+          prev.map((conversation) =>
+            conversation.id === selectedId ? { ...conversation, isTyping: Boolean(data.typing) } : conversation
+          )
         );
       } catch {
         // ignore malformed events
@@ -314,45 +233,46 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
 
   useEffect(() => {
     if (!selectedId || !isNumericId(selectedId)) return;
+
     const interval = setInterval(() => {
-      const thread = conversationsRef.current.find((c) => c.id === selectedId);
+      const thread = conversationsRef.current.find((conversation) => conversation.id === selectedId);
       const lastId = thread?.messages
-        .map((m) => Number(m.id))
+        .map((message) => Number(message.id))
         .filter((id) => !Number.isNaN(id))
         .reduce((max, id) => (id > max ? id : max), 0);
+
       getChatMessages(selectedId, lastId && lastId > 0 ? lastId : undefined)
         .then((res) => {
           if (!res.messages || res.messages.length === 0) return;
+
           setConversations((prev) =>
-            prev.map((c) => {
-              if (c.id !== selectedId) return c;
-              const incoming = res.messages.map((m) => ({
-                id: m.id,
-                text: m.text,
-                isFromUser: m.sender_type === "buyer",
-                timestamp: m.timestamp,
-              }));
-              const existingIds = new Set(c.messages.map((m) => String(m.id)));
-              const toAdd = incoming.filter((m) => !existingIds.has(String(m.id)));
-              if (toAdd.length === 0) return c;
+            prev.map((conversation) => {
+              if (conversation.id !== selectedId) return conversation;
+
+              const incoming = res.messages.map(mapApiMessage);
+              const existingIds = new Set(conversation.messages.map((message) => String(message.id)));
+              const toAdd = incoming.filter((message) => !existingIds.has(String(message.id)));
+
+              if (toAdd.length === 0) return conversation;
+
               return {
-                ...c,
-                lastMessage: incoming[incoming.length - 1].text,
-                lastMessageAt: incoming[incoming.length - 1].timestamp || c.lastMessageAt,
+                ...conversation,
                 unread: false,
-                messages: [...c.messages, ...toAdd],
+                isTyping: false,
+                lastMessage: toAdd[toAdd.length - 1].text,
+                lastMessageAt: toAdd[toAdd.length - 1].timestamp || conversation.lastMessageAt,
+                messages: [...conversation.messages, ...toAdd],
               };
             })
           );
         })
         .catch(() => {});
     }, 4500);
+
     return () => clearInterval(interval);
   }, [selectedId]);
 
-  const selected = selectedId
-    ? conversations.find((c) => c.id === selectedId) ?? null
-    : null;
+  const selected = selectedId ? conversations.find((conversation) => conversation.id === selectedId) ?? null : null;
   const showSidebar = isCompact ? listOnly : true;
   const showThread = isCompact ? !listOnly : true;
 
@@ -361,8 +281,8 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
   }, []);
 
   const handleTransitionEnd = useCallback(
-    (e: React.TransitionEvent) => {
-      if (e.propertyName === "opacity" && exiting) {
+    (event: React.TransitionEvent) => {
+      if (event.propertyName === "opacity" && exiting) {
         onMinimize();
       }
     },
@@ -371,61 +291,74 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
 
   const handleSendMessage = useCallback(
     (text: string) => {
-      if (!selectedId) return;
-      const timeLabel = new Date().toLocaleTimeString("en-US", {
+      if (!selectedId || !isNumericId(selectedId)) return;
+
+      const timestamp = new Date().toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
       });
       const tempId = `tmp-${Date.now()}`;
-      const newMsg: ChatMessage = {
+      const tempMessage: ChatMessage = {
         id: tempId,
         text,
         isFromUser: true,
-        timestamp: timeLabel,
+        senderType: "buyer",
+        senderLabel: "You",
+        timestamp,
       };
+
       setConversations((prev) =>
-        prev.map((c) =>
-          c.id === selectedId
+        prev.map((conversation) =>
+          conversation.id === selectedId
             ? {
-                ...c,
-                lastMessage: text,
-                lastMessageAt: timeLabel,
+                ...conversation,
                 unread: false,
                 isTyping: false,
-                messages: [...c.messages, newMsg],
+                lastMessage: text,
+                lastMessageAt: timestamp,
+                messages: [...conversation.messages, tempMessage],
               }
-            : c
+            : conversation
         )
       );
-      if (!isNumericId(selectedId)) return;
-      const thread = conversations.find((c) => c.id === selectedId);
+
+      const thread = conversationsRef.current.find((conversation) => conversation.id === selectedId);
+
       sendChatMessage(selectedId, text, thread?.product?.id)
         .then((res) => {
+          const persistedMessage = mapApiMessage(res.message);
+
           setConversations((prev) =>
-            prev.map((c) =>
-              c.id === selectedId
+            prev.map((conversation) =>
+              conversation.id === selectedId
                 ? {
-                    ...c,
-                    lastMessage: res.message.text,
-                    lastMessageAt: res.message.timestamp || c.lastMessageAt,
+                    ...conversation,
+                    lastMessage: persistedMessage.text,
+                    lastMessageAt: persistedMessage.timestamp || conversation.lastMessageAt,
                     messages: [
-                      ...c.messages.filter((m) => m.id !== tempId),
-                      {
-                        id: res.message.id,
-                        text: res.message.text,
-                        isFromUser: true,
-                        timestamp: res.message.timestamp,
-                      },
+                      ...conversation.messages.filter((message) => message.id !== tempId),
+                      persistedMessage,
                     ],
                   }
-                : c
+                : conversation
             )
           );
         })
-        .catch(() => {});
+        .catch(() => {
+          setConversations((prev) =>
+            prev.map((conversation) =>
+              conversation.id === selectedId
+                ? {
+                    ...conversation,
+                    messages: conversation.messages.filter((message) => message.id !== tempId),
+                  }
+                : conversation
+            )
+          );
+        });
     },
-    [selectedId, conversations]
+    [selectedId]
   );
 
   return (
@@ -439,7 +372,7 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
       onTransitionEnd={handleTransitionEnd}
       style={{ transitionProperty: "opacity" }}
     >
-      <ChatPanelHeader onShowListOnly={() => setListOnly((v) => !v)} onMinimize={handleMinimize} />
+      <ChatPanelHeader onShowListOnly={() => setListOnly((value) => !value)} onMinimize={handleMinimize} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <div className="relative flex flex-1 overflow-hidden">
           {showSidebar && (
@@ -451,7 +384,9 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
               onSelectConversation={(id) => {
                 setSelectedId(id);
                 setConversations((prev) =>
-                  prev.map((c) => (c.id === id ? { ...c, unread: false, isTyping: false } : c))
+                  prev.map((conversation) =>
+                    conversation.id === id ? { ...conversation, unread: false, isTyping: false } : conversation
+                  )
                 );
                 if (isCompact) {
                   setListOnly(false);
@@ -473,22 +408,21 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
                 <ChatPanelThread
                   conversation={selected}
                   onSendMessage={handleSendMessage}
-                  onToggleListOnly={() => setListOnly((v) => !v)}
+                  onToggleListOnly={() => setListOnly((value) => !value)}
                   onUpdateProduct={(product) => {
                     setConversations((prev) =>
-                      prev.map((c) =>
-                        c.id === selected.id ? { ...c, product } : c
-                      )
+                      prev.map((conversation) => (conversation.id === selected.id ? { ...conversation, product } : conversation))
                     );
+
                     if (product.id && isNumericId(selected.id)) {
                       setChatThreadProduct(selected.id, product.id)
                         .then((res) => {
-                          const normalized = (res.recent_products || []).map((p: any) => normalizeProduct(p));
+                          const normalized = (res.recent_products || []).map((item: any) => normalizeProduct(item)).filter(Boolean);
                           setConversations((prev) =>
-                            prev.map((c) =>
-                              c.id === selected.id
-                                ? { ...c, recentProducts: normalized.filter(Boolean) || c.recentProducts }
-                                : c
+                            prev.map((conversation) =>
+                              conversation.id === selected.id
+                                ? { ...conversation, recentProducts: normalized.length > 0 ? normalized : conversation.recentProducts }
+                                : conversation
                             )
                           );
                         })

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "./auth-context";
 import { loginWithEmailPassword, getGoogleAuthRedirectUrl } from "@/lib/api-client";
@@ -25,6 +25,13 @@ export function LoginFormSection() {
   
   // Get redirect URL from query parameter
   const nextUrl = searchParams.get('next') || '/';
+  const oauthError = searchParams.get("error");
+
+  useEffect(() => {
+    if (oauthError) {
+      setError(oauthError);
+    }
+  }, [oauthError]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,7 +74,7 @@ export function LoginFormSection() {
   };
 
   const handleGoogleLogin = () => {
-    const url = getGoogleAuthRedirectUrl();
+    const url = getGoogleAuthRedirectUrl(nextUrl);
     if (typeof window !== "undefined") {
       window.location.href = url;
     }

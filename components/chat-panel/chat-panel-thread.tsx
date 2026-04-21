@@ -114,7 +114,6 @@ export function ChatPanelThread({
   };
 
   const product = conversation.product;
-  const suggestions = conversation.suggestions || [];
   const recentProducts = conversation.recentProducts || (product ? [product] : []);
 
   return (
@@ -174,10 +173,6 @@ export function ChatPanelThread({
       )}
 
       <div ref={listRef} className="flex-1 overflow-y-auto bg-[rgb(245,245,245)] px-3 py-4 sm:px-4">
-        <div className="mb-4 flex justify-center">
-          <span className="rounded-full bg-white px-4 py-1 text-xs text-neutral-500 shadow">Today</span>
-        </div>
-
         <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-700 sm:flex-nowrap sm:px-4">
           <span className="text-amber-500">ⓘ</span>
           <span className="flex-1 text-amber-700">
@@ -188,56 +183,40 @@ export function ChatPanelThread({
           </a>
         </div>
 
-        {conversation.assistantIntro && (
-          <div className="mb-4 max-w-[92%] rounded-lg bg-white p-4 text-sm text-zinc-800 shadow-sm sm:max-w-[85%]">
-            <div className="text-base font-medium">{conversation.assistantIntro}</div>
-            {suggestions.length > 0 && (
-              <>
-                <div className="mt-4 border-t border-neutral-100 pt-3 text-sm text-neutral-700">
-                  You may want to ask:
-                </div>
-                <div className="mt-2 space-y-2">
-                  {suggestions.map((q) => (
-                    <button
-                      type="button"
-                      key={q}
-                      onClick={() => onSendMessage(q)}
-                      className="block w-full text-left text-blue-600 hover:underline"
-                    >
-                      {q}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <button className="h-9 rounded border border-orange-200 bg-orange-50 px-4 text-sm font-medium text-orange-600">
-                Chat with Seller
-              </button>
-              <button className="h-9 w-9 rounded border border-neutral-200 text-neutral-400">👍</button>
-              <button className="h-9 w-9 rounded border border-neutral-200 text-neutral-400">👎</button>
-            </div>
-            <div className="mt-2 text-xs text-neutral-400">
-              Sent by Chat AI Assistant{" "}
-              <span className="float-right">{conversation.assistantTimestamp}</span>
-            </div>
-          </div>
-        )}
-
         <div className="flex flex-col gap-3">
+          {threadMessages.length === 0 && (
+            <div className="max-w-[92%] rounded-lg bg-white px-4 py-3 text-sm text-neutral-600 shadow-sm sm:max-w-[85%]">
+              Start the conversation here. Seller replies and customer support replies will appear in this thread.
+            </div>
+          )}
           {threadMessages.map((msg, index) => (
             <div
               key={`${conversation.id}-${String(msg.id)}-${index}-${msg.timestamp}`}
               className={`max-w-[92%] rounded-lg px-3 py-2 text-sm sm:max-w-[85%] ${
                 msg.isFromUser
                   ? "ml-auto bg-red-500 text-white"
-                  : "mr-auto bg-white text-zinc-800 shadow-sm"
+                  : msg.senderType === "admin"
+                    ? "mr-auto border border-sky-100 bg-sky-50 text-sky-900"
+                    : "mr-auto bg-white text-zinc-800 shadow-sm"
               }`}
             >
+              {!msg.isFromUser && (
+                <p
+                  className={`mb-1 text-[11px] font-medium uppercase tracking-[0.08em] ${
+                    msg.senderType === "admin" ? "text-sky-600" : "text-neutral-400"
+                  }`}
+                >
+                  {msg.senderLabel || (msg.senderType === "admin" ? "Customer Support" : conversation.name)}
+                </p>
+              )}
               <p className="[word-break:break-word]">{msg.text}</p>
               <p
                 className={`mt-1 text-xs ${
-                  msg.isFromUser ? "text-red-100" : "text-neutral-400"
+                  msg.isFromUser
+                    ? "text-red-100"
+                    : msg.senderType === "admin"
+                      ? "text-sky-500"
+                      : "text-neutral-400"
                 }`}
               >
                 {msg.timestamp}
