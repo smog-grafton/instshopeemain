@@ -1,8 +1,7 @@
 import { Suspense } from "react";
 import { TopNavbar } from "@/components/top-navbar";
 import { HeaderWithSearch } from "@/components/header-with-search";
-import { ShopsResultsSection } from "@/components/search-results/shops-results-section";
-import { getShopsResultsSectionData } from "@/components/search-results/shops-results-section/data";
+import { LiveShopsResultsSection } from "@/components/search-results/shops-results-section/live-shops-results-section";
 import { SearchProductSection } from "@/components/search-results/search-product-section";
 import { SearchFilterSidebar } from "@/components/search-results/search-filter-sidebar";
 import { SiteFooter } from "@/components/site-footer";
@@ -20,9 +19,6 @@ interface SearchPageProps {
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const keyword = params.keyword ?? "";
-  const shopsData = keyword
-    ? getShopsResultsSectionData(keyword)
-    : { keyword: "", moreShopsHref: "/search?type=shop", cards: [] };
 
   return (
     <div className="min-h-screen bg-[rgb(245,245,245)]">
@@ -34,15 +30,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           <SearchFilterSidebar />
           <div role="main" className="flex-1 min-w-0 flex flex-col gap-5">
             {/* Shops related to keyword - same width/edge as search product section below */}
-            {shopsData.cards.length > 0 && (
-              <div className="rounded-sm bg-white shadow-sm px-5">
-                <ShopsResultsSection
-                  keyword={shopsData.keyword}
-                  moreShopsHref={shopsData.moreShopsHref}
-                  cards={shopsData.cards}
-                />
-              </div>
-            )}
+            <LiveShopsResultsSection keyword={keyword} />
             {/* Search product results: heading, filter/sort bar, 5-col grid, pagination */}
             <div className="px-5 py-5">
               <Suspense

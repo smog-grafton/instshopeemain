@@ -21,7 +21,7 @@ export interface NavItemChild {
 export interface NavItem {
   label: string;
   href: string;
-  iconPath: string;
+  icon: "user" | "balance" | "order" | "message" | "site" | "billing" | "wallet" | "bank" | "address" | "store" | "history";
   children?: NavItemChild[];
 }
 
@@ -44,48 +44,73 @@ export const APPLY_FOR_STORE_HREF = (() => {
 
 export const SIDEBAR_NAV: NavItem[] = [
   {
-    label: "My Account",
+    label: "My account",
     href: "/user/account/profile",
-    iconPath: USER_ACCOUNT_ICON,
-    children: [
-      { label: "Profile", href: "/user/account/profile" },
-      { label: "Wallet", href: "/user/wallet" },
-      { label: "Banks & Cards", href: "/user/account/payment" },
-      { label: "Addresses", href: "/user/account/address" },
-      { label: "Change Password", href: "/user/account/password" },
-      { label: "Notification Settings", href: "/user/setting/notification/" },
-      { label: "Privacy Settings", href: "/user/setting/privacy" },
-    ],
+    icon: "user",
   },
   {
-    label: "My Purchase",
-    href: "/user/purchase",
-    iconPath: MYPURCHASE_ICON,
+    label: "Current balance",
+    href: "/user/current-balance",
+    icon: "balance",
   },
   {
-    label: "Notifications",
-    href: "/user/notifications/order",
-    iconPath: NOTIFICATION_ICON,
-    children: [
-      { label: "Order Updates", href: "/user/notifications/order" },
-      { label: "Promotions", href: "/user/notifications/promotion" },
-      { label: "Wallet Updates", href: "/user/notifications/wallet" },
-      { label: "Shopee Updates", href: "/user/notifications/shopee" },
-    ],
+    label: "My Order",
+    href: "/user/my-order",
+    icon: "order",
   },
   {
-    label: "My Vouchers",
-    href: "/user/voucher-wallet",
-    iconPath: MYVOUCHER_ICON,
+    label: "My message",
+    href: "/user/my-message",
+    icon: "message",
   },
   {
-    label: "My Shopee Coins",
-    href: "/user/coin",
-    iconPath: COIN_ICON,
+    label: "Site message",
+    href: "/user/site-message",
+    icon: "site",
   },
   {
-    label: "Apply for a store",
-    href: APPLY_FOR_STORE_HREF,
-    iconPath: APPLY_STORE_ICON,
+    label: "Billing Details",
+    href: "/user/billing-details",
+    icon: "billing",
+  },
+  {
+    label: "Recharge record",
+    href: "/user/recharge-record",
+    icon: "wallet",
+  },
+  {
+    label: "Withdrawals record",
+    href: "/user/withdrawals-record",
+    icon: "wallet",
+  },
+  {
+    label: "Wallet management",
+    href: "/user/wallet-management",
+    icon: "wallet",
+  },
+  {
+    label: "Bank card management",
+    href: "/user/bank-card-management",
+    icon: "bank",
+  },
+  {
+    label: "Shipping address management",
+    href: "/user/shipping-address-management",
+    icon: "address",
+  },
+  {
+    label: "Apply for merchant",
+    href: "/user/apply-for-merchant",
+    icon: "store",
+  },
+  {
+    label: "Stores you follow",
+    href: "/user/stores-you-follow",
+    icon: "store",
+  },
+  {
+    label: "Browsing history",
+    href: "/user/browsing-history",
+    icon: "history",
   },
 ];

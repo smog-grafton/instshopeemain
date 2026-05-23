@@ -197,8 +197,15 @@ export function resolvePostAuthHref(
 export function getAccountMenuItems(user?: AccountSurfaceUser | null): AccountMenuItem[] {
   if (!shouldUseSellerPortal(user)) {
     return [
-      { label: "My Account", href: "/user/account/profile" },
-      { label: "My Purchase", href: "/user/purchase" },
+      { label: "My account", href: "/user/account/profile" },
+      { label: "Current balance", href: "/user/current-balance" },
+      { label: "My Order", href: "/user/my-order" },
+      { label: "My message", href: "/user/my-message" },
+      { label: "Site message", href: "/user/site-message" },
+      { label: "Billing Details", href: "/user/billing-details" },
+      { label: "Wallet management", href: "/user/wallet-management" },
+      { label: "Shipping address management", href: "/user/shipping-address-management" },
+      { label: "Apply for merchant", href: "/user/apply-for-merchant" },
     ];
   }
 

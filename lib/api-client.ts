@@ -354,12 +354,30 @@ export interface ApiProductDetail extends ApiProduct {
 
 export interface ApiProductsResponse {
   products: ApiProduct[];
+  stores?: ApiSearchStore[];
   pagination: {
     page: number;
     per_page: number;
     total: number;
     last_page: number;
   };
+}
+
+export interface ApiSearchStore {
+  id: string;
+  name: string;
+  slug: string;
+  avatarSrc: string;
+  isMall?: boolean;
+  rating: number;
+  followers: string;
+  products: Array<{
+    title: string;
+    href: string;
+    imageSrc: string;
+    price: string;
+    sold: string;
+  }>;
 }
 
 function normalizeApiProduct<T extends ApiProduct>(product: T): T {
@@ -979,6 +997,14 @@ export async function getBuyerWallet() {
   );
 }
 
+export async function getBuyerWalletTransactions(page = 1) {
+  return apiFetch<{ success: boolean; transactions: any }>(
+    `/wallet/transactions?scope=buyer&page=${page}`,
+    {},
+    true,
+  );
+}
+
 export async function getWalletDepositMethods() {
   return apiFetch<{ success: boolean; methods: Array<{ id: number; key: string; name: string; type: string; logo_url?: string | null; config?: Record<string, unknown> }> }>(
     "/wallet/deposit-methods?scope=buyer",
@@ -1191,6 +1217,14 @@ export async function getNotifications(type?: string): Promise<ApiNotification[]
   const query = searchParams.toString();
   const response = await apiFetch<{ notifications: ApiNotification[] }>(`/notifications${query ? `?${query}` : ""}`, {}, true);
   return response.notifications;
+}
+
+export async function getFollowedStores() {
+  return apiFetch<{ success: boolean; stores: any[] }>("/user/followed-stores", {}, true);
+}
+
+export async function getBrowsingHistory() {
+  return apiFetch<{ success: boolean; items: any[] }>("/user/browsing-history", {}, true);
 }
 
 // Coins types and functions

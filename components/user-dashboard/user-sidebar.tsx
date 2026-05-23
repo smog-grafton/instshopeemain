@@ -10,6 +10,21 @@ import type { ApiUserProfile } from "@/lib/api-client";
 import { useAuth } from "@/components/auth/auth-context";
 import { isBackendImage } from "@/lib/utils";
 
+function NavIcon({ name }: { name: NavItem["icon"] }) {
+  const common = "h-5 w-5";
+  if (name === "user") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>;
+  if (name === "balance") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M4 7h16v13H4zM4 9l8-5 8 5M8 14h8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  if (name === "order") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M7 4h10v16H7zM9 8h6M9 12h6M9 16h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>;
+  if (name === "message") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M5 6h14v10H8l-3 3zM8 10h8M8 13h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  if (name === "site") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M12 22a2.5 2.5 0 002.5-2.5h-5A2.5 2.5 0 0012 22zM18 16V10a6 6 0 10-12 0v6l-2 2h16z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  if (name === "billing") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2zM9 8h6M9 12h6M9 16h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  if (name === "wallet") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M4 7h15a1 1 0 011 1v11H5a2 2 0 01-2-2V6a2 2 0 012-2h12M16 13h4" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  if (name === "bank") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M4 10h16M6 10v8M10 10v8M14 10v8M18 10v8M3 20h18M12 4l8 4H4z" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  if (name === "address") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M12 21s7-5.2 7-11a7 7 0 10-14 0c0 5.8 7 11 7 11zM12 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" stroke="currentColor" strokeWidth="1.7" /></svg>;
+  if (name === "store") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M4 10h16l-1.5-5h-13zM6 10v10h12V10M9 20v-6h6v6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M5 5h14v14H5zM8 9h8M8 13h8M8 17h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>;
+}
+
 function EditProfileIcon() {
   return (
     <svg
@@ -73,8 +88,8 @@ function SidebarNavLink({
           onClick={onNavigate}
           className={`cursor-pointer capitalize items-center no-underline transition-colors duration-100 ease-in-out flex mb-4 text-black/87 active:outline-0 hover:outline-0 hover:text-red-500 ${isActive ? "text-red-500" : ""}`}
         >
-          <div className="text-white text-center shrink-0 justify-center items-center w-5 h-5 leading-5 flex mr-2.5 rounded-[50%] overflow-hidden">
-            <Image src={item.iconPath} alt="" width={20} height={20} className="align-baseline inline w-full h-full object-contain" />
+          <div className="shrink-0 justify-center items-center w-5 h-5 leading-5 flex mr-2.5 text-blue-600">
+            <NavIcon name={item.icon} />
           </div>
           <div className="leading-4">
             <span className="font-medium mr-1.5">{item.label}</span>
