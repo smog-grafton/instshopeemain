@@ -186,7 +186,7 @@ export function ChatPanelThread({
         <div className="flex flex-col gap-3">
           {threadMessages.length === 0 && (
             <div className="max-w-[92%] rounded-lg bg-white px-4 py-3 text-sm text-neutral-600 shadow-sm sm:max-w-[85%]">
-              Start the conversation here. Seller replies and customer support replies will appear in this thread.
+              Start the conversation here. Seller replies and customer support replies will appear in this thread. Email shopeecustomerservice58@gmail.com for support.
             </div>
           )}
           {threadMessages.map((msg, index) => (

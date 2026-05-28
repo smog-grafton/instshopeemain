@@ -44,6 +44,19 @@ export function formatCompact(value: number): string {
   return String(value);
 }
 
+export function resolveBackendAssetUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  if (path.startsWith("http://") || path.startsWith("https://")) return path;
+
+  const apiUrl = process.env.NEXT_PUBLIC_LARAVEL_API_URL || "";
+  if (!apiUrl) return null;
+
+  const baseUrl = apiUrl.replace(/\/api\/?$/, "").replace(/\/+$/, "");
+  if (path.startsWith("/")) return `${baseUrl}${path}`;
+
+  return `${baseUrl}/storage/${path}`;
+}
+
 /**
  * Check if an image URL is from the backend API (needs unoptimized flag for Next.js Image)
  * Uses environment variable to detect backend URLs dynamically

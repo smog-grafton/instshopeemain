@@ -27,11 +27,12 @@ export interface NavbarConfig {
 
 /** Seller Centre URL: set via NEXT_PUBLIC_SELLER_CENTRE_URL. Never use /portal. LeftSection derives from current host when this is empty. */
 const sellerCentreUrl = process.env.NEXT_PUBLIC_SELLER_CENTRE_URL || "";
+const supportEmail = "shopeecustomerservice58@gmail.com";
 
 export const mockNavbarConfig: NavbarConfig = {
   sellerCentreUrl,
   downloadUrl: "/web/",
-  helpUrl: "https://help.shopee.com.my/my/s",
+  helpUrl: `mailto:${supportEmail}`,
   notificationsUrl: "/user/notifications/order",
   socialLinks: [
     {

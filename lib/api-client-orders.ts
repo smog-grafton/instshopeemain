@@ -13,7 +13,8 @@ export type PaymentMethodKey =
   | "google-pay"
   | "usdt-tron"
   | "btc"
-  | "usdt-eth";
+  | "usdt-eth"
+  | "eth-base";
 
 export type OrderStatus =
   | "PENDING_PAYMENT"
@@ -71,6 +72,17 @@ export interface OrderRecord {
   shippingSubtotal: number;
   shippingDiscount: number;
   totalPayment: number;
+  fulfillmentCost?: number;
+  sellerPayout?: number;
+  shippingProvider?: string | null;
+  trackingNumber?: string | null;
+  shippedAt?: string | null;
+  deliveredAt?: string | null;
+  logisticsTimeline?: {
+    label: string;
+    timestamp?: string | null;
+    completed?: boolean;
+  }[];
   currencySymbol?: string;
   createdAt: string;
 }

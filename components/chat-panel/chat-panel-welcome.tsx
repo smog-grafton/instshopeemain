@@ -75,6 +75,9 @@ export function ChatPanelWelcome() {
         Welcome to Shopee Chat
       </div>
       <div className="select-none text-sm text-zinc-400">Start chatting with our sellers now!</div>
+      <a href="mailto:shopeecustomerservice58@gmail.com" className="mt-2 text-sm font-medium text-[#ee4d2d]">
+        shopeecustomerservice58@gmail.com
+      </a>
     </div>
   );
 }

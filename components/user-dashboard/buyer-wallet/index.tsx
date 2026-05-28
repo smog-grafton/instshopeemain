@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getBuyerWallet, getWalletDepositMethods, requestBuyerWalletTopup } from "@/lib/api-client";
+import { resolveBackendAssetUrl } from "@/lib/utils";
 
 type PaymentDetailRow = {
   label: string;
@@ -99,6 +100,8 @@ const DETAIL_FIELD_KEYS = new Set([
   "note",
   "accounts",
   "bank_accounts",
+  "qr_code_path",
+  "qr_code_url",
 ]);
 
 const buildDetailCard = (source: Record<string, unknown>, index: number): PaymentDetailCard | null => {
@@ -224,6 +227,7 @@ export function BuyerWalletPage() {
     (selectedMethod?.type === "manual"
       ? "Send your payment using the details below, then upload a clear screenshot as proof so the admin team can verify and approve the top-up."
       : "Complete any gateway steps required for this method, then submit your top-up request.");
+  const methodQrCode = resolveBackendAssetUrl(getFirstValue(selectedConfig, ["qr_code_url", "qr_code_path"]));
   const manualMethods = methods.filter((method) => method.type === "manual");
   const automaticMethods = methods.filter((method) => method.type !== "manual");
   const automaticMethodNames = automaticMethods.map((method) => method.name).join(", ");
@@ -400,6 +404,16 @@ export function BuyerWalletPage() {
               <div className="text-xs font-medium uppercase tracking-wide text-gray-400">Instructions</div>
               <div className="mt-2 whitespace-pre-line">{methodInstructions}</div>
             </div>
+
+            {methodQrCode && (
+              <div className="flex justify-center rounded-lg border border-white bg-white p-4">
+                <img
+                  src={methodQrCode}
+                  alt="Recharge QR code"
+                  className="h-44 w-44 rounded border border-gray-200 object-contain p-2"
+                />
+              </div>
+            )}
 
             {detailCards.length > 0 ? (
               <div className="grid grid-cols-1 gap-3 md:grid-cols-2">

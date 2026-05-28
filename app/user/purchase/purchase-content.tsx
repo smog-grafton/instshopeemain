@@ -16,38 +16,45 @@ const NO_ORDER_IMAGE = "/images/common/user/account/no-order.png";
 
 type FilterTab =
   | "all"
-  | "to-pay"
-  | "to-ship"
-  | "to-receive"
-  | "completed"
-  | "cancelled";
+  | "pending-payments"
+  | "to-be-delivered"
+  | "awaiting-receipt"
+  | "to-be-evaluated"
+  | "refunded";
 
 function statusToTab(status: OrderStatus): FilterTab {
   switch (status) {
     case "PENDING_PAYMENT":
     case "AWAITING_CASH":
-      return "to-pay";
+      return "pending-payments";
     case "PAID":
     case "PROCESSING":
-      return "to-ship";
+      return "to-be-delivered";
     case "SHIPPED":
-      return "to-receive";
+      return "awaiting-receipt";
     case "DELIVERED":
-      return "completed";
+      return "to-be-evaluated";
     case "CANCELLED":
     default:
-      return "cancelled";
+      return "refunded";
   }
 }
 
 const TAB_LABELS: { key: FilterTab; label: string }[] = [
   { key: "all", label: "All" },
-  { key: "to-pay", label: "To Pay" },
-  { key: "to-ship", label: "To Ship" },
-  { key: "to-receive", label: "To Receive" },
-  { key: "completed", label: "Completed" },
-  { key: "cancelled", label: "Cancelled" },
+  { key: "pending-payments", label: "Pending Payments" },
+  { key: "to-be-delivered", label: "To be Delivered" },
+  { key: "awaiting-receipt", label: "Awaiting Receipt" },
+  { key: "to-be-evaluated", label: "To be Evaluated" },
+  { key: "refunded", label: "Refunded" },
 ];
+
+function formatDateTime(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString();
+}
 
 export function PurchaseContent() {
   const searchParams = useSearchParams();
@@ -173,6 +180,7 @@ export function PurchaseContent() {
                     const isHighlighted =
                       order.id === highlightedOrderId || highlightedOrderIds.includes(order.id);
                     const firstItem = order.items[0];
+                    const logistics = order.logisticsTimeline || [];
                     return (
                       <div
                         key={order.id}
@@ -188,7 +196,7 @@ export function PurchaseContent() {
                             </span>
                           </div>
                           <div className="text-xs font-medium text-[#ee4d2d] capitalize">
-                            {statusToTab(order.status).replace("-", " ")}
+                            {TAB_LABELS.find((tab) => tab.key === statusToTab(order.status))?.label || order.status}
                           </div>
                         </div>
                         <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row">
@@ -252,10 +260,56 @@ export function PurchaseContent() {
                                   disabled={confirmingOrderId === order.id}
                                   className="inline-flex h-9 items-center justify-center rounded-[2px] border border-[#ee4d2d] px-4 text-[13px] font-medium text-[#ee4d2d] disabled:cursor-not-allowed disabled:opacity-60"
                                 >
-                                  {confirmingOrderId === order.id ? "Confirming..." : "Order Received"}
+                                  {confirmingOrderId === order.id ? "Confirming..." : "Confirm the receipt of goods"}
                                 </button>
                               )}
                             </div>
+                            <div className="mt-3 grid gap-3 border-t border-zinc-100 pt-3 sm:grid-cols-3">
+                              <div>
+                                <div className="text-[11px] uppercase text-zinc-400">Upfront used</div>
+                                <div className="text-sm font-medium text-zinc-800">
+                                  {formatPrice(order.currencySymbol || "RM", order.fulfillmentCost || 0)}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-[11px] uppercase text-zinc-400">Profit on receipt</div>
+                                <div className="text-sm font-medium text-emerald-700">
+                                  {formatPrice(order.currencySymbol || "RM", order.sellerPayout || 0)}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-[11px] uppercase text-zinc-400">Tracking number</div>
+                                <div className="break-all text-sm font-medium text-zinc-800">
+                                  {order.trackingNumber || "Not available"}
+                                </div>
+                              </div>
+                            </div>
+                            {(order.shippingProvider || order.trackingNumber || logistics.length > 0) && (
+                              <div className="mt-3 border-t border-zinc-100 pt-3">
+                                <div className="mb-2 text-sm font-medium text-zinc-900">Logistics Information</div>
+                                <div className="text-xs text-zinc-600">
+                                  Shipping address: {order.address.fullName}, {order.address.streetAddress} {order.address.stateArea} {order.address.postalCode}
+                                </div>
+                                {order.trackingNumber && (
+                                  <div className="mt-1 text-xs text-zinc-600">
+                                    Tracking number: <span className="font-medium text-[#ee4d2d]">{order.trackingNumber}</span>
+                                  </div>
+                                )}
+                                <div className="mt-3 space-y-2">
+                                  {logistics.map((event, index) => (
+                                    <div key={`${event.label}-${index}`} className="grid grid-cols-[1.25rem_1fr] gap-2 text-xs">
+                                      <div className={`flex h-5 w-5 items-center justify-center rounded-full border ${index === 0 ? "border-emerald-500 text-emerald-600" : "border-zinc-300 text-zinc-400"}`}>
+                                        {index === 0 ? "✓" : index + 1}
+                                      </div>
+                                      <div>
+                                        <div className={index === 0 ? "font-medium text-emerald-700" : "text-zinc-500"}>{event.label}</div>
+                                        {event.timestamp && <div className="mt-0.5 text-[11px] text-zinc-400">{formatDateTime(event.timestamp)}</div>}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>

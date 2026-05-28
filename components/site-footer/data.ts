@@ -49,7 +49,7 @@ export const mockFooterConfig: FooterConfig = {
     {
       title: "CUSTOMER SERVICE",
       links: [
-        { text: "Help Centre", href: "https://help.shopee.com.my/portal" },
+        { text: "Help Centre", href: "mailto:shopeecustomerservice58@gmail.com" },
         {
           text: "How To Buy",
           href: "https://help.shopee.com.my/portal/article/78540-[New-to-Shopee]-How-do-I-buy-a-product-on-Shopee%3F",
@@ -74,7 +74,7 @@ export const mockFooterConfig: FooterConfig = {
         },
         {
           text: "Contact Us",
-          href: "https://help.shopee.com.my/portal/article/78961-[Customer-service]-How-do-I-contact-Shopee-Customer-Service?",
+          href: "mailto:shopeecustomerservice58@gmail.com",
         },
         {
           text: "Scam Safety Tips",

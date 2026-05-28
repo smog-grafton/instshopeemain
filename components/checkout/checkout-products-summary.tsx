@@ -219,7 +219,7 @@ export function CheckoutProductsAndSummary({
     }
 
     // Validate payment evidence for manual payment methods
-    const manualPaymentMethods: PaymentMethodKey[] = ['usdt-tron', 'btc', 'usdt-eth', 'online-banking'];
+    const manualPaymentMethods: PaymentMethodKey[] = ['usdt-tron', 'btc', 'usdt-eth', 'eth-base', 'online-banking'];
     const isManualPayment = manualPaymentMethods.includes(selectedPayment);
     if (isManualPayment) {
       if (!accountHolderName.trim()) {
