@@ -67,10 +67,10 @@ export function HomeMallSection() {
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-neutral-500">
-                    Official Stores
+                    Featured Stores
                   </div>
                   <div className="mt-1 text-sm leading-5 text-neutral-700">
-                    Trusted brands and featured shop collections from the backend catalogue.
+                    Admin-selected shops and featured collections from the backend catalogue.
                   </div>
                 </div>
                 <Link href="/mall" className="shrink-0 text-sm font-medium text-[#ee4d2d] hover:text-[#d9481c]">
