@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useState, type ReactNode } from "react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/auth-context";
 import { DashboardPageSkeleton } from "./dashboard-page-skeleton";
@@ -36,6 +37,57 @@ function getCurrentNavLabel(pathname: string): string {
   }
 
   return "Account";
+}
+
+const MOBILE_TOOLS = [
+  { label: "Orders", href: "/user/purchase", icon: "order", color: "bg-sky-100 text-sky-600" },
+  { label: "Wallet", href: "/user/wallet", icon: "wallet", color: "bg-violet-100 text-violet-600" },
+  { label: "Address", href: "/user/account/address", icon: "address", color: "bg-orange-100 text-orange-600" },
+  { label: "Messages", href: "/user/my-message", icon: "message", color: "bg-blue-100 text-blue-600" },
+  { label: "Payment Password", href: "/user/account/payment", icon: "lock", color: "bg-amber-100 text-amber-600" },
+  { label: "Login Password", href: "/user/account/password", icon: "key", color: "bg-emerald-100 text-emerald-600" },
+  { label: "Merchant", href: "/user/apply-for-merchant", icon: "store", color: "bg-rose-100 text-rose-600" },
+  { label: "Settings", href: "/user/setting/privacy", icon: "settings", color: "bg-zinc-100 text-zinc-600" },
+];
+
+function ToolIcon({ name }: { name: string }) {
+  const common = "h-5 w-5";
+  if (name === "order") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M7 4h10v16H7zM9 8h6M9 12h6M9 16h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
+  if (name === "wallet") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M4 7h15a1 1 0 011 1v11H5a2 2 0 01-2-2V6a2 2 0 012-2h12M16 13h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  if (name === "address") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M12 21s7-5.2 7-11a7 7 0 10-14 0c0 5.8 7 11 7 11zM12 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z" stroke="currentColor" strokeWidth="1.8" /></svg>;
+  if (name === "message") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M5 6h14v10H8l-3 3zM8 10h8M8 13h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  if (name === "lock") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M7 10V8a5 5 0 0110 0v2M6 10h12v10H6zM12 14v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  if (name === "key") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M14 7a4 4 0 106 6 4 4 0 00-6-6zM14 13l-8 8H3v-3l8-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  if (name === "store") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M4 10h16l-1.5-5h-13zM6 10v10h12V10M9 20v-6h6v6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zM4 12h2M18 12h2M12 4v2M12 18v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
+}
+
+function MobileAccountOverview({ name }: { name?: string | null }) {
+  return (
+    <div className="mb-4 space-y-3 lg:hidden">
+      <div className="overflow-hidden rounded-lg bg-[#ee4d2d] px-4 py-4 text-white shadow-sm">
+        <div className="text-xs font-semibold uppercase tracking-[0.12em] text-white/75">Account Centre</div>
+        <div className="mt-1 text-xl font-bold">Welcome{name ? `, ${name}` : ""}</div>
+        <div className="mt-1 max-w-[18rem] text-sm leading-5 text-white/85">Manage orders, funds, addresses, and merchant tools in one place.</div>
+      </div>
+      <div className="rounded-lg bg-white p-3 shadow-sm">
+        <div className="mb-2 flex items-center justify-between px-1">
+          <div className="text-sm font-semibold text-zinc-800">Essential Tools</div>
+          <Link href="/user/account/profile" className="text-xs font-medium text-[#ee4d2d]">Profile</Link>
+        </div>
+        <div className="grid grid-cols-4 gap-2">
+          {MOBILE_TOOLS.map((tool) => (
+            <Link key={tool.href} href={tool.href} className="flex min-w-0 flex-col items-center gap-1.5 rounded-md px-1 py-2 text-center no-underline active:bg-zinc-50">
+              <span className={`flex h-10 w-10 items-center justify-center rounded-xl ${tool.color}`}>
+                <ToolIcon name={tool.icon} />
+              </span>
+              <span className="line-clamp-2 min-h-[2rem] text-[11px] leading-4 text-zinc-700">{tool.label}</span>
+            </Link>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 /**
@@ -172,6 +224,8 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
           </div>
           <div className="w-10" aria-hidden />
         </div>
+
+        <MobileAccountOverview name={user?.name || user?.username} />
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
           <div

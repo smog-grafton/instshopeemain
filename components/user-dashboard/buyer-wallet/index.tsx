@@ -324,7 +324,7 @@ export function BuyerWalletPage() {
         <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 shadow-sm">
           <div className="text-sm font-medium text-orange-900">How manual methods work</div>
           <p className="mt-2 text-sm text-orange-800">
-            Pick a method, send the money using the backend-configured instructions, then upload a screenshot or receipt.
+            Pick a method, send the payment using the instructions shown, then upload a screenshot or receipt.
           </p>
         </div>
       </div>
@@ -333,7 +333,7 @@ export function BuyerWalletPage() {
         <div>
           <h2 className="text-sm font-semibold text-gray-800">Request top-up</h2>
           <p className="mt-1 text-xs text-gray-500">
-            Payment instructions below come from the admin payment-method setup in the backend.
+            Choose a payment method to see the correct transfer details for your top-up.
           </p>
         </div>
 
@@ -372,7 +372,7 @@ export function BuyerWalletPage() {
             </select>
             {automaticMethods.length > 0 && (
               <p className="mt-2 text-xs text-gray-500">
-                Configured in admin but not yet handled as instant wallet top-ups here: {automaticMethodNames}.
+                Instant top-up options will appear here when available: {automaticMethodNames}.
               </p>
             )}
           </div>
@@ -385,7 +385,7 @@ export function BuyerWalletPage() {
                 <div className="text-sm font-semibold text-gray-900">{selectedMethod.name}</div>
                 <p className="mt-1 text-xs text-gray-600">
                   {selectedMethod.type === "manual"
-                    ? "Send payment first, then upload proof so the admin team can verify it."
+                    ? "Send payment first, then upload proof so the finance team can verify it."
                     : "Use this gateway for your top-up request and include a reference if you receive one."}
                 </p>
               </div>
@@ -452,8 +452,8 @@ export function BuyerWalletPage() {
               </div>
             ) : (
               <div className="rounded-lg border border-dashed border-orange-200 bg-white/80 p-3 text-xs text-gray-500">
-                No custom destination details are configured for this method yet. If this gateway needs account or wallet
-                details, add them in the backend payment-method config so customers can see them here.
+                This method does not have extra destination details yet. Use the instructions above, or contact support
+                if you need help completing the transfer.
               </div>
             )}
           </div>

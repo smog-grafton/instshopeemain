@@ -71,6 +71,7 @@ export function PurchaseContent() {
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [confirmingOrderId, setConfirmingOrderId] = useState<string | null>(null);
+  const [notice, setNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const loadOrders = useCallback(async () => {
     setLoading(true);
@@ -96,10 +97,20 @@ export function PurchaseContent() {
   const hasOrders = orders.length > 0;
 
   const handleConfirmDelivery = async (orderId: string) => {
+    if (confirmingOrderId) return;
+
     try {
+      setNotice(null);
       setConfirmingOrderId(orderId);
-      await confirmOrderDelivery(orderId);
+      const updatedOrder = await confirmOrderDelivery(orderId);
+      setOrders((current) =>
+        current.map((order) => (order.id === updatedOrder.id ? updatedOrder : order))
+      );
       await loadOrders();
+      setNotice({ type: "success", text: "Receipt confirmed. The order is now complete." });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Unable to confirm receipt. Please try again.";
+      setNotice({ type: "error", text: message });
     } finally {
       setConfirmingOrderId(null);
     }
@@ -119,6 +130,18 @@ export function PurchaseContent() {
                   View and manage your orders
                 </div>
               </div>
+
+              {notice ? (
+                <div
+                  className={`mt-4 rounded-sm border px-4 py-3 text-sm ${
+                    notice.type === "success"
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                      : "border-red-200 bg-red-50 text-red-700"
+                  }`}
+                >
+                  {notice.text}
+                </div>
+              ) : null}
 
               {/* Tabs */}
               <div className="-mx-4 mt-2 overflow-x-auto border-b border-b-zinc-100 px-4 sm:mx-0 sm:px-0">
