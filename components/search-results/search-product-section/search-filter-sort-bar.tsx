@@ -104,13 +104,13 @@ export function SearchFilterSortBar({
 
   return (
     <fieldset
-      className="border-0 bg-black/[0.03] rounded-sm justify-between items-center py-[13px] px-5 flex font-normal m-0"
+      className="m-0 flex min-w-0 flex-col gap-3 rounded-sm border-0 bg-black/[0.03] px-3 py-3 font-normal sm:px-5 lg:flex-row lg:items-center lg:justify-between"
       style={{ marginLeft: 0, marginRight: 0 }}
     >
       <legend className="sr-only">Sort and pagination</legend>
-      <div className="text-[rgb(85,85,85)] mr-1">Sort by</div>
-      <div className="flex-1 flex justify-start items-stretch gap-2.5 min-w-0">
-        <section className="flex gap-2.5 ml-2.5">
+      <div className="mr-1 text-[rgb(85,85,85)]">Sort by</div>
+      <div className="flex min-w-0 flex-1 items-stretch justify-start gap-2.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:overflow-visible lg:pb-0">
+        <section className="flex gap-2.5 lg:ml-2.5">
           {SORT_OPTIONS.map((opt) => (
             <button
               key={opt.value}
@@ -135,7 +135,7 @@ export function SearchFilterSortBar({
               aria-expanded={priceOpen}
               aria-haspopup="listbox"
               onClick={() => setPriceOpen((o) => !o)}
-              className="text-left cursor-pointer box-border bg-white border-0 rounded-sm justify-between items-center min-w-[200px] h-[34px] pl-3 leading-[34px] transition-[border-color] duration-100 flex relative shadow-[0_1px_1px_rgba(0,0,0,0.02)] appearance-none overflow-visible text-black/80 text-sm font-normal"
+              className="relative box-border flex h-[34px] min-w-[150px] cursor-pointer items-center justify-between rounded-sm border-0 bg-white pl-3 text-left text-sm font-normal leading-[34px] text-black/80 shadow-[0_1px_1px_rgba(0,0,0,0.02)] transition-[border-color] appearance-none sm:min-w-[200px]"
             >
               <span>{priceLabel}</span>
               <ChevronDownIcon className="fill-[rgb(85,85,85)] w-3 h-3.5 mr-3 block relative overflow-hidden shrink-0" />
@@ -167,7 +167,7 @@ export function SearchFilterSortBar({
           </div>
         </section>
       </div>
-      <div className="flex items-center">
+      <div className="flex items-center justify-end">
         <div className="text-sm font-light">
           <span className="text-[rgb(238,77,45)]">{currentPage}</span>/<span>{totalPages}</span>
         </div>

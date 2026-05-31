@@ -18,9 +18,9 @@ export function CarouselNavButtons({
       <button
         type="button"
         onClick={onPrev}
-        className={`cursor-pointer outline-0 justify-center items-center text-xl duration-100 ease-in-out flex absolute shadow rounded-[50%] border-[none] top-2/4 left-0 bg-white w-6 h-6 leading-6 -mt-3 -translate-x-2/4 transition-all duration-300 z-[5] ${
+        className={`absolute right-12 top-2 z-[5] flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-black/5 bg-white text-xl leading-6 shadow outline-0 transition-all duration-300 ease-in-out md:left-2 md:right-auto md:top-2/4 md:h-7 md:w-7 md:-mt-3 md:text-xl ${
           showPrev
-            ? "opacity-100 scale-100 group-hover/carousel:scale-[1.75]"
+            ? "opacity-100 scale-100 md:group-hover/carousel:scale-[1.2]"
             : "opacity-0 scale-0 pointer-events-none invisible"
         }`}
         role="button"
@@ -42,9 +42,9 @@ export function CarouselNavButtons({
       <button
         type="button"
         onClick={onNext}
-        className={`cursor-pointer outline-0 justify-center items-center text-xl duration-100 ease-in-out flex absolute shadow rounded-[50%] border-[none] top-2/4 right-0 bg-white w-6 h-6 leading-6 -mt-3 translate-x-2/4 transition-all duration-300 z-[5] ${
+        className={`absolute right-3 top-2 z-[5] flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-black/5 bg-white text-xl leading-6 shadow outline-0 transition-all duration-300 ease-in-out md:right-2 md:top-2/4 md:h-7 md:w-7 md:-mt-3 md:text-xl ${
           showNext
-            ? "opacity-100 scale-100 group-hover/carousel:scale-[1.75]"
+            ? "opacity-100 scale-100 md:group-hover/carousel:scale-[1.2]"
             : "opacity-0 scale-0 pointer-events-none invisible"
         }`}
         role="button"

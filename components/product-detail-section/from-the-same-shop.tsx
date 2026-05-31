@@ -157,7 +157,7 @@ export function FromTheSameShop({ shopSlug, products }: FromTheSameShopProps) {
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="min-h-[300px] w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory touch-pan-y"
+          className="min-h-[300px] w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden snap-x snap-mandatory touch-pan-x"
         >
           <ul
             className="flex list-none flex-nowrap items-start gap-0 m-0 p-0"

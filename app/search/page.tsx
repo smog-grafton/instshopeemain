@@ -5,6 +5,7 @@ import { LiveShopsResultsSection } from "@/components/search-results/shops-resul
 import { SearchProductSection } from "@/components/search-results/search-product-section";
 import { SearchFilterSidebar } from "@/components/search-results/search-filter-sidebar";
 import { SiteFooter } from "@/components/site-footer";
+import { StorefrontMobileDock } from "@/components/storefront-mobile-dock";
 
 interface SearchPageProps {
   searchParams: Promise<{ keyword?: string; type?: string }>;
@@ -21,18 +22,15 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   const keyword = params.keyword ?? "";
 
   return (
-    <div className="min-h-screen bg-[rgb(245,245,245)]">
+    <div className="min-h-screen bg-[rgb(245,245,245)] pb-28 lg:pb-0">
       <TopNavbar />
       <HeaderWithSearch />
-      <div className="mx-auto w-[1200px] pb-16 pt-5 px-4">
-        {/* Single flex row: filter sidebar + content column */}
-        <div className="mt-5 flex gap-0">
+      <div className="mx-auto w-full max-w-[1200px] px-3 pb-16 pt-5 sm:px-4 md:px-6">
+        <div className="mt-5 flex min-w-0 gap-0">
           <SearchFilterSidebar />
-          <div role="main" className="flex-1 min-w-0 flex flex-col gap-5">
-            {/* Shops related to keyword - same width/edge as search product section below */}
+          <div role="main" className="flex min-w-0 flex-1 flex-col gap-5">
             <LiveShopsResultsSection keyword={keyword} />
-            {/* Search product results: heading, filter/sort bar, 5-col grid, pagination */}
-            <div className="px-5 py-5">
+            <div className="px-0 py-3 sm:px-3 sm:py-4 lg:px-5 lg:py-5">
               <Suspense
                 fallback={
                   <div className="py-8 text-center text-black/54 text-sm">
@@ -47,6 +45,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         </div>
       </div>
       <SiteFooter />
+      <StorefrontMobileDock />
     </div>
   );
 }

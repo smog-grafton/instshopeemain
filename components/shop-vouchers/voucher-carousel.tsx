@@ -90,17 +90,17 @@ export function VoucherCarousel({ vouchers }: VoucherCarouselProps) {
 
   return (
     <div className="relative w-full">
-      <div className="overflow-hidden touch-pan-y">
+      <div className="overflow-hidden touch-pan-x">
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="overflow-x-auto overflow-y-hidden touch-pan-y [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="overflow-x-auto overflow-y-hidden touch-pan-x [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
           <ul className="relative m-0 flex list-none items-stretch gap-3 p-0">
             {vouchers.map((v) => (
               <li
                 key={v.id}
-                className="touch-pan-y box-border w-[280px] flex-shrink-0 overflow-x-hidden list-none sm:w-[320px] lg:w-[340px]"
+                className="touch-pan-x box-border w-[280px] flex-shrink-0 overflow-x-hidden list-none sm:w-[320px] lg:w-[340px]"
               >
                 <VoucherCard voucher={v} />
               </li>

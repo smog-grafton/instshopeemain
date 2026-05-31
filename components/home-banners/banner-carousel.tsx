@@ -75,7 +75,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
       <div className="group relative h-full w-full">
         <div className="relative aspect-[16/9] h-full overflow-hidden sm:aspect-[16/7.2] md:aspect-auto">
           <ul
-            className="absolute inset-0 flex h-full touch-pan-y overflow-hidden"
+            className="absolute inset-0 flex h-full touch-pan-x overflow-hidden"
             style={{
               width: `${duplicatedBanners.length * 100}%`,
               transform: `translateX(-${currentIndex * (100 / duplicatedBanners.length)}%)`,

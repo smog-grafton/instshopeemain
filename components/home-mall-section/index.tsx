@@ -70,7 +70,7 @@ export function HomeMallSection() {
                     Featured Stores
                   </div>
                   <div className="mt-1 text-sm leading-5 text-neutral-700">
-                    Admin-selected shops and featured collections from the backend catalogue.
+                    Official and promoted stores with active collections.
                   </div>
                 </div>
                 <Link href="/mall" className="shrink-0 text-sm font-medium text-[#ee4d2d] hover:text-[#d9481c]">

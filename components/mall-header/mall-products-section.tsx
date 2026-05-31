@@ -22,7 +22,7 @@ interface MallProductItemProps {
 
 function MallProductItem({ product }: MallProductItemProps) {
   return (
-    <li className="touch-pan-y h-[11rem] flex-shrink-0 overflow-x-hidden sm:h-60">
+    <li className="touch-pan-x h-[11rem] flex-shrink-0 overflow-x-hidden sm:h-60">
       <div className="h-full">
         <div className="relative h-full overflow-x-hidden overflow-y-hidden p-2.5">
           <Link
@@ -53,7 +53,7 @@ function MallProductItem({ product }: MallProductItemProps) {
 
 function MallSeeAllItem() {
   return (
-    <li className="touch-pan-y h-[11rem] flex-shrink-0 overflow-x-hidden sm:h-60">
+    <li className="touch-pan-x h-[11rem] flex-shrink-0 overflow-x-hidden sm:h-60">
       <Link
         href="/mall"
         className="active:outline-0 hover:outline-0 text-red-700 whitespace-nowrap cursor-pointer no-underline block relative overflow-x-hidden overflow-y-hidden p-2.5 h-full"
@@ -167,12 +167,12 @@ export function MallProductsSection({ products: productsProp }: MallProductsSect
   }
 
   return (
-    <div className="inline-block w-full min-w-0 align-top bg-white [overflow:unset]">
-      <div className="group/carousel relative min-h-[22rem] w-full overflow-visible transition-all sm:min-h-[320px]">
+    <div className="inline-block w-full min-w-0 overflow-hidden align-top bg-white">
+      <div className="group/carousel relative min-h-[22rem] w-full overflow-hidden transition-all sm:min-h-[320px]">
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="touch-pan-y min-h-[22rem] w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:min-h-[300px]"
+          className="touch-pan-x min-h-[22rem] w-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden sm:min-h-[300px]"
         >
           <ul
             className="relative grid h-[22rem] w-max grid-flow-col auto-cols-[10.75rem] grid-rows-2 gap-x-0 sm:h-[472px] sm:auto-cols-[13rem]"

@@ -18,7 +18,7 @@ import { PriceRangeField } from "./PriceRangeField";
 import { RatingField } from "./RatingField";
 
 const wrapperStyles =
-  "flex-[0_0_190px] min-w-0 mr-5 mb-5";
+  "hidden flex-[0_0_190px] min-w-0 mr-5 mb-5 lg:block";
 const headerStyles =
   "uppercase text-black/80 justify-start items-center h-[30px] text-base font-bold flex";
 const headerTitleStyles = "font-bold text-base flex-1 min-w-0";

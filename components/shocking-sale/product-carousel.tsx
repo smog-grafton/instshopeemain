@@ -57,7 +57,7 @@ export function ProductCarousel({ products }: ProductCarouselProps) {
     <div className="w-full h-full relative group/carousel">
       <div
         ref={scrollContainerRef}
-        className="touch-pan-y h-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        className="touch-pan-x h-full overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         onScroll={handleScroll}
       >
         <ul className="relative flex h-full w-max">

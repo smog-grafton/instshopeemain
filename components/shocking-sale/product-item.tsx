@@ -50,7 +50,7 @@ export function ProductItem({ product }: ProductItemProps) {
   };
 
   return (
-    <li className="touch-pan-y [overflow-x:unset] flex-shrink-0">
+    <li className="touch-pan-x [overflow-x:unset] flex-shrink-0">
       <div className="h-full">
         <ProductCardLoadFrame className="relative flex h-[15.25rem] w-[10.75rem] flex-col overflow-hidden bg-white px-3 sm:h-64 sm:w-52 sm:px-4">
           <Link

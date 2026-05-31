@@ -9,7 +9,7 @@ export function VoucherCard({ voucher }: { voucher: ShopVoucher }) {
   const hasProgress = voucher.usedPercent != null;
 
   return (
-    <div className="touch-pan-y h-full flex-shrink-0 overflow-x-hidden">
+    <div className="touch-pan-x h-full flex-shrink-0 overflow-x-hidden">
       <div className="h-full">
         <div className="h-full pb-2 pt-1.5">
           <div className="relative flex h-[128px] w-full justify-center overflow-visible rounded-[2px] shadow-[0_2px_5px_rgba(0,0,0,0.07)]">

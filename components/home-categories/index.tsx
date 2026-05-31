@@ -106,7 +106,7 @@ export function HomeCategories() {
           <div className="relative w-full">
             <div
               ref={scrollContainerRef}
-              className="touch-pan-y overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+              className="touch-pan-x overflow-x-auto overflow-y-hidden [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
               onScroll={handleScroll}
             >
               <ul className="grid h-[7.5rem] w-max grid-flow-col auto-cols-[6.875rem] grid-rows-1 content-start sm:h-[18rem] sm:auto-cols-[8rem] sm:grid-rows-2">

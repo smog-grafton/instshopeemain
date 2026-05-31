@@ -11,7 +11,7 @@ interface CategoryItemProps {
 
 export function CategoryItem({ category }: CategoryItemProps) {
   return (
-    <li className="touch-pan-y h-[7.5rem] w-full [overflow-x:unset] sm:h-36">
+    <li className="touch-pan-x h-[7.5rem] w-full [overflow-x:unset] sm:h-36">
       <Link
         href={category.href}
         className="relative block bg-white text-center text-black/87 no-underline transition-all duration-100 ease-in-out active:outline-0 hover:border-black/12 hover:shadow hover:outline-0 before:block before:pt-[109%] before:content-[''] [border-bottom-style:solid] [border-right-style:solid] border-b border-r border-b-black/5 border-r-black/5 sm:before:pt-[126%]"

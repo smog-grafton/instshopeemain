@@ -5,6 +5,7 @@ import { HomeCategories } from "@/components/home-categories";
 import { ShockingSale } from "@/components/shocking-sale";
 import { SkinnyBanner } from "@/components/skinny-banner";
 import { HomeMallSection } from "@/components/home-mall-section";
+import { MarketplaceQuickStrip } from "@/components/marketplace-quick-strip";
 import { TopProducts } from "@/components/top-products";
 import { DailyDiscover } from "@/components/daily-discover";
 import { FloatingPromo } from "@/components/floating-promo";
@@ -18,6 +19,7 @@ export default function Home() {
       <TopNavbar />
       <HeaderWithSearch />
       <HomeBanners />
+      <MarketplaceQuickStrip />
       <HomeCategories />
       <ShockingSale />
       <SkinnyBanner />

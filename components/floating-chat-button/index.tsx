@@ -34,14 +34,14 @@ export function FloatingChatButton({ onClick }: FloatingChatButtonProps) {
   return (
     <button
       type="button"
-      className="[font-family:Roboto,Droid_Sans,Arial,sans-serif] fixed bottom-[calc(env(safe-area-inset-bottom)+5.25rem)] right-0 z-[1000] flex cursor-pointer items-center justify-start rounded-tl-md rounded-bl-md bg-white p-3 text-sm leading-tight text-black/80 shadow-sm outline-none hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 lg:bottom-0"
+      className="[font-family:Roboto,Droid_Sans,Arial,sans-serif] fixed bottom-[calc(env(safe-area-inset-bottom)+5.85rem)] right-[max(0.75rem,env(safe-area-inset-right))] z-[1000] flex h-12 w-12 cursor-pointer items-center justify-center rounded-full bg-white text-sm leading-tight text-black/80 shadow-[0_8px_24px_rgba(238,77,45,0.2)] outline-none ring-1 ring-black/5 hover:bg-red-50 focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2 sm:w-auto sm:justify-start sm:rounded-l-md sm:rounded-r-none sm:px-3 lg:bottom-0 lg:right-0 lg:rounded-l-md lg:rounded-r-none"
       aria-label="Chat"
       onClick={onClick}
     >
       <i className="inline-block h-6 w-6 shrink-0 fill-current leading-[0] text-red-500">
         <ChatBubbleIcon className="inline align-baseline overflow-x-hidden overflow-y-hidden" />
       </i>
-      <i className="inline-block h-6 w-11 shrink-0 fill-current leading-[0] text-red-500">
+      <i className="hidden h-6 w-11 shrink-0 fill-current leading-[0] text-red-500 sm:inline-block">
         <ChatTextIcon className="inline align-baseline overflow-x-hidden overflow-y-hidden" />
       </i>
     </button>

@@ -80,7 +80,7 @@ function DockLink({
   const active = item.isActive(pathname, hash);
 
   const className =
-    "flex min-w-0 flex-col items-center justify-center gap-1 px-1 py-2 text-[0.68rem] font-medium tracking-[0.01em] text-neutral-500 transition-colors";
+    "flex min-w-0 flex-col items-center justify-center gap-1 px-0.5 py-2 text-[0.66rem] font-medium text-neutral-500 transition-colors min-[380px]:text-[0.68rem]";
 
   if (item.external) {
     return (
@@ -175,12 +175,12 @@ export function StorefrontMobileDock() {
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[930] lg:hidden" aria-hidden={false}>
-      <div className="mx-auto max-w-screen-sm px-3 pb-[calc(env(safe-area-inset-bottom)+0.65rem)]">
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[930] max-w-full overflow-hidden lg:hidden" aria-hidden={false}>
+      <div className="mx-auto w-full max-w-[min(100vw,40rem)] px-2 pb-[calc(env(safe-area-inset-bottom)+0.55rem)] min-[380px]:px-3">
         <div className="pointer-events-auto relative">
           <a
             href={sellerHref}
-            className="absolute left-1/2 top-0 z-10 flex h-14 w-14 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-[rgb(245,245,245)] bg-[#ee4d2d] text-white shadow-[0_10px_20px_rgba(238,77,45,0.24)]"
+            className="absolute left-1/2 top-0 z-10 flex h-[3.25rem] w-[3.25rem] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border-4 border-[rgb(245,245,245)] bg-[#ee4d2d] text-white shadow-[0_10px_20px_rgba(238,77,45,0.24)] min-[380px]:h-14 min-[380px]:w-14"
             aria-label="Add your own products in Seller Centre"
           >
             <svg viewBox="0 0 24 24" className="h-7 w-7" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -190,7 +190,7 @@ export function StorefrontMobileDock() {
 
           <nav
             aria-label="Storefront mobile navigation"
-            className="grid h-[4.45rem] grid-cols-[1fr_1fr_4.75rem_1fr_1fr_1fr] items-center rounded-[0.9rem] border border-black/[0.08] bg-white/95 shadow-[0_-8px_30px_rgba(15,23,42,0.12)] backdrop-blur"
+            className="grid h-[4.35rem] min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_3.75rem_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)] items-center rounded-[0.85rem] border border-black/[0.08] bg-white/95 shadow-[0_-8px_30px_rgba(15,23,42,0.12)] backdrop-blur min-[380px]:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_4.5rem_minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)]"
           >
             {leftItems.map((item) => (
               <DockLink key={item.key} item={item} pathname={pathname} hash={hash} />

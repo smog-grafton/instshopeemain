@@ -21,7 +21,7 @@ function TopProductCard({ product }: { product: TopProduct }) {
 
   return (
     <li
-      className="touch-pan-y w-[10.75rem] flex-shrink-0 snap-start overflow-hidden sm:w-[13rem]"
+      className="touch-pan-x w-[10.75rem] flex-shrink-0 snap-start overflow-hidden sm:w-[13rem]"
     >
       <Link
         href={product.href}
@@ -107,14 +107,14 @@ export function TopProductsCarousel({ products }: TopProductsCarouselProps) {
   };
 
   return (
-    <div className="bg-white flex w-full [overflow:unset]">
-      <div className="w-full relative transition-all group/carousel min-h-[320px] overflow-visible">
+    <div className="flex w-full overflow-hidden bg-white">
+      <div className="group/carousel relative min-h-[320px] w-full overflow-hidden transition-all">
         <button
           type="button"
           onClick={scrollLeft}
-          className={`[appearance:auto] z-[5] cursor-pointer outline-0 justify-center items-center text-xl duration-100 ease-in-out flex absolute shadow rounded-[50%] border-[none] top-2/4 left-0 bg-white w-6 h-6 leading-6 -mt-3 -translate-x-2/4 transition-all duration-300 ${
+          className={`absolute right-12 top-2 z-[5] flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-black/5 bg-white text-xl leading-6 shadow outline-0 transition-all duration-300 ease-in-out md:left-2 md:right-auto md:top-2/4 md:h-7 md:w-7 md:-mt-3 ${
             showPrev
-              ? "opacity-100 scale-100 group-hover/carousel:scale-[1.75]"
+              ? "opacity-100 scale-100 md:group-hover/carousel:scale-[1.2]"
               : "opacity-0 scale-0 pointer-events-none invisible"
           }`}
           aria-label="Scroll left"
@@ -132,7 +132,7 @@ export function TopProductsCarousel({ products }: TopProductsCarouselProps) {
         <div
           ref={scrollContainerRef}
           onScroll={handleScroll}
-          className="touch-pan-y overflow-x-auto overflow-y-hidden min-h-[300px] w-full snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="touch-pan-x overflow-x-auto overflow-y-hidden min-h-[300px] w-full snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
           <ul className="m-0 flex w-max list-none flex-nowrap items-start gap-0 p-0">
             {products.map((product) => (
@@ -143,9 +143,9 @@ export function TopProductsCarousel({ products }: TopProductsCarouselProps) {
         <button
           type="button"
           onClick={scrollRight}
-          className={`[appearance:auto] z-[5] cursor-pointer outline-0 justify-center items-center text-xl duration-100 ease-in-out flex absolute shadow rounded-[50%] border-[none] top-2/4 right-0 bg-white w-6 h-6 leading-6 -mt-3 translate-x-2/4 transition-all duration-300 ${
+          className={`absolute right-3 top-2 z-[5] flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-black/5 bg-white text-xl leading-6 shadow outline-0 transition-all duration-300 ease-in-out md:right-2 md:top-2/4 md:h-7 md:w-7 md:-mt-3 ${
             showNext
-              ? "opacity-100 scale-100 group-hover/carousel:scale-[1.75]"
+              ? "opacity-100 scale-100 md:group-hover/carousel:scale-[1.2]"
               : "opacity-0 scale-0 pointer-events-none invisible"
           }`}
           aria-label="Scroll right"

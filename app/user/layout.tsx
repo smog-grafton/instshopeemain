@@ -2,12 +2,13 @@ import { TopNavbar } from "@/components/top-navbar";
 import { HeaderWithSearch } from "@/components/header-with-search";
 import { FooterContent } from "@/components/footer-content";
 import { SiteFooter } from "@/components/site-footer";
+import { StorefrontMobileDock } from "@/components/storefront-mobile-dock";
 
 export default function UserLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <div className="min-h-screen bg-[rgb(245,245,245)]">
+    <div className="min-h-screen bg-[rgb(245,245,245)] pb-28 lg:pb-0">
       <div className="hidden lg:block">
         <TopNavbar />
         <HeaderWithSearch />
@@ -15,6 +16,7 @@ export default function UserLayout({
       {children}
       <FooterContent />
       <SiteFooter />
+      <StorefrontMobileDock />
     </div>
   );
 }
