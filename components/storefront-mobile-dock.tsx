@@ -175,7 +175,7 @@ export function StorefrontMobileDock() {
   }
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[930] max-w-full overflow-hidden lg:hidden" aria-hidden={false}>
+    <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[930] max-w-full overflow-x-clip overflow-y-visible lg:hidden" aria-hidden={false}>
       <div className="mx-auto w-full max-w-[min(100vw,40rem)] px-2 pb-[calc(env(safe-area-inset-bottom)+0.55rem)] min-[380px]:px-3">
         <div className="pointer-events-auto relative">
           <a
