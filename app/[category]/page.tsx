@@ -3,6 +3,8 @@ import { HeaderWithSearch } from "@/components/header-with-search";
 import { CategoryMallSection } from "@/components/category-mall-section";
 import { CategoryProductListing } from "@/components/category-product-listing";
 import { SiteFooter } from "@/components/site-footer";
+import { StorefrontMobileDock } from "@/components/storefront-mobile-dock";
+import { notFound } from "next/navigation";
 
 interface CategoryPageProps {
   params: Promise<{ category: string }>;
@@ -37,11 +39,15 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
   const { category } = await params;
   const { categoryId, categorySlug } = parseCategoryUrl(category);
 
+  if (!categoryId && !categorySlug) {
+    notFound();
+  }
+
   return (
-    <div className="min-h-screen bg-[rgb(245,245,245)]">
+    <div className="min-h-screen bg-[rgb(245,245,245)] pb-28 lg:pb-0">
       <TopNavbar />
       <HeaderWithSearch />
-      <div className="mx-auto w-[1200px] pb-16 pt-5">
+      <div className="mx-auto w-full max-w-[1200px] px-3 pb-16 pt-5 sm:px-4 md:px-6 lg:px-0">
         <div className="rounded-sm bg-white shadow-sm">
           <CategoryMallSection />
         </div>
@@ -51,6 +57,7 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         />
       </div>
       <SiteFooter />
+      <StorefrontMobileDock />
     </div>
   );
 }

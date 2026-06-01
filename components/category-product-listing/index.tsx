@@ -146,9 +146,11 @@ export function CategoryProductListing({
   };
 
   return (
-    <div className="[font-family:Roboto,SHPBurmese,SHPKhmer,Helvetica_Neue,Helvetica,Arial,文泉驛正黑,WenQuanYi_Zen_Hei,Hiragino_Sans_GB,儷黑_Pro,LiHei_Pro,Heiti_TC,微軟正黑體,Microsoft_JhengHei_UI,Microsoft_JhengHei,sans-serif] text-sm leading-tight text-black/80 w-[1200px] mx-auto flex gap-4 mt-5">
-      <CategoryFilterSidebar categoryId={categoryId} />
-      <div role="main" className="flex-1">
+    <div className="[font-family:Roboto,SHPBurmese,SHPKhmer,Helvetica_Neue,Helvetica,Arial,文泉驛正黑,WenQuanYi_Zen_Hei,Hiragino_Sans_GB,儷黑_Pro,LiHei_Pro,Heiti_TC,微軟正黑體,Microsoft_JhengHei_UI,Microsoft_JhengHei,sans-serif] mx-auto mt-5 flex w-full max-w-[1200px] min-w-0 gap-4 text-sm leading-tight text-black/80">
+      <div className="hidden lg:block">
+        <CategoryFilterSidebar categoryId={categoryId} />
+      </div>
+      <div role="main" className="min-w-0 flex-1">
         <section aria-label="Product Listing">
           <ProductSortBar
             currentPage={currentPage}

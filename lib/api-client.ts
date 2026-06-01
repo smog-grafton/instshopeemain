@@ -1046,6 +1046,51 @@ export async function requestBuyerWalletTopup(data: {
   return body;
 }
 
+export type WalletWithdrawalMethod = "bank" | "crypto" | "binance" | "mobile_money";
+
+export interface WalletWithdrawalPayload {
+  amount: number;
+  method: WalletWithdrawalMethod;
+  bank_name?: string;
+  bank_account_name?: string;
+  bank_account_number?: string;
+  crypto_network?: string;
+  crypto_address?: string;
+  binance_id?: string;
+  mobile_money_provider?: string;
+  mobile_money_number?: string;
+  phone_number?: string;
+  notes?: string;
+}
+
+export async function requestBuyerWalletWithdrawal(data: WalletWithdrawalPayload) {
+  return apiFetch<{ success: boolean; message: string; request: any }>(
+    "/wallet/withdraw/request",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        ...data,
+        scope: "buyer",
+      }),
+    },
+    true,
+  );
+}
+
+export async function getBuyerWalletWithdrawals(status = "all", page = 1) {
+  const query = new URLSearchParams({
+    scope: "buyer",
+    status,
+    page: String(page),
+  });
+
+  return apiFetch<{ success: boolean; records: any }>(
+    `/wallet/withdrawals?${query.toString()}`,
+    {},
+    true,
+  );
+}
+
 export async function getPaymentMethods(): Promise<ApiPaymentMethod[]> {
   try {
     const response = await apiFetch<{ paymentMethods: ApiPaymentMethod[] }>("/payment-methods");

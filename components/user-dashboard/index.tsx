@@ -42,6 +42,7 @@ function getCurrentNavLabel(pathname: string): string {
 const MOBILE_TOOLS = [
   { label: "Orders", href: "/user/purchase", icon: "order", color: "bg-sky-100 text-sky-600" },
   { label: "Wallet", href: "/user/wallet", icon: "wallet", color: "bg-violet-100 text-violet-600" },
+  { label: "Withdraw", href: "/user/withdraw", icon: "download", color: "bg-rose-100 text-rose-600" },
   { label: "Address", href: "/user/account/address", icon: "address", color: "bg-orange-100 text-orange-600" },
   { label: "Messages", href: "/user/my-message", icon: "message", color: "bg-blue-100 text-blue-600" },
   { label: "Payment Password", href: "/user/account/payment", icon: "lock", color: "bg-amber-100 text-amber-600" },
@@ -59,6 +60,7 @@ function ToolIcon({ name }: { name: string }) {
   if (name === "lock") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M7 10V8a5 5 0 0110 0v2M6 10h12v10H6zM12 14v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
   if (name === "key") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M14 7a4 4 0 106 6 4 4 0 00-6-6zM14 13l-8 8H3v-3l8-8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
   if (name === "store") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M4 10h16l-1.5-5h-13zM6 10v10h12V10M9 20v-6h6v6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  if (name === "download") return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M12 4v10M8 10l4 4 4-4M5 20h14" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>;
   return <svg className={common} viewBox="0 0 24 24" fill="none"><path d="M12 8a4 4 0 100 8 4 4 0 000-8zM4 12h2M18 12h2M12 4v2M12 18v2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>;
 }
 
@@ -225,7 +227,7 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
           <div className="w-10" aria-hidden />
         </div>
 
-        <MobileAccountOverview name={user?.name || user?.username} />
+        {pathname !== "/user" ? <MobileAccountOverview name={user?.name || user?.username} /> : null}
 
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
           <div

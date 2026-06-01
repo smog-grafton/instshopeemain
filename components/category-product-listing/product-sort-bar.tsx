@@ -35,15 +35,15 @@ export function ProductSortBar({
   ];
 
   return (
-    <div className="bg-black/[0.02] rounded-sm px-5 py-3 mb-3 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <span className="text-black/80">Sort By</span>
-        <div className="flex items-center gap-2">
+    <div className="mb-3 flex min-w-0 flex-col gap-3 rounded-sm bg-black/[0.02] px-3 py-3 sm:px-5 md:flex-row md:items-center md:justify-between">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="shrink-0 text-black/80">Sort By</span>
+        <div className="-mx-1 flex min-w-0 items-center gap-2 overflow-x-auto px-1 pb-1 md:overflow-visible md:pb-0">
           {sortOptions.map((option) => (
             <button
               key={option.value}
               onClick={() => onSortChange(option.value)}
-              className={`px-4 py-2 text-sm rounded-sm transition-colors ${
+              className={`shrink-0 rounded-sm px-4 py-2 text-sm transition-colors ${
                 sortOption === option.value
                   ? "bg-[rgb(238,77,45)] text-white"
                   : "bg-white text-black/80 hover:bg-black/5"
@@ -55,7 +55,7 @@ export function ProductSortBar({
         </div>
       </div>
 
-      <div className="flex items-center gap-6">
+      <div className="flex items-center justify-between gap-4 md:gap-6">
         <div className="flex items-center gap-2 text-sm text-black/80">
           <span className="text-[rgb(238,77,45)]">
             {startItem}-{endItem}

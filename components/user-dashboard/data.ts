@@ -45,7 +45,7 @@ export const APPLY_FOR_STORE_HREF = (() => {
 export const SIDEBAR_NAV: NavItem[] = [
   {
     label: "My account",
-    href: "/user/account/profile",
+    href: "/user",
     icon: "user",
   },
   {
@@ -81,6 +81,11 @@ export const SIDEBAR_NAV: NavItem[] = [
   {
     label: "Withdrawals record",
     href: "/user/withdrawals-record",
+    icon: "wallet",
+  },
+  {
+    label: "Withdraw funds",
+    href: "/user/withdraw",
     icon: "wallet",
   },
   {

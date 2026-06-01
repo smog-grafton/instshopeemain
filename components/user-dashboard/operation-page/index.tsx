@@ -8,6 +8,7 @@ import {
   getBrowsingHistory,
   getBuyerWallet,
   getBuyerWalletTransactions,
+  getBuyerWalletWithdrawals,
   getFollowedStores,
   getNotifications,
 } from "@/lib/api-client";
@@ -81,7 +82,10 @@ export function BuyerOperationPage({ kind }: { kind: BuyerOperationKind }) {
       } else if (kind === "site-message") {
         const messages = await getNotifications("shopee");
         if (active) setData({ messages });
-      } else if (kind === "billing" || kind === "recharge-record" || kind === "withdrawals-record") {
+      } else if (kind === "withdrawals-record") {
+        const res = await getBuyerWalletWithdrawals();
+        if (active) setData({ withdrawals: res.records });
+      } else if (kind === "billing" || kind === "recharge-record") {
         const res = await getBuyerWalletTransactions();
         if (active) setData({ transactions: res.transactions });
       } else if (kind === "followed-stores") {
@@ -111,6 +115,7 @@ export function BuyerOperationPage({ kind }: { kind: BuyerOperationKind }) {
   const wallet = isRecord(data.wallet) ? data.wallet : {};
   const currency = valueText(wallet.currency, "$");
   const transactions = rows(data.transactions);
+  const withdrawals = rows(data.withdrawals);
   const filteredTransactions = transactions.filter((item) => {
     const type = valueText(item.type).toLowerCase();
     if (kind === "recharge-record") return type.includes("topup") || type.includes("deposit");
@@ -163,7 +168,23 @@ export function BuyerOperationPage({ kind }: { kind: BuyerOperationKind }) {
           </div>
         ) : null}
 
-        {!loading && (kind === "billing" || kind === "recharge-record" || kind === "withdrawals-record") ? (
+        {!loading && kind === "withdrawals-record" ? (
+          <div className="space-y-4">
+            {withdrawals.length === 0 ? <EmptyState text="No withdrawal requests found." /> : null}
+            {withdrawals.map((item) => (
+              <div key={valueText(item.id)} className="grid gap-3 border border-zinc-200 bg-white p-5 text-sm sm:grid-cols-[160px_1fr]">
+                <div className="font-semibold text-zinc-500">Method</div><div className="capitalize text-zinc-900">{valueText(item.method, "bank").replace("_", " ")}</div>
+                <div className="font-semibold text-zinc-500">ID:</div><div>{valueText(item.id)}</div>
+                <div className="font-semibold text-zinc-500">Amount</div><div className="font-semibold text-rose-600">{valueText(item.currency, "$")} {Number(item.amount ?? 0).toFixed(2)}</div>
+                <div className="font-semibold text-zinc-500">Status</div><div className="capitalize">{valueText(item.status, "pending")}</div>
+                <div className="font-semibold text-zinc-500">Time</div><div>{valueText(item.created_at)}</div>
+                {valueText(item.review_notes) ? <><div className="font-semibold text-zinc-500">Review notes</div><div>{valueText(item.review_notes)}</div></> : null}
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {!loading && (kind === "billing" || kind === "recharge-record") ? (
           <div className="space-y-4">
             {filteredTransactions.length === 0 ? <EmptyState text="No records found." /> : null}
             {filteredTransactions.map((item) => (

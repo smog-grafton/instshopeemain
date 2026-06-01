@@ -122,7 +122,7 @@ export function StorefrontMobileDock() {
   const primaryAccountHref = getPrimaryAccountHref(user ?? null);
   const accountHref = isLoggedIn
     ? primaryAccountHref
-    : `/login?next=${encodeURIComponent("/user/account/profile")}`;
+    : `/login?next=${encodeURIComponent("/user")}`;
   const accountExternal = isLoggedIn && (accountHref.startsWith("http://") || accountHref.startsWith("https://"));
 
   const leftItems: DockItem[] = [
@@ -137,8 +137,8 @@ export function StorefrontMobileDock() {
     {
       key: "categories",
       label: "Categories",
-      href: "/#home-categories",
-      isActive: (currentPath, currentHash) => currentPath === "/" && currentHash === "#home-categories",
+      href: "/categories",
+      isActive: (currentPath) => currentPath === "/categories",
       icon: CategoriesIcon,
     },
   ];

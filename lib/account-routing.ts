@@ -166,7 +166,7 @@ export function canAccessBuyerPortal(user?: AccountSurfaceUser | null): boolean 
 }
 
 export function getPrimaryAccountHref(user?: AccountSurfaceUser | null): string {
-  return shouldUseSellerPortal(user) ? getSellerPortalBaseUrl() : "/user/account/profile";
+  return shouldUseSellerPortal(user) ? getSellerPortalBaseUrl() : "/user";
 }
 
 export function resolvePostAuthHref(
@@ -177,7 +177,7 @@ export function resolvePostAuthHref(
 
   if (!shouldUseSellerPortal(user)) {
     if (!trimmedNext || trimmedNext === "/") {
-      return "/";
+      return getPrimaryAccountHref(user);
     }
 
     return isAllowedBuyerNextUrl(trimmedNext) ? trimmedNext : getPrimaryAccountHref(user);
@@ -197,7 +197,7 @@ export function resolvePostAuthHref(
 export function getAccountMenuItems(user?: AccountSurfaceUser | null): AccountMenuItem[] {
   if (!shouldUseSellerPortal(user)) {
     return [
-      { label: "My account", href: "/user/account/profile" },
+      { label: "My account", href: "/user" },
       { label: "Current balance", href: "/user/current-balance" },
       { label: "My Order", href: "/user/my-order" },
       { label: "My message", href: "/user/my-message" },

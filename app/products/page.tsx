@@ -1,6 +1,6 @@
 import { TopNavbar } from "@/components/top-navbar";
 import { HeaderWithSearch } from "@/components/header-with-search";
-import { DailyDiscover } from "@/components/daily-discover";
+import { CategoryProductListing } from "@/components/category-product-listing";
 import { SiteFooter } from "@/components/site-footer";
 import { StorefrontMobileDock } from "@/components/storefront-mobile-dock";
 
@@ -19,7 +19,7 @@ export default function ProductsPage() {
             Browse the live buyer feed with backend-powered product images, pricing, and badges.
           </p>
         </div>
-        <DailyDiscover pullUp={false} showSeeMore={false} sectionId="products-grid" />
+        <CategoryProductListing />
       </main>
       <SiteFooter />
       <StorefrontMobileDock />
