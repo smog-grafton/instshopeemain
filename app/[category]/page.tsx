@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { TopNavbar } from "@/components/top-navbar";
 import { HeaderWithSearch } from "@/components/header-with-search";
 import { CategoryMallSection } from "@/components/category-mall-section";
@@ -51,10 +52,12 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
         <div className="rounded-sm bg-white shadow-sm">
           <CategoryMallSection />
         </div>
-        <CategoryProductListing 
-          categoryId={categoryId ?? undefined} 
-          categorySlug={categorySlug ?? undefined} 
-        />
+        <Suspense fallback={<div className="mt-5 bg-white py-8 text-center text-sm text-neutral-500 shadow-sm">Loading products...</div>}>
+          <CategoryProductListing
+            categoryId={categoryId ?? undefined}
+            categorySlug={categorySlug ?? undefined}
+          />
+        </Suspense>
       </div>
       <SiteFooter />
       <StorefrontMobileDock />

@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { TopNavbar } from "@/components/top-navbar";
 import { HeaderWithSearch } from "@/components/header-with-search";
 import { CategoryProductListing } from "@/components/category-product-listing";
@@ -19,7 +20,9 @@ export default function ProductsPage() {
             Browse the live buyer feed with backend-powered product images, pricing, and badges.
           </p>
         </div>
-        <CategoryProductListing />
+        <Suspense fallback={<div className="mt-5 bg-white py-8 text-center text-sm text-neutral-500 shadow-sm">Loading products...</div>}>
+          <CategoryProductListing />
+        </Suspense>
       </main>
       <SiteFooter />
       <StorefrontMobileDock />
