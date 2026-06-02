@@ -40,19 +40,15 @@ const orderTools: ToolItem[] = [
 ];
 
 const essentialTools: ToolItem[] = [
-  { label: "Wholesale", href: "/products", icon: "cart", tone: "text-sky-600 bg-sky-100" },
-  { label: "Store Details", href: "/user/apply-for-merchant", icon: "store", tone: "text-pink-600 bg-pink-100" },
   { label: "Goods", href: "/products", icon: "bag", tone: "text-fuchsia-600 bg-fuchsia-100" },
-  { label: "Store Orders", href: "/user/purchase", icon: "clipboard", tone: "text-cyan-600 bg-cyan-100" },
+  { label: "My Orders", href: "/user/purchase", icon: "clipboard", tone: "text-cyan-600 bg-cyan-100" },
   { label: "Address", href: "/user/account/address", icon: "pin", tone: "text-orange-600 bg-orange-100" },
   { label: "Collection", href: "/user/stores-you-follow", icon: "heart", tone: "text-rose-600 bg-rose-100" },
   { label: "Customer Service", href: "/user/my-message", icon: "support", tone: "text-red-600 bg-red-100" },
-  { label: "Store News", href: "/user/site-message", icon: "message", tone: "text-blue-600 bg-blue-100" },
   { label: "Wallet address", href: "/user/wallet", icon: "wallet", tone: "text-purple-600 bg-purple-100" },
   { label: "Login Password", href: "/user/account/password", icon: "key", tone: "text-teal-600 bg-teal-100" },
   { label: "Payment Password", href: "/user/account/payment", icon: "shield", tone: "text-amber-600 bg-amber-100" },
-  { label: "Download APP", href: "/m/welcome-series", icon: "download", tone: "text-indigo-600 bg-indigo-100" },
-  { label: "Set up", href: "/user/setting/privacy", icon: "info", tone: "text-sky-600 bg-sky-100" },
+  { label: "Apply Merchant", href: "/user/apply-for-merchant", icon: "store", tone: "text-pink-600 bg-pink-100" },
   { label: "Sign Out", href: "/logout", icon: "logout", tone: "text-emerald-600 bg-emerald-100" },
 ];
 
@@ -133,8 +129,8 @@ function Banner({ banner }: { banner: ApiUiBlock }) {
         <img src={banner.imageSrc} alt="" className="absolute inset-y-0 right-0 h-full w-1/2 object-cover object-center opacity-90" />
       ) : null}
       <div className="relative z-10 max-w-[62%]">
-        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85">{banner.subtitle || "Open recruitment of platform merchants"}</div>
-        <div className="mt-2 text-xl font-bold leading-6">{banner.title || "Join InstShopee for a better life!"}</div>
+        <div className="text-[10px] font-semibold uppercase tracking-[0.08em] text-white/85">{banner.subtitle || "Become a platform merchant"}</div>
+        <div className="mt-2 text-xl font-bold leading-6">{banner.title || "Join shopee for a better life!"}</div>
       </div>
     </Link>
   );
