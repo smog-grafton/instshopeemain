@@ -39,7 +39,6 @@ export function LoginFormSection() {
     if (!canSubmit) return;
     setLoading(true);
     try {
-      // For now we log in using email; later we can support username/phone lookup.
       const result = await loginWithEmailPassword(loginKey, password);
       const apiUser = result.user;
       setAuthLoggedIn({
@@ -67,7 +66,7 @@ export function LoginFormSection() {
         router.push(destination);
       }
     } catch (err: any) {
-      setError(err?.message || "Invalid email or password.");
+      setError(err?.message || "Invalid email, username, phone, or password.");
     } finally {
       setLoading(false);
     }

@@ -211,7 +211,7 @@ export async function setChatThreadProduct(threadId: string, productId: number) 
 }
 
 export async function loginWithEmailPassword(
-  email: string,
+  login: string,
   password: string
 ): Promise<AuthResponse> {
   // Step 1: Get CSRF cookie from Sanctum
@@ -222,12 +222,13 @@ export async function loginWithEmailPassword(
   // Step 2: Login (session cookie set automatically by Laravel)
   return apiFetch<AuthResponse>("/auth/login", {
     method: "POST",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ login, password }),
   });
 }
 
 export async function registerBuyer(input: {
   name: string;
+  username: string;
   email: string;
   password: string;
   passwordConfirmation: string;
@@ -241,6 +242,7 @@ export async function registerBuyer(input: {
     method: "POST",
     body: JSON.stringify({
       name: input.name,
+      username: input.username,
       email: input.email,
       password: input.password,
       password_confirmation: input.passwordConfirmation,

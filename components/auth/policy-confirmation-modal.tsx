@@ -10,9 +10,9 @@ export interface PolicyConfirmationModalProps {
   onAgree: () => void;
 }
 
-const DEFAULT_TITLE = "Review Shopee Account Policies";
+const DEFAULT_TITLE = "Continue Account Setup";
 const DEFAULT_MESSAGE =
-  "Our services are only available in Malaysia. By proceeding, you confirm that you are in Malaysia and using the Shopee app there.";
+  "Please confirm that you agree to continue creating your Shopee account.";
 
 /**
  * Reusable modal for policy confirmation (e.g. signup flow).

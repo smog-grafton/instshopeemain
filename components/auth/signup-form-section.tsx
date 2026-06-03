@@ -25,6 +25,7 @@ export function SignupFormSection() {
   const [step, setStep] = useState<SignupStep>(1);
   const [phone, setPhone] = useState("");
   const [policyModalOpen, setPolicyModalOpen] = useState(false);
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [confirmEmail, setConfirmEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -37,8 +38,10 @@ export function SignupFormSection() {
   const canProceedStep1 = Boolean(phone.trim());
   const emailsMatch = email.trim() === confirmEmail.trim();
   const passwordsMatch = password === confirmPassword;
+  const usernameValid = /^[A-Za-z0-9_-]{3,50}$/.test(username.trim());
   const canSubmitStep2 =
-    Boolean(email.trim() && confirmEmail.trim() && password.trim() && confirmPassword.trim()) &&
+    Boolean(username.trim() && email.trim() && confirmEmail.trim() && password.trim() && confirmPassword.trim()) &&
+    usernameValid &&
     emailsMatch &&
     passwordsMatch &&
     isPasswordValid(password);
@@ -64,7 +67,8 @@ export function SignupFormSection() {
     if (!canSubmitStep2 || loading) return;
     setLoading(true);
     registerBuyer({
-      name: email.trim(), // for now we just reuse email; can be extended to full name field later
+      name: username.trim(),
+      username: username.trim(),
       email: email.trim(),
       password,
       passwordConfirmation: confirmPassword,
@@ -381,6 +385,32 @@ export function SignupFormSection() {
                           <div
                             className="flex h-10 w-full items-center overflow-hidden rounded-sm border border-black/10 shadow-[inset_0_2px_0_0_rgba(0,0,0,0.02)] box-border"
                             style={{
+                              border: username && !usernameValid ? "1px solid rgb(255, 66, 79)" : "1px solid rgba(0, 0, 0, 0.14)",
+                              borderRadius: "2px",
+                              height: "40px",
+                            }}
+                          >
+                            <input
+                              type="text"
+                              placeholder="Username"
+                              autoComplete="username"
+                              name="username"
+                              value={username}
+                              onChange={(e) => setUsername(e.target.value)}
+                              className="h-4 flex-1 border-0 bg-transparent px-3 py-3 text-sm outline-none text-black/80"
+                              style={{ padding: "12px" }}
+                            />
+                          </div>
+                          {username && !usernameValid && (
+                            <div className="text-xs pt-1" style={{ color: "rgb(255, 66, 79)", padding: "4px 0 0" }}>
+                              Use 3-50 letters, numbers, underscores, or dashes.
+                            </div>
+                          )}
+                        </div>
+                        <div className="mb-2.5">
+                          <div
+                            className="flex h-10 w-full items-center overflow-hidden rounded-sm border border-black/10 shadow-[inset_0_2px_0_0_rgba(0,0,0,0.02)] box-border"
+                            style={{
                               border: "1px solid rgba(0, 0, 0, 0.14)",
                               borderRadius: "2px",
                               height: "40px",
@@ -588,6 +618,8 @@ export function SignupFormSection() {
 
       <PolicyConfirmationModal
         open={policyModalOpen}
+        title="Continue Account Setup"
+        message="Please confirm that you agree to continue creating your Shopee account."
         onCancel={handlePolicyCancel}
         onAgree={handlePolicyAgree}
       />
