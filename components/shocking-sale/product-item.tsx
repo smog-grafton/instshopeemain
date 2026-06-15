@@ -56,7 +56,7 @@ export function ProductItem({ product }: ProductItemProps) {
           <Link
             href={product.href}
             className="no-underline active:outline-0 hover:outline-0"
-            aria-label={`${product.name} promotion off ${product.discount}% current price RM${product.price} ${getStatusText()} click, enter flash sale`}
+            aria-label={`${product.name} promotion off ${product.discount}% current price $${product.price} ${getStatusText()} click, enter flash sale`}
           >
             <div className="relative h-40 sm:h-44">
               {/* Product Image Container */}
@@ -127,7 +127,7 @@ export function ProductItem({ product }: ProductItemProps) {
                 <div className="mb-1.5 flex flex-col items-center">
                   <div className="flex h-7 w-full items-center justify-center text-base font-medium text-red-500 sm:text-lg">
                     <div className="text-ellipsis items-baseline flex overflow-x-hidden overflow-y-hidden">
-                      <span className="mr-0.5 text-base font-medium sm:text-lg">RM</span>
+                      <span className="mr-0.5 text-base font-medium sm:text-lg">$</span>
                       <strong>{product.price}</strong>
                     </div>
                   </div>

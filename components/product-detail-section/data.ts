@@ -18,7 +18,7 @@ export interface ProductDetailSectionData {
   originalMax: string;
   discountPercent: number;
   priceTeaserText: string;
-  /** Short labels for inline voucher badges, e.g. ["RM1 OFF", "RM1 OFF"] */
+  /** Short labels for inline voucher badges, e.g. ["$1 OFF", "$1 OFF"] */
   shopVoucherBadges: string[];
   /** Full list for the hover popover */
   shopVoucherList: ShopVoucherEntry[];
@@ -43,7 +43,7 @@ export interface ProductDetailSectionData {
   images?: Array<{ imagePath: string | null; imagePathWebp: string | null; isThumbnail: boolean }>;
   /** ISO date string for promotion end (used for discount countdown timer). */
   promotionEndsAt?: string;
-  /** Currency symbol for display (e.g., "RM", "USD", "IDR") */
+  /** Currency symbol for display (e.g., "$", "USD", "IDR") */
   currencySymbol?: string;
   /** From catalog-linked products (wholesale); added once per cart line at checkout shipping. */
   catalogShippingFee?: number;
@@ -328,19 +328,19 @@ export const defaultProductDetailData: ProductDetailSectionData = {
   rating: 4.4,
   ratingsCount: 685,
   sold: "3k+",
-  priceMin: "RM10.48",
-  priceMax: "RM18.59",
-  originalMin: "RM17.49",
-  originalMax: "RM18.59",
+  priceMin: "$10.48",
+  priceMax: "$18.59",
+  originalMin: "$17.49",
+  originalMax: "$18.59",
   discountPercent: 40,
   priceTeaserText: "Lower prices from 15:00, 1 Feb",
-  shopVoucherBadges: ["RM1 OFF", "RM1 OFF"],
+  shopVoucherBadges: ["$1 OFF", "$1 OFF"],
   shopVoucherList: [
-    { offer: "RM1 off", minSpend: "RM10.9", validTill: "19.03.2026", brand: "FILLEONNE", isWelcomeVoucher: true },
-    { offer: "RM1 off", minSpend: "RM15", validTill: "19.03.2026", brand: "FILLEONNE" },
+    { offer: "$1 off", minSpend: "$10.9", validTill: "19.03.2026", brand: "FILLEONNE", isWelcomeVoucher: true },
+    { offer: "$1 off", minSpend: "$15", validTill: "19.03.2026", brand: "FILLEONNE" },
   ],
   shippingText: "Guaranteed to get by 4 - 9 Feb",
-  shippingSubtext: "Get a RM5.00 voucher if your order arrives late.",
+  shippingSubtext: "Get a $5.00 voucher if your order arrives late.",
   guaranteeText: "15-Day Free Returns · Cash on Delivery · Product Care Service Programme",
   favoriteCount: 198,
   colors: [

@@ -71,14 +71,17 @@ function SidebarNavLink({
   isActive,
   isChildActive,
   onNavigate,
+  siteMessageUnreadCount = 0,
 }: {
   item: NavItem;
   isActive: boolean;
   isChildActive?: boolean;
   onNavigate?: () => void;
+  siteMessageUnreadCount?: number;
 }) {
   const pathname = usePathname();
   const expanded = isActive || isChildActive || (item.children && item.children.some((c) => pathname === c.href));
+  const showSiteMessageBadge = item.href === "/user/site-message" && siteMessageUnreadCount > 0;
 
   return (
     <div className="relative">
@@ -93,6 +96,11 @@ function SidebarNavLink({
           </div>
           <div className="leading-4">
             <span className="font-medium mr-1.5">{item.label}</span>
+            {showSiteMessageBadge ? (
+              <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#ee4d2d] px-1.5 text-[10px] font-semibold leading-5 text-white">
+                {siteMessageUnreadCount > 99 ? "99+" : siteMessageUnreadCount}
+              </span>
+            ) : null}
           </div>
         </Link>
       </div>
@@ -126,9 +134,11 @@ function SidebarNavLink({
 export function UserSidebar({
   className = "w-44",
   onNavigate,
+  siteMessageUnreadCount = 0,
 }: {
   className?: string;
   onNavigate?: () => void;
+  siteMessageUnreadCount?: number;
 }) {
   const pathname = usePathname();
   const { user: authUser } = useAuth();
@@ -207,6 +217,7 @@ export function UserSidebar({
               isActive={isActive}
               isChildActive={isChildActive}
               onNavigate={onNavigate}
+              siteMessageUnreadCount={siteMessageUnreadCount}
             />
           );
         })}

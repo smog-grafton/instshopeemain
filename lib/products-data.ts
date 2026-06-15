@@ -17,7 +17,7 @@ export interface ProductRecord {
   categorySlug: string;
   price: number;
   originalPrice?: number;
-  /** From API (e.g. $, RM) */
+  /** From API (e.g. $) */
   currencySymbol?: string;
   imageSrc: string;
   soldCount: number;
@@ -255,7 +255,7 @@ function buildMockProducts(): ProductRecord[] {
         location: pick(LOCATIONS, globalIndex),
         promotionLabel:
           globalIndex % 2 === 0
-            ? pick(["Free Shipping", "15% off", "RM9 off", "10% off"], globalIndex)
+            ? pick(["Free Shipping", "15% off", "$9 off", "10% off"], globalIndex)
             : undefined,
         textBadges:
           globalIndex % 4 === 0 ? ["cod"] : globalIndex % 5 === 0 ? ["mall"] : undefined,

@@ -29,7 +29,7 @@ function transformApiProduct(p: ApiProduct, shopName: string): CollectionProduct
     promotionLabel: p.promotionLabel ?? undefined,
     textBadges: p.textBadges,
     imageBadges: p.imageBadges,
-    currencySymbol: p.currencySymbol ?? "RM",
+    currencySymbol: p.currencySymbol ?? "$",
     storeName: p.shopName || shopName,
   };
 }

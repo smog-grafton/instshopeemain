@@ -7,6 +7,7 @@ import {
   ProductCardLoadFrame,
 } from "@/components/common/product-card-media";
 import type { CollectionProductItem } from "./data";
+import { normalizeCurrencySymbol } from "@/lib/utils";
 
 const FLAG_ICON = "/images/stores/logos/sate-icon.jpeg";
 const RATING_STAR_SVG = (
@@ -80,12 +81,13 @@ export function CollectionProductCard({ item }: CollectionProductCardProps) {
     rating,
     promotionLabel,
     textBadges,
-    currencySymbol = "RM",
+    currencySymbol = "$",
   } = item;
 
+  const displayCurrencySymbol = normalizeCurrencySymbol(currencySymbol);
   const hasCod = textBadges?.includes("cod") ?? false;
   const discountText = promotionLabel?.match(/\d+% off/)?.[0] ?? promotionLabel;
-  const rmOffText = promotionLabel?.match(/RM\d+ off/)?.[0];
+  const rmOffText = promotionLabel?.match(/\$\d+(?:\.\d+)? off/)?.[0];
   const showShopeeLagiMurah =
     promotionLabel === "Shopee Lagi Murah" || slug.length % 3 === 1;
   const discountPct = discountPercent(price, originalPrice);
@@ -137,7 +139,7 @@ export function CollectionProductCard({ item }: CollectionProductCardProps) {
                 <div className="mt-1 flex items-center gap-1">
                   <div className="flex shrink-0 max-w-full items-center overflow-hidden font-medium text-[#ee4d2d]">
                     <span className="mr-px text-xs font-medium leading-[14px]">
-                      {currencySymbol}
+                      {displayCurrencySymbol}
                     </span>
                     <span className="text-base font-medium leading-5">
                       {price.toFixed(2)}

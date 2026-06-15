@@ -70,7 +70,7 @@ export function CheckoutProductsAndSummary({
   const { removeItemsByKeys } = useCart();
   const { isLoggedIn } = useAuth();
 
-  const currencySymbol = groups[0]?.items[0]?.currencySymbol || "RM";
+  const currencySymbol = groups[0]?.items[0]?.currencySymbol || "$";
   const effectiveBuyerShipping = Math.max(0, shippingSubtotal - shippingDiscount);
   const walletMethod = useMemo(
     () => paymentMethods.find((method) => method.key === "wallet") ?? null,

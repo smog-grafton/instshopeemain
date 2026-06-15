@@ -9,8 +9,8 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 /**
- * Format price with optional currency symbol (e.g. formatPrice("RM", 10.5) → "RM 10.50").
- * @param symbol - Currency symbol (e.g., "RM", "$", "€")
+ * Format price with optional currency symbol (e.g. formatPrice("$", 10.5) -> "$10.50").
+ * @param symbol - Currency symbol (e.g., "$", "€")
  * @param amount - Amount to format
  * @param negative - If true, adds a minus sign prefix
  */
@@ -19,10 +19,22 @@ export function formatPrice(
   amount: number,
   negative: boolean = false
 ): string {
-  const sym = (symbol ?? "").trim();
+  const sym = normalizeCurrencySymbol(symbol);
   const formatted = Math.abs(amount).toFixed(2);
   const prefix = negative ? "-" : "";
-  return sym ? `${prefix}${sym} ${formatted}` : `${prefix}${formatted}`;
+  return sym ? `${prefix}${sym}${formatted}` : `${prefix}${formatted}`;
+}
+
+export function normalizeCurrencySymbol(symbol: string | undefined | null): string {
+  const value = (symbol ?? "$").trim();
+  if (!value) return "$";
+
+  const upper = value.toUpperCase();
+  if (upper === "USD" || upper === "$" || upper === "MYR" || upper === "RM") {
+    return "$";
+  }
+
+  return value;
 }
 
 /**

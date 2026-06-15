@@ -45,7 +45,7 @@ export function ShopsResultsProductCard({ product }: ShopsResultsProductCardProp
                 <span aria-label="promotion price" className="border-solid border-gray-200 after:border-solid after:border-gray-200 before:border-solid before:border-gray-200 disabled:cursor-default" />
                 <div className="border-solid border-gray-200 after:border-solid after:border-gray-200 before:border-solid before:border-gray-200 disabled:cursor-default flex items-baseline whitespace-nowrap text-ellipsis overflow-x-hidden overflow-y-hidden">
                   <span className="border-solid border-gray-200 after:border-solid after:border-gray-200 before:border-solid before:border-gray-200 disabled:cursor-default mr-px text-xs leading-4 font-medium">
-                    RM
+                    $
                   </span>
                   <span className="border-solid border-gray-200 after:border-solid after:border-gray-200 before:border-solid before:border-gray-200 disabled:cursor-default whitespace-nowrap text-ellipsis overflow-x-hidden overflow-y-hidden text-base leading-5 font-medium">
                     {product.price}

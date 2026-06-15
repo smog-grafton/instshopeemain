@@ -5,9 +5,9 @@
 
 export interface ShopVoucher {
   id: string;
-  /** e.g. "RM6 off", "15% off", "10% off" */
+  /** e.g. "$6 off", "15% off", "10% off" */
   title: string;
-  /** e.g. "Min. Spend RM6", "Min. Spend RM50 Capped at RM8" */
+  /** e.g. "Min. Spend $6", "Min. Spend $50 Capped at $8" */
   description: string;
   /** Optional tag e.g. "Shop Welcome Voucher", "Specific Product(s)" */
   tag?: string;
@@ -26,8 +26,8 @@ export function getMockShopVouchers(_shopSlug: string): ShopVoucher[] {
   return [
     {
       id: "1",
-      title: "RM6 off",
-      description: "Min. Spend RM6",
+      title: "$6 off",
+      description: "Min. Spend $6",
       tag: "Shop Welcome Voucher",
       validTill: "26.02.2026",
       badgeCount: undefined,
@@ -36,7 +36,7 @@ export function getMockShopVouchers(_shopSlug: string): ShopVoucher[] {
     {
       id: "2",
       title: "15% off",
-      description: "Min. Spend RM50 Capped at RM8",
+      description: "Min. Spend $50 Capped at $8",
       validTill: "14.02.2026",
       badgeCount: 3,
       claimCount: 3,
@@ -44,7 +44,7 @@ export function getMockShopVouchers(_shopSlug: string): ShopVoucher[] {
     {
       id: "3",
       title: "10% off",
-      description: "Min. Spend RM50 Capped at RM5",
+      description: "Min. Spend $50 Capped at $5",
       validTill: "14.02.2026",
       badgeCount: 3,
       claimCount: 3,
@@ -52,14 +52,14 @@ export function getMockShopVouchers(_shopSlug: string): ShopVoucher[] {
     {
       id: "4",
       title: "7% off",
-      description: "Min. Spend RM100 Capped at RM10",
+      description: "Min. Spend $100 Capped at $10",
       validTill: "26.02.2026",
       claimCount: 1,
     },
     {
       id: "5",
       title: "30% off",
-      description: "Min. Spend RM30 Capped at RM10",
+      description: "Min. Spend $30 Capped at $10",
       tag: "Specific Product(s)",
       validTill: "28.02.2026",
       usedPercent: 71,

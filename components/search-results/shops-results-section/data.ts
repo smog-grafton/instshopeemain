@@ -74,7 +74,7 @@ export function getShopsResultsSectionData(keyword: string): {
         ],
         voucher: {
           discountPercent: 20,
-          minSpend: "Min. Spend RM100",
+          minSpend: "Min. Spend $100",
           claimHref: "/shop/mandom-official-store?voucher=20off",
         },
       },

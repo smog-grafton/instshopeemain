@@ -91,7 +91,7 @@ export default async function ShopPage({ params }: ShopPageProps) {
     if (p.promotionLabel != null) item.promotionLabel = p.promotionLabel;
     if (p.textBadges) item.textBadges = p.textBadges;
     if (p.imageBadges) item.imageBadges = p.imageBadges;
-    item.currencySymbol = p.currencySymbol ?? shopProfile.currencySymbol ?? "RM";
+    item.currencySymbol = p.currencySymbol ?? shopProfile.currencySymbol ?? "$";
     return item;
   });
 

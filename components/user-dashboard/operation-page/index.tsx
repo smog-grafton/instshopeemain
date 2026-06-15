@@ -6,12 +6,13 @@ import { useEffect, useState } from "react";
 import { ChatPanel } from "@/components/chat-panel";
 import {
   getBrowsingHistory,
+  getBuyerSiteMessages,
   getBuyerWallet,
   getBuyerWalletTransactions,
   getBuyerWalletWithdrawals,
   getFollowedStores,
-  getNotifications,
 } from "@/lib/api-client";
+import { formatPrice } from "@/lib/utils";
 
 export type BuyerOperationKind =
   | "current-balance"
@@ -53,7 +54,7 @@ function valueText(value: unknown, fallback = "") {
 
 function money(value: unknown, currency = "$") {
   const amount = Number(value ?? 0);
-  return `${currency} ${Number.isFinite(amount) ? amount.toFixed(2) : "0.00"}`;
+  return formatPrice(currency, Number.isFinite(amount) ? amount : 0);
 }
 
 function resolveBackendAssetUrl(path: string) {
@@ -80,8 +81,8 @@ export function BuyerOperationPage({ kind }: { kind: BuyerOperationKind }) {
         const res = await getBuyerWallet();
         if (active) setData({ wallet: res.wallet });
       } else if (kind === "site-message") {
-        const messages = await getNotifications("shopee");
-        if (active) setData({ messages });
+        const res = await getBuyerSiteMessages();
+        if (active) setData({ messages: res.messages });
       } else if (kind === "withdrawals-record") {
         const res = await getBuyerWalletWithdrawals();
         if (active) setData({ withdrawals: res.records });
@@ -160,7 +161,11 @@ export function BuyerOperationPage({ kind }: { kind: BuyerOperationKind }) {
               <div key={valueText(item.id)} className="border border-zinc-200 bg-white p-5">
                 <div className="flex flex-col gap-1 sm:flex-row sm:justify-between">
                   <div className="font-semibold text-zinc-900">{valueText(item.title, "System information")}</div>
-                  <div className="text-xs text-zinc-500">{valueText(item.createdAt)}</div>
+                  <div className="text-xs text-zinc-500">{valueText(item.sent_at, valueText(item.createdAt))}</div>
+                </div>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {item.unread ? <span className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] font-semibold text-red-600">Unread</span> : null}
+                  {item.expires_at ? <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] text-zinc-500">Archived after expiry</span> : null}
                 </div>
                 <div className="mt-3 whitespace-pre-wrap text-sm leading-6 text-zinc-600">{valueText(item.message)}</div>
               </div>
@@ -175,7 +180,7 @@ export function BuyerOperationPage({ kind }: { kind: BuyerOperationKind }) {
               <div key={valueText(item.id)} className="grid gap-3 border border-zinc-200 bg-white p-5 text-sm sm:grid-cols-[160px_1fr]">
                 <div className="font-semibold text-zinc-500">Method</div><div className="capitalize text-zinc-900">{valueText(item.method, "bank").replace("_", " ")}</div>
                 <div className="font-semibold text-zinc-500">ID:</div><div>{valueText(item.id)}</div>
-                <div className="font-semibold text-zinc-500">Amount</div><div className="font-semibold text-rose-600">{valueText(item.currency, "$")} {Number(item.amount ?? 0).toFixed(2)}</div>
+                <div className="font-semibold text-zinc-500">Amount</div><div className="font-semibold text-rose-600">{formatPrice(valueText(item.currency, "$"), Number(item.amount ?? 0))}</div>
                 <div className="font-semibold text-zinc-500">Status</div><div className="capitalize">{valueText(item.status, "pending")}</div>
                 <div className="font-semibold text-zinc-500">Time</div><div>{valueText(item.created_at)}</div>
                 {valueText(item.review_notes) ? <><div className="font-semibold text-zinc-500">Review notes</div><div>{valueText(item.review_notes)}</div></> : null}

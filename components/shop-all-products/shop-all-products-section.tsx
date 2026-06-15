@@ -152,7 +152,7 @@ export function ShopAllProductsSection({
           if (p.promotionLabel != null) item.promotionLabel = p.promotionLabel;
           if (p.textBadges) item.textBadges = p.textBadges;
           if (p.imageBadges) item.imageBadges = p.imageBadges;
-          item.currencySymbol = p.currencySymbol ?? "RM";
+          item.currencySymbol = p.currencySymbol ?? "$";
           return item;
         });
 

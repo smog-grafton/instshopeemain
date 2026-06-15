@@ -26,7 +26,7 @@ export interface Product {
   textBadges?: ProductTextBadge[];
   /** Badges shown as icons on image (Mall, Preferred, Choice) */
   imageBadges?: ProductImageBadge[];
-  /** Amber promotion tag e.g. "15% off", "RM9 off", "Free Shipping" */
+  /** Amber promotion tag e.g. "15% off", "$9 off", "Free Shipping" */
   promotionLabel?: string;
   /** Legacy: use promotionLabel for single tag; kept for compatibility */
   promotions?: string[];
@@ -153,11 +153,11 @@ export const categoryFilters = {
     "Generic",
   ],
   priceRange: [
-    { label: "Under RM10", min: 0, max: 10 },
-    { label: "RM10 - RM50", min: 10, max: 50 },
-    { label: "RM50 - RM100", min: 50, max: 100 },
-    { label: "RM100 - RM200", min: 100, max: 200 },
-    { label: "Above RM200", min: 200, max: Infinity },
+    { label: "Under $10", min: 0, max: 10 },
+    { label: "$10 - $50", min: 10, max: 50 },
+    { label: "$50 - $100", min: 50, max: 100 },
+    { label: "$100 - $200", min: 100, max: 200 },
+    { label: "Above $200", min: 200, max: Infinity },
   ],
   rating: [5, 4, 3, 2, 1],
   shipping: [

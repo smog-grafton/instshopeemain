@@ -39,7 +39,7 @@ export function CartFooter({ selectedItems, onSelectAll, onDeleteSelected }: Car
     selectedItems !== undefined &&
     selectedItems.size === items.length;
   const currencySymbol =
-    selectedCartItems[0]?.currencySymbol ?? items[0]?.currencySymbol ?? "RM";
+    selectedCartItems[0]?.currencySymbol ?? items[0]?.currencySymbol ?? "$";
 
   const handleCheckout = () => {
     if (selectedLineCount === 0) return;

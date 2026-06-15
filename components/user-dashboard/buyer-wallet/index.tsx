@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getBuyerWallet, getWalletDepositMethods, requestBuyerWalletTopup } from "@/lib/api-client";
-import { resolveBackendAssetUrl } from "@/lib/utils";
+import { formatPrice, resolveBackendAssetUrl } from "@/lib/utils";
 
 type PaymentDetailRow = {
   label: string;
@@ -295,7 +295,7 @@ export function BuyerWalletPage() {
 
   const bal = wallet ? parseFloat(String(wallet.available_balance ?? wallet.balance ?? "0")) : 0;
   const pending = wallet ? parseFloat(String(wallet.pending_balance ?? "0")) : 0;
-  const cur = wallet?.currency ?? "MYR";
+  const cur = wallet?.currency ?? "$";
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -310,14 +310,14 @@ export function BuyerWalletPage() {
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <div className="text-sm text-gray-500">Available balance</div>
           <div className="mt-1 text-2xl font-semibold text-gray-900">
-            {cur} {bal.toFixed(2)}
+            {formatPrice(cur, bal)}
           </div>
           <p className="mt-2 text-xs text-gray-500">Ready to use for checkout.</p>
         </div>
         <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
           <div className="text-sm text-gray-500">Pending top-ups</div>
           <div className="mt-1 text-2xl font-semibold text-gray-900">
-            {cur} {pending.toFixed(2)}
+            {formatPrice(cur, pending)}
           </div>
           <p className="mt-2 text-xs text-gray-500">Submitted requests waiting for admin approval.</p>
         </div>

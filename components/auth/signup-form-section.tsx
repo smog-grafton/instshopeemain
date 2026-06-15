@@ -2,21 +2,21 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PolicyConfirmationModal } from "./policy-confirmation-modal";
 import {
   PasswordValidationList,
   isPasswordValid,
 } from "./password-validation";
-import { registerBuyer, getGoogleAuthRedirectUrl } from "@/lib/api-client";
+import { fetchSignupVerificationCode, registerBuyer, getGoogleAuthRedirectUrl } from "@/lib/api-client";
 import { useAuth } from "./auth-context";
 import { resolvePostAuthHref } from "@/lib/account-routing";
 
 const BACKGROUND_IMAGE = "/images/auth/background.png";
 const FACEBOOK_ICON = "/images/auth/facebook.png";
 const GOOGLE_ICON = "/images/auth/google.png";
-const TERMS_URL = "https://help.shopee.com.my/portal/article/77215";
-const PRIVACY_URL = "https://help.shopee.com.my/portal/article/77216";
+const TERMS_URL = "#terms";
+const PRIVACY_URL = "#privacy";
 
 type SignupStep = 1 | 2 | "success";
 
@@ -24,6 +24,9 @@ export function SignupFormSection() {
   const { login: setAuthLoggedIn } = useAuth();
   const [step, setStep] = useState<SignupStep>(1);
   const [phone, setPhone] = useState("");
+  const [verificationChallenge, setVerificationChallenge] = useState("");
+  const [verificationCode, setVerificationCode] = useState("");
+  const [verificationLoading, setVerificationLoading] = useState(false);
   const [policyModalOpen, setPolicyModalOpen] = useState(false);
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -35,7 +38,7 @@ export function SignupFormSection() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const canProceedStep1 = Boolean(phone.trim());
+  const canProceedStep1 = Boolean(phone.trim() && verificationCode.trim());
   const emailsMatch = email.trim() === confirmEmail.trim();
   const passwordsMatch = password === confirmPassword;
   const usernameValid = /^[A-Za-z0-9_-]{3,50}$/.test(username.trim());
@@ -46,9 +49,36 @@ export function SignupFormSection() {
     passwordsMatch &&
     isPasswordValid(password);
 
+  const refreshVerificationCode = () => {
+    setVerificationLoading(true);
+    fetchSignupVerificationCode()
+      .then((res) => {
+        setVerificationChallenge(res.code);
+        setVerificationCode("");
+      })
+      .catch(() => {
+        setVerificationChallenge("");
+        setError("Unable to load verification code. Please refresh and try again.");
+      })
+      .finally(() => setVerificationLoading(false));
+  };
+
+  useEffect(() => {
+    refreshVerificationCode();
+  }, []);
+
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!canProceedStep1) return;
+    setError(null);
+    if (!phone.trim()) return;
+    if (!verificationCode.trim()) {
+      setError("Verification code is required.");
+      return;
+    }
+    if (verificationChallenge && verificationCode.trim().toUpperCase() !== verificationChallenge.toUpperCase()) {
+      setError("Verification code is incorrect.");
+      return;
+    }
     setPolicyModalOpen(true);
   };
 
@@ -72,6 +102,7 @@ export function SignupFormSection() {
       email: email.trim(),
       password,
       passwordConfirmation: confirmPassword,
+      verificationCode: verificationCode.trim().toUpperCase(),
     })
       .then((result) => {
         const apiUser = result.user;
@@ -99,6 +130,9 @@ export function SignupFormSection() {
       })
       .catch((err: any) => {
         setError(err?.message || "Failed to create account.");
+        if (String(err?.message || "").toLowerCase().includes("verification")) {
+          refreshVerificationCode();
+        }
       })
       .finally(() => {
         setLoading(false);
@@ -199,6 +233,53 @@ export function SignupFormSection() {
                               padding: "4px 0px 0px",
                             }}
                           />
+                        </div>
+                        <div className="mb-2.5">
+                          <div className="mb-2 flex items-center justify-between gap-3">
+                            <div className="min-w-[112px] rounded-sm border border-dashed border-orange-300 bg-orange-50 px-4 py-2 text-center font-mono text-lg font-semibold tracking-[0.22em] text-orange-700">
+                              {verificationLoading ? "..." : verificationChallenge || "-----"}
+                            </div>
+                            <button
+                              type="button"
+                              onClick={refreshVerificationCode}
+                              className="shrink-0 text-sm font-medium text-[#ee4d2d]"
+                            >
+                              Refresh code
+                            </button>
+                          </div>
+                          <div
+                            className="flex h-10 w-full items-center overflow-hidden rounded-sm border border-black/10 shadow-[inset_0_2px_0_0_rgba(0,0,0,0.02)] box-border"
+                            style={{
+                              border: "1px solid rgba(0, 0, 0, 0.14)",
+                              borderRadius: "2px",
+                              boxShadow:
+                                "rgba(0, 0, 0, 0.02) 0px 2px 0px 0px inset",
+                              height: "40px",
+                            }}
+                          >
+                            <input
+                              type="text"
+                              placeholder="Enter verification code"
+                              autoComplete="off"
+                              value={verificationCode}
+                              onChange={(e) => setVerificationCode(e.target.value.toUpperCase())}
+                              className="h-4 flex-1 border-0 bg-transparent px-3 py-3 text-sm uppercase outline-none text-black/80"
+                              style={{
+                                flex: "1 0 0%",
+                                height: "16px",
+                                padding: "12px",
+                                font: '14px Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif',
+                              }}
+                            />
+                          </div>
+                          {error && (
+                            <div
+                              className="min-h-4 pt-1 text-xs text-[rgb(255,66,79)]"
+                              aria-live="polite"
+                            >
+                              {error}
+                            </div>
+                          )}
                         </div>
                         <button
                           type="submit"
@@ -312,7 +393,7 @@ export function SignupFormSection() {
 
                       {/* Terms */}
                       <div className="mt-4 text-center text-sm text-black/80">
-                        By signing up, you agree to Shopee&apos;s{" "}
+                        By signing up, you agree to InstShopee&apos;s{" "}
                         <a
                           href={TERMS_URL}
                           target="_blank"
@@ -619,7 +700,7 @@ export function SignupFormSection() {
       <PolicyConfirmationModal
         open={policyModalOpen}
         title="Continue Account Setup"
-        message="Please confirm that you agree to continue creating your Shopee account."
+        message="Please confirm that you agree to continue creating your InstShopee account."
         onCancel={handlePolicyCancel}
         onAgree={handlePolicyAgree}
       />

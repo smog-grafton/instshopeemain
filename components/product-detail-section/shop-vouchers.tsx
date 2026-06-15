@@ -5,7 +5,7 @@ import { VoucherBadge } from "./voucher-badge";
 import type { ShopVoucherEntry } from "./data";
 
 interface ShopVouchersProps {
-  /** Short labels for inline badges, e.g. ["RM1 OFF", "RM1 OFF"] */
+  /** Short labels for inline badges, e.g. ["$1 OFF", "$1 OFF"] */
   badgeLabels: string[];
   /** Full list for the hover popover */
   voucherList: ShopVoucherEntry[];

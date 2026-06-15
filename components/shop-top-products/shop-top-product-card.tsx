@@ -7,6 +7,7 @@ import {
 } from "@/components/common/product-card-media";
 import { TopBadge } from "./top-badge";
 import type { ShopTopProductItem } from "./data";
+import { normalizeCurrencySymbol } from "@/lib/utils";
 
 /** Jagged-edge SVGs for discount badge (orange) */
 const JagLeft = () => (
@@ -60,9 +61,10 @@ export function ShopTopProductCard({ item }: ShopTopProductCardProps) {
     rank,
     promotionLabel,
     textBadges,
-    currencySymbol = "RM",
+    currencySymbol = "$",
   } = item;
 
+  const displayCurrencySymbol = normalizeCurrencySymbol(currencySymbol);
   const hasCod = textBadges?.includes("cod") ?? false;
   const discountText = promotionLabel?.match(/\d+% off/)?.[0] ?? promotionLabel;
   const showShopeeLagiMurah = rank === 2 || rank === 4; // optional variety
@@ -149,7 +151,7 @@ export function ShopTopProductCard({ item }: ShopTopProductCardProps) {
                   <div className="flex max-w-full shrink-0 items-center overflow-hidden text-ellipsis whitespace-nowrap font-medium text-[#ee4d2d]">
                     <span className="flex items-baseline overflow-hidden text-ellipsis whitespace-nowrap">
                       <span className="mr-px text-xs font-medium leading-[14px]">
-                        {currencySymbol}
+                        {displayCurrencySymbol}
                       </span>
                       <span className="text-base font-medium leading-5">
                         {price.toFixed(2)}

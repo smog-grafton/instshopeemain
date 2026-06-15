@@ -9,9 +9,9 @@ export interface VoucherItem {
   logoImage: string;
   /** Label on left strip: GOLD, APPLE, CASHBACK, etc. */
   typeLabel: string;
-  /** Main title e.g. "15% off Capped at RM500" */
+  /** Main title e.g. "15% off Capped at $500" */
   title: string;
-  /** Min spend text e.g. "Min. Spend RM60" */
+  /** Min spend text e.g. "Min. Spend $60" */
   minSpend: string;
   /** Red tag label e.g. "Selected Products only", "Cashback Sellers" */
   tagLabel: string;

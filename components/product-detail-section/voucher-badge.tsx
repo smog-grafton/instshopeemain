@@ -7,7 +7,7 @@
  */
 
 export interface VoucherBadgeProps {
-  /** Badge text, e.g. "RM1 OFF" */
+  /** Badge text, e.g. "$1 OFF" */
   label: string;
   /** Tailwind background class, e.g. "bg-red-700/8" */
   bgColor?: string;

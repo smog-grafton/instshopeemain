@@ -268,7 +268,7 @@ export function PurchaseContent() {
                                   Total Payment
                                 </div>
                                 <div className="text-base text-[#ee4d2d] font-medium">
-                                  {formatPrice(order.currencySymbol || "RM", order.totalPayment)}
+                                  {formatPrice(order.currencySymbol || "$", order.totalPayment)}
                                 </div>
                               </div>
                             </div>
@@ -291,13 +291,13 @@ export function PurchaseContent() {
                               <div>
                                 <div className="text-[11px] uppercase text-zinc-400">Upfront used</div>
                                 <div className="text-sm font-medium text-zinc-800">
-                                  {formatPrice(order.currencySymbol || "RM", order.fulfillmentCost || 0)}
+                                  {formatPrice(order.currencySymbol || "$", order.fulfillmentCost || 0)}
                                 </div>
                               </div>
                               <div>
                                 <div className="text-[11px] uppercase text-zinc-400">Profit on receipt</div>
                                 <div className="text-sm font-medium text-emerald-700">
-                                  {formatPrice(order.currencySymbol || "RM", order.sellerPayout || 0)}
+                                  {formatPrice(order.currencySymbol || "$", order.sellerPayout || 0)}
                                 </div>
                               </div>
                               <div>

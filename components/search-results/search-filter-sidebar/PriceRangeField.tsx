@@ -31,7 +31,7 @@ export function PriceRangeField({ onApply, initialMin = "", initialMax = "" }: P
           inputMode="numeric"
           aria-label="Min price"
           maxLength={13}
-          placeholder="RM MIN"
+          placeholder="$ MIN"
           value={min}
           onChange={(e) => setMin(e.target.value)}
           className={inputStyles}
@@ -42,7 +42,7 @@ export function PriceRangeField({ onApply, initialMin = "", initialMax = "" }: P
           inputMode="numeric"
           aria-label="Max price"
           maxLength={13}
-          placeholder="RM MAX"
+          placeholder="$ MAX"
           value={max}
           onChange={(e) => setMax(e.target.value)}
           className={inputStyles}

@@ -135,7 +135,7 @@ export function FlashSaleProductCard({ product, className = "" }: FlashSaleProdu
       <Link
         href={product.href}
         className="no-underline active:outline-0 hover:outline-0 block"
-        aria-label={`${product.name} promotion off ${product.discount}% current price RM${product.price} ${statusText} click, enter flash sale`}
+        aria-label={`${product.name} promotion off ${product.discount}% current price $${product.price} ${statusText} click, enter flash sale`}
       >
         <div className="relative w-72 h-72 m-1.5">
           <div className="bg-white w-full h-full relative">
@@ -191,7 +191,7 @@ export function FlashSaleProductCard({ product, className = "" }: FlashSaleProdu
               <div className="flex-col flex-1 justify-end items-start flex">
                 <div className="flex">
                   <div className="justify-center items-center w-full flex line-through h-4 text-sm text-black/26">
-                    <span className="text-sm">RM</span>
+                    <span className="text-sm">$</span>
                     <strong>{product.originalPrice}</strong>
                   </div>
                   <div className="text-red-600 whitespace-nowrap bg-amber-200 font-medium relative rounded-br-sm rounded-t-sm h-4 text-sm leading-4 ml-2 pl-2 pr-[0.15625rem]">
@@ -226,7 +226,7 @@ export function FlashSaleProductCard({ product, className = "" }: FlashSaleProdu
                 </div>
                 <div>
                   <div className="justify-center items-center w-full flex text-red-500 h-8 text-3xl">
-                    <span className="text-lg mr-0.5">RM</span>
+                    <span className="text-lg mr-0.5">$</span>
                     <strong>{product.price}</strong>
                   </div>
                 </div>

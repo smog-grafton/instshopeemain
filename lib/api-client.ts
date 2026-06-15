@@ -232,6 +232,7 @@ export async function registerBuyer(input: {
   email: string;
   password: string;
   passwordConfirmation: string;
+  verificationCode: string;
 }): Promise<AuthResponse> {
   // Get CSRF cookie before registration
   await fetch(`${SANCTUM_BASE}/sanctum/csrf-cookie`, {
@@ -246,8 +247,28 @@ export async function registerBuyer(input: {
       email: input.email,
       password: input.password,
       password_confirmation: input.passwordConfirmation,
+      verification_code: input.verificationCode,
     }),
   });
+}
+
+export async function fetchSignupVerificationCode(): Promise<{ code: string; expiresIn: number }> {
+  await fetch(`${SANCTUM_BASE}/sanctum/csrf-cookie`, {
+    credentials: "include",
+  });
+
+  return apiFetch<{ code: string; expiresIn: number }>("/auth/verification-code");
+}
+
+export async function getBuyerSiteMessages(page = 1) {
+  return apiFetch<{ success: boolean; messages: any }>(`/site-messages?page=${page}`, {}, true);
+}
+
+export async function markBuyerSiteMessageSeen(messageId: number | string) {
+  return apiFetch<{ success: boolean; message: any }>(`/site-messages/${messageId}/seen`, {
+    method: "POST",
+    body: JSON.stringify({}),
+  }, true);
 }
 
 export async function fetchCurrentUser(): Promise<{ user: ApiUser }> {
@@ -630,7 +651,7 @@ export interface ApiShopProfile {
   isMall: boolean;
   /** ISO currency code for this shop (from seller account / vendor). */
   currencyCode?: string;
-  /** Display symbol, e.g. $ or RM */
+  /** Display symbol, e.g. $ */
   currencySymbol?: string;
   stats: {
     products: number;

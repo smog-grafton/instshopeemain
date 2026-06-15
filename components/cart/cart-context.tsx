@@ -36,7 +36,7 @@ export interface CartItem {
   shopSlug?: string;
   /** Backend cart item ID (for synced items) */
   id?: string;
-  /** Currency symbol for display (e.g., "RM", "USD", "IDR") */
+  /** Currency symbol for display (e.g., "$", "USD", "IDR") */
   currencySymbol?: string;
   /** Added to checkout shipping when product came from wholesale catalog with a supplier shipping fee. */
   catalogShippingFee?: number;

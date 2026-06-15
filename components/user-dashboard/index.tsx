@@ -8,9 +8,29 @@ import { DashboardPageSkeleton } from "./dashboard-page-skeleton";
 import { SIDEBAR_NAV } from "./data";
 import { UserSidebar } from "./user-sidebar";
 import { getSellerPortalBaseUrl, shouldUseSellerPortal } from "@/lib/account-routing";
+import { getBuyerSiteMessages, markBuyerSiteMessageSeen } from "@/lib/api-client";
 
 interface UserDashboardLayoutProps {
   children: ReactNode;
+}
+
+interface BuyerSiteMessage {
+  id: number | string;
+  title?: string | null;
+  body?: string | null;
+  content?: string | null;
+  created_at?: string | null;
+  sent_at?: string | null;
+  expires_at?: string | null;
+  show_popup?: boolean;
+  unread?: boolean;
+}
+
+function extractSiteMessages(payload: any): BuyerSiteMessage[] {
+  const messages = payload?.messages;
+  if (Array.isArray(messages?.data)) return messages.data;
+  if (Array.isArray(messages)) return messages;
+  return [];
 }
 
 function MenuIcon() {
@@ -103,6 +123,8 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
   const { isLoggedIn, authResolved, verifySession, user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [guardLoading, setGuardLoading] = useState(true);
+  const [siteMessageUnreadCount, setSiteMessageUnreadCount] = useState(0);
+  const [popupMessage, setPopupMessage] = useState<BuyerSiteMessage | null>(null);
   const searchQuery = searchParams.toString();
   const sellerPortalHref = useMemo(() => getSellerPortalBaseUrl(), []);
   const shouldRedirectToSellerPortal = shouldUseSellerPortal(user);
@@ -183,6 +205,42 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
   }, [authResolved, isLoggedIn, loginHref, router, shouldRedirectToSellerPortal, verifySession]);
 
   useEffect(() => {
+    if (!authResolved || !isLoggedIn || shouldRedirectToSellerPortal) return undefined;
+
+    let active = true;
+
+    async function loadSiteMessages() {
+      try {
+        const response = await getBuyerSiteMessages();
+        if (!active) return;
+
+        const messages = extractSiteMessages(response);
+        setSiteMessageUnreadCount(messages.filter((message) => message.unread).length);
+        setPopupMessage(messages.find((message) => message.show_popup) ?? null);
+      } catch (error) {
+        console.error("Failed to load site messages:", error);
+      }
+    }
+
+    void loadSiteMessages();
+
+    return () => {
+      active = false;
+    };
+  }, [authResolved, isLoggedIn, shouldRedirectToSellerPortal]);
+
+  const closePopupMessage = () => {
+    const message = popupMessage;
+    setPopupMessage(null);
+    if (!message) return;
+
+    setSiteMessageUnreadCount((count) => Math.max(0, count - (message.unread ? 1 : 0)));
+    void markBuyerSiteMessageSeen(message.id).catch((error) => {
+      console.error("Failed to mark site message as seen:", error);
+    });
+  };
+
+  useEffect(() => {
     if (!sidebarOpen) return undefined;
 
     const previousOverflow = document.body.style.overflow;
@@ -259,13 +317,50 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
               </button>
             </div>
             <div className="flex-1 overflow-y-auto py-4 lg:overflow-visible lg:py-0">
-              <UserSidebar className="w-full lg:w-44" onNavigate={() => setSidebarOpen(false)} />
+              <UserSidebar
+                className="w-full lg:w-44"
+                onNavigate={() => setSidebarOpen(false)}
+                siteMessageUnreadCount={siteMessageUnreadCount}
+              />
             </div>
           </aside>
 
           <div className="min-w-0 flex-1">{children}</div>
         </div>
       </div>
+      {popupMessage ? (
+        <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-black/45 px-4 py-6">
+          <div className="w-full max-w-sm overflow-hidden rounded-lg bg-white shadow-2xl">
+            <div className="flex items-center justify-between bg-[#ee4d2d] px-4 py-3 text-white">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-white/75">Unread message</div>
+                <div className="text-sm font-semibold">{popupMessage.title || "System information"}</div>
+              </div>
+              <button
+                type="button"
+                onClick={closePopupMessage}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white transition hover:bg-white/25"
+                aria-label="Close message"
+              >
+                <CloseIcon />
+              </button>
+            </div>
+            <div className="space-y-3 px-5 py-4 text-sm leading-6 text-zinc-700">
+              <p className="whitespace-pre-line">{popupMessage.body || popupMessage.content || "A new account update is available."}</p>
+              <div className="text-xs font-medium text-zinc-400">InstShopee Team</div>
+            </div>
+            <div className="flex justify-end border-t border-zinc-100 px-5 py-3">
+              <button
+                type="button"
+                onClick={closePopupMessage}
+                className="rounded-sm bg-[#ee4d2d] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#d73211]"
+              >
+                Got it
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
