@@ -15,8 +15,8 @@ import { resolvePostAuthHref } from "@/lib/account-routing";
 const BACKGROUND_IMAGE = "/images/auth/background.png";
 const FACEBOOK_ICON = "/images/auth/facebook.png";
 const GOOGLE_ICON = "/images/auth/google.png";
-const TERMS_URL = "#terms";
-const PRIVACY_URL = "#privacy";
+const TERMS_URL = "/terms-of-service";
+const PRIVACY_URL = "/privacy-policy";
 
 type SignupStep = 1 | 2 | "success";
 
@@ -34,6 +34,7 @@ export function SignupFormSection() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [legalAccepted, setLegalAccepted] = useState(false);
   const [signupSuccess, setSignupSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -47,7 +48,8 @@ export function SignupFormSection() {
     usernameValid &&
     emailsMatch &&
     passwordsMatch &&
-    isPasswordValid(password);
+    isPasswordValid(password) &&
+    legalAccepted;
 
   const refreshVerificationCode = () => {
     setVerificationLoading(true);
@@ -103,6 +105,8 @@ export function SignupFormSection() {
       password,
       passwordConfirmation: confirmPassword,
       verificationCode: verificationCode.trim().toUpperCase(),
+      termsAccepted: legalAccepted,
+      privacyAccepted: legalAccepted,
     })
       .then((result) => {
         const apiUser = result.user;
@@ -393,24 +397,24 @@ export function SignupFormSection() {
 
                       {/* Terms */}
                       <div className="mt-4 text-center text-sm text-black/80">
-                        By signing up, you agree to InstShopee&apos;s{" "}
-                        <a
+                        By signing up, you agree to Shopee&apos;s{" "}
+                        <Link
                           href={TERMS_URL}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[#ee4d2d] no-underline bg-transparent"
                         >
                           Terms of Service
-                        </a>{" "}
+                        </Link>{" "}
                         &amp;{" "}
-                        <a
+                        <Link
                           href={PRIVACY_URL}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-[#ee4d2d] no-underline bg-transparent"
                         >
                           Privacy Policy
-                        </a>
+                        </Link>
                       </div>
                     </div>
                   </>
@@ -637,6 +641,25 @@ export function SignupFormSection() {
                             </div>
                           )}
                         </div>
+                        <label className="mb-3 flex items-start gap-2 text-xs leading-5 text-black/70">
+                          <input
+                            type="checkbox"
+                            checked={legalAccepted}
+                            onChange={(event) => setLegalAccepted(event.target.checked)}
+                            className="mt-1 h-4 w-4 shrink-0 accent-[#ee4d2d]"
+                          />
+                          <span>
+                            I agree to the{" "}
+                            <Link href={TERMS_URL} target="_blank" className="font-medium text-[#ee4d2d] no-underline">
+                              Terms of Service
+                            </Link>{" "}
+                            and{" "}
+                            <Link href={PRIVACY_URL} target="_blank" className="font-medium text-[#ee4d2d] no-underline">
+                              Privacy Policy
+                            </Link>
+                            .
+                          </span>
+                        </label>
                         {error && (
                           <div
                             className="text-xs mb-2"
@@ -700,7 +723,7 @@ export function SignupFormSection() {
       <PolicyConfirmationModal
         open={policyModalOpen}
         title="Continue Account Setup"
-        message="Please confirm that you agree to continue creating your InstShopee account."
+        message="Please confirm that you agree to continue creating your Shopee account."
         onCancel={handlePolicyCancel}
         onAgree={handlePolicyAgree}
       />

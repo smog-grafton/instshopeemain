@@ -233,6 +233,8 @@ export async function registerBuyer(input: {
   password: string;
   passwordConfirmation: string;
   verificationCode: string;
+  termsAccepted: boolean;
+  privacyAccepted: boolean;
 }): Promise<AuthResponse> {
   // Get CSRF cookie before registration
   await fetch(`${SANCTUM_BASE}/sanctum/csrf-cookie`, {
@@ -248,6 +250,8 @@ export async function registerBuyer(input: {
       password: input.password,
       password_confirmation: input.passwordConfirmation,
       verification_code: input.verificationCode,
+      terms_accepted: input.termsAccepted,
+      privacy_accepted: input.privacyAccepted,
     }),
   });
 }

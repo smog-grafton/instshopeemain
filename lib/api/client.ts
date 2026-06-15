@@ -1,5 +1,5 @@
 /**
- * Laravel API Client for InstShopee Main Platform
+ * Laravel API Client for Shopee Main Platform
  * 
  * This client automatically includes country context in all API requests
  * based on the domain/header resolution from middleware.

@@ -347,7 +347,7 @@ function UserDashboardLayoutContent({ children }: UserDashboardLayoutProps) {
             </div>
             <div className="space-y-3 px-5 py-4 text-sm leading-6 text-zinc-700">
               <p className="whitespace-pre-line">{popupMessage.body || popupMessage.content || "A new account update is available."}</p>
-              <div className="text-xs font-medium text-zinc-400">InstShopee Team</div>
+              <div className="text-xs font-medium text-zinc-400">Shopee Team</div>
             </div>
             <div className="flex justify-end border-t border-zinc-100 px-5 py-3">
               <button
