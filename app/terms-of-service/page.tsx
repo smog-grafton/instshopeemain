@@ -28,7 +28,7 @@ const sections = [
   },
   {
     title: "6. Receipt Confirmation and Seller Settlement",
-    body: "When a buyer confirms receipt, Shopee may release eligible processing reserves back to the seller wallet together with the seller's configured share of profit. Platform service rules, profit share settings, shipping reserves, refunds, chargebacks, and compliance adjustments may affect the final amount released.",
+    body: "When a buyer confirms receipt, Shopee may release eligible processing reserves back to the seller wallet together with the seller's configured profit. Seller profit may be calculated from the processing reserve and capped by platform settings, for example min(processing reserve x target rate, processing reserve x max allowed rate). Shipping reserves, refunds, chargebacks, and compliance adjustments may affect the final amount released.",
   },
   {
     title: "7. Prohibited Activities",
