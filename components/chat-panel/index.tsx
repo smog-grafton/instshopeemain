@@ -29,7 +29,7 @@ function normalizeProduct(product?: any) {
   if (!product) return undefined;
   return {
     ...product,
-    image: product.image || "/images/common/no-image.png",
+    image: product.image || "/images/placeholders/shopee-product-placeholder.jpg",
   };
 }
 
@@ -41,6 +41,12 @@ function mapApiMessage(message: any): ChatMessage {
     senderType: message.sender_type ?? "seller",
     senderLabel: message.sender_label,
     timestamp: message.timestamp ?? "",
+    meta: message.meta
+      ? {
+          ...message.meta,
+          product: normalizeProduct(message.meta.product),
+        }
+      : null,
   };
 }
 
@@ -73,6 +79,9 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
   const [exiting, setExiting] = useState(false);
   const [entered, setEntered] = useState(false);
   const [isCompact, setIsCompact] = useState(false);
+  const [loadingThreads, setLoadingThreads] = useState(true);
+  const [chatError, setChatError] = useState<string | null>(null);
+  const [sending, setSending] = useState(false);
   const conversationsRef = useRef(conversations);
 
   useEffect(() => {
@@ -97,6 +106,7 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
   }, []);
 
   useEffect(() => {
+    setLoadingThreads(true);
     getChatThreads()
       .then((res) => {
         const threads = res.threads.map((thread) => mapThreadToConversation(thread));
@@ -105,7 +115,8 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
           setSelectedId(threads[0].id);
         }
       })
-      .catch(() => {});
+      .catch((error) => setChatError(error instanceof Error ? error.message : "Unable to load chats."))
+      .finally(() => setLoadingThreads(false));
   }, []);
 
   useEffect(() => {
@@ -129,10 +140,12 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
     if (!openPayload) return;
 
     if (!openPayload.vendorId) {
+      setChatError("We could not identify the seller for this chat.");
       onPayloadConsumed?.();
       return;
     }
 
+    setChatError(null);
     startChatThread(openPayload.vendorId, openPayload.product?.id)
       .then((res) => {
         const nextConversation = mapThreadToConversation(res.thread);
@@ -143,6 +156,9 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
             : [nextConversation, ...prev];
         });
         setSelectedId(nextConversation.id);
+      })
+      .catch((error) => {
+        setChatError(error instanceof Error ? error.message : "We could not load this product for chat. Please refresh the page or try again.");
       })
       .finally(() => onPayloadConsumed?.());
   }, [openPayload, onPayloadConsumed]);
@@ -291,7 +307,7 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
 
   const handleSendMessage = useCallback(
     (text: string) => {
-      if (!selectedId || !isNumericId(selectedId)) return;
+      if (!selectedId || !isNumericId(selectedId) || sending) return;
 
       const timestamp = new Date().toLocaleTimeString("en-US", {
         hour: "2-digit",
@@ -308,6 +324,8 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
         timestamp,
       };
 
+      setSending(true);
+      setChatError(null);
       setConversations((prev) =>
         prev.map((conversation) =>
           conversation.id === selectedId
@@ -345,7 +363,8 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
             )
           );
         })
-        .catch(() => {
+        .catch((error) => {
+          setChatError(error instanceof Error ? error.message : "Message could not be sent. Please try again.");
           setConversations((prev) =>
             prev.map((conversation) =>
               conversation.id === selectedId
@@ -356,9 +375,10 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
                 : conversation
             )
           );
-        });
+        })
+        .finally(() => setSending(false));
     },
-    [selectedId]
+    [selectedId, sending]
   );
 
   return (
@@ -408,6 +428,9 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
                 <ChatPanelThread
                   conversation={selected}
                   onSendMessage={handleSendMessage}
+                  sending={sending}
+                  loading={loadingThreads}
+                  error={chatError}
                   onToggleListOnly={() => setListOnly((value) => !value)}
                   onUpdateProduct={(product) => {
                     setConversations((prev) =>
@@ -431,7 +454,7 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
                   }}
                 />
               ) : (
-                <ChatPanelWelcome />
+                <ChatPanelWelcome loading={loadingThreads} error={chatError} />
               )}
             </div>
           )}

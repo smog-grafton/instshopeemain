@@ -151,7 +151,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
   };
 
   const chatProductContext = {
-    id: product.id ?? (Number(product.shopId) || 0),
+    id: product.id,
     title: product.title,
     image: productImageSrc,
     price: currentPriceLabel,

@@ -1,6 +1,11 @@
 "use client";
 
-export function ChatPanelWelcome() {
+interface ChatPanelWelcomeProps {
+  loading?: boolean;
+  error?: string | null;
+}
+
+export function ChatPanelWelcome({ loading = false, error = null }: ChatPanelWelcomeProps) {
   return (
     <div className="relative flex h-full w-full grow flex-col items-center justify-center bg-zinc-100 px-2 text-center">
       <i className="inline-block h-32 w-52 shrink-0 fill-none leading-[0] overflow-x-hidden overflow-y-hidden align-baseline">
@@ -72,9 +77,11 @@ export function ChatPanelWelcome() {
         </svg>
       </i>
       <div className="mb-2 mt-4 select-none text-base font-medium text-zinc-800">
-        Welcome to Shopee Chat
+        {loading ? "Loading Chats" : "Welcome to Shopee Chat"}
       </div>
-      <div className="select-none text-sm text-zinc-400">Start chatting with our sellers now!</div>
+      <div className="select-none text-sm text-zinc-400">
+        {error || (loading ? "Please wait while we prepare your inbox." : "Start chatting with our sellers now!")}
+      </div>
       <a href="mailto:shopeecustomerservice58@gmail.com" className="mt-2 text-sm font-medium text-[#ee4d2d]">
         shopeecustomerservice58@gmail.com
       </a>

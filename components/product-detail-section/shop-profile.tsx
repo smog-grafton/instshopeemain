@@ -3,8 +3,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useChat } from "@/components/chat-widget/chat-context";
+import { useAuth } from "@/components/auth/auth-context";
 import type { ShopProfileData } from "./data";
 import { isBackendImage } from "@/lib/utils";
+import { useEffect, useRef } from "react";
 
 const CHAT_ICON_SRC = "/images/profile/shop/chat.svg";
 const SHOP_ICON_SRC = "/images/profile/shop/shop.svg";
@@ -68,13 +70,48 @@ function ShopProfileStatItem({
 export function ShopProfile({ data, vendorId, productContext }: ShopProfileProps) {
   const { shopName, activeText, shopHref, profileImagePath, stats } = data;
   const { openChat } = useChat();
+  const { isLoggedIn, authResolved } = useAuth();
   const useBackendImage = isBackendImage(profileImagePath);
+  const autoOpenedRef = useRef(false);
 
   const linkFocusRing =
     "focus-visible:before:content-[''] focus-visible:before:outline-2 focus-visible:before:outline-solid focus-visible:before:w-[calc(100%+8px)] focus-visible:before:h-[calc(100%+8px)] focus-visible:before:absolute focus-visible:before:-m-1 focus-visible:before:p-1 focus-visible:before:rounded-[50%] focus-visible:before:-left-1 focus-visible:before:-top-1 focus-visible:before:outline-black/87";
 
   const buttonFocusRing =
     "focus-visible:before:content-[''] focus-visible:before:outline-2 focus-visible:before:outline-solid focus-visible:before:w-[calc(100%+8px)] focus-visible:before:h-[calc(100%+8px)] focus-visible:before:absolute focus-visible:before:-m-1 focus-visible:before:p-1 focus-visible:before:rounded-sm focus-visible:before:-left-1 focus-visible:before:-top-1 focus-visible:before:outline-black/87";
+
+  const openProductChat = () => {
+    openChat({
+      shopName,
+      shopSlug: shopHref?.replace("/shop/", ""),
+      vendorId,
+      product: productContext,
+    });
+  };
+
+  useEffect(() => {
+    if (!authResolved || !isLoggedIn || autoOpenedRef.current || typeof window === "undefined") return;
+
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("chat") !== "1") return;
+
+    autoOpenedRef.current = true;
+    openProductChat();
+    url.searchParams.delete("chat");
+    window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+  }, [authResolved, isLoggedIn, shopName, shopHref, vendorId, productContext]);
+
+  const handleChatNow = () => {
+    if (!authResolved) return;
+
+    if (!isLoggedIn && typeof window !== "undefined") {
+      const next = `${window.location.pathname}?chat=1`;
+      window.location.href = `/login?next=${encodeURIComponent(next)}`;
+      return;
+    }
+
+    openProductChat();
+  };
 
   return (
     <section
@@ -120,14 +157,8 @@ export function ShopProfile({ data, vendorId, productContext }: ShopProfileProps
             <div className="mt-2 flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() =>
-                  openChat({
-                    shopName,
-                    shopSlug: shopHref?.replace("/shop/", ""),
-                    vendorId,
-                    product: productContext,
-                  })
-                }
+                onClick={handleChatNow}
+                disabled={!authResolved}
                 className={`[appearance:auto] inline-flex h-9 min-w-[7.25rem] items-center justify-center rounded-sm border border-solid border-red-500 bg-orange-600/10 px-4 text-sm text-red-500 shadow-sm outline-0 whitespace-nowrap hover:bg-orange-200/18 active:bg-orange-900/15 active:shadow-inner ${buttonFocusRing}`}
               >
                 <img

@@ -181,7 +181,7 @@ export async function startChatThread(vendorId: number, productId?: number) {
 
 export async function getChatMessages(threadId: string, afterId?: number) {
   const query = afterId ? `?after_id=${afterId}` : "";
-  return apiFetch<{ success: boolean; messages: { id: string; text: string; sender_type: string; sender_label?: string; timestamp: string }[] }>(
+  return apiFetch<{ success: boolean; messages: { id: string; text: string; sender_type: string; sender_label?: string; timestamp: string; meta?: any }[] }>(
     `/chat/threads/${threadId}/messages${query}`,
     {},
     true
@@ -189,7 +189,7 @@ export async function getChatMessages(threadId: string, afterId?: number) {
 }
 
 export async function sendChatMessage(threadId: string, message: string, productId?: number) {
-  return apiFetch<{ success: boolean; message: { id: string; text: string; sender_type: string; sender_label?: string; timestamp: string } }>(
+  return apiFetch<{ success: boolean; message: { id: string; text: string; sender_type: string; sender_label?: string; timestamp: string; meta?: any } }>(
     `/chat/threads/${threadId}/send`,
     {
       method: "POST",
@@ -336,6 +336,7 @@ export function getGoogleAuthRedirectUrl(nextUrl?: string | null): string {
 
 // Product types and functions
 export interface ApiProduct {
+  id?: number;
   slug: string;
   title: string;
   shopId: string;

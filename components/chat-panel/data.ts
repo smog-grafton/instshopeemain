@@ -7,6 +7,11 @@ export interface ChatMessage {
   senderType: string;
   senderLabel?: string;
   timestamp: string;
+  meta?: {
+    product_id?: number;
+    product?: ChatProduct;
+    [key: string]: unknown;
+  } | null;
 }
 
 export interface ChatProduct {

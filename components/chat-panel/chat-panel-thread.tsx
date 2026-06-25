@@ -6,6 +6,9 @@ import type { ChatConversation, ChatProduct } from "./data";
 interface ChatPanelThreadProps {
   conversation: ChatConversation;
   onSendMessage: (text: string) => void;
+  sending?: boolean;
+  loading?: boolean;
+  error?: string | null;
   onToggleListOnly?: () => void;
   onUpdateProduct?: (product: ChatProduct) => void;
 }
@@ -87,6 +90,9 @@ function IconSend() {
 export function ChatPanelThread({
   conversation,
   onSendMessage,
+  sending = false,
+  loading = false,
+  error = null,
   onToggleListOnly,
   onUpdateProduct,
 }: ChatPanelThreadProps) {
@@ -115,6 +121,10 @@ export function ChatPanelThread({
 
   const product = conversation.product;
   const recentProducts = conversation.recentProducts || (product ? [product] : []);
+  const appendEmoji = (emoji: string) => setInput((value) => `${value}${value ? " " : ""}${emoji}`);
+
+  const disabledToolbarClass =
+    "inline-flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-full opacity-50";
 
   return (
     <div className="flex h-full flex-col bg-white">
@@ -184,6 +194,16 @@ export function ChatPanelThread({
         </div>
 
         <div className="flex flex-col gap-3">
+          {loading && threadMessages.length === 0 && (
+            <div className="max-w-[85%] animate-pulse rounded-lg bg-white px-4 py-3 text-sm text-neutral-400 shadow-sm">
+              Loading messages...
+            </div>
+          )}
+          {error && (
+            <div className="max-w-[92%] rounded-lg border border-red-100 bg-red-50 px-4 py-3 text-sm leading-5 text-red-700 shadow-sm sm:max-w-[85%]">
+              {error}
+            </div>
+          )}
           {threadMessages.length === 0 && (
             <div className="max-w-[92%] rounded-lg bg-white px-4 py-3 text-sm text-neutral-600 shadow-sm sm:max-w-[85%]">
               Start the conversation here. Seller replies and customer support replies will appear in this thread. Email shopeecustomerservice58@gmail.com for support.
@@ -210,6 +230,22 @@ export function ChatPanelThread({
                 </p>
               )}
               <p className="[word-break:break-word]">{msg.text}</p>
+              {msg.meta?.product && (
+                <a
+                  href={msg.meta.product.href || "#"}
+                  className={`mt-2 flex gap-2 rounded-md border p-2 no-underline ${
+                    msg.isFromUser ? "border-white/30 bg-white/10 text-white" : "border-neutral-100 bg-neutral-50 text-zinc-800"
+                  }`}
+                >
+                  <img src={msg.meta.product.image} alt="" className="h-10 w-10 shrink-0 rounded object-cover" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs font-medium">{msg.meta.product.title}</span>
+                    <span className={msg.isFromUser ? "text-xs text-red-100" : "text-xs text-red-500"}>
+                      {msg.meta.product.price}
+                    </span>
+                  </span>
+                </a>
+              )}
               <p
                 className={`mt-1 text-xs ${
                   msg.isFromUser
@@ -234,13 +270,15 @@ export function ChatPanelThread({
         {product && productPinned && (
           <div className="relative mt-4 max-w-[96%] rounded-lg bg-white p-3 shadow-sm sm:max-w-[92%]">
             <div className="absolute right-2 top-2 flex items-center gap-2 text-neutral-400">
-              <button
-                type="button"
-                onClick={() => setShowPicker((v) => !v)}
-                className="rounded border border-neutral-200 px-2 py-0.5 text-xs text-neutral-600 hover:bg-neutral-50"
-              >
-                Change
-              </button>
+              {recentProducts.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => setShowPicker((v) => !v)}
+                  className="rounded border border-neutral-200 px-2 py-0.5 text-xs text-neutral-600 hover:bg-neutral-50"
+                >
+                  Change
+                </button>
+              )}
               <button
                 type="button"
                 onClick={() => setProductPinned(false)}
@@ -298,12 +336,34 @@ export function ChatPanelThread({
       <form onSubmit={handleSubmit} className="shrink-0 border-t border-zinc-200 px-3 py-3 sm:px-4">
         <div className="flex items-center gap-2">
           <div className="flex shrink-0 items-center gap-2 text-slate-400 sm:gap-3">
-            <IconSmile />
-            <IconImage />
+            <button
+              type="button"
+              onClick={() => appendEmoji("😊")}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-neutral-100"
+              title="Insert emoji"
+              aria-label="Insert emoji"
+            >
+              <IconSmile />
+            </button>
+            <button
+              type="button"
+              className={disabledToolbarClass}
+              title="Attachments are not available yet."
+              aria-label="Attachments are not available yet."
+              disabled
+            >
+              <IconImage />
+            </button>
             <div className="hidden items-center gap-3 sm:flex">
-              <IconVideo />
-              <IconCamera />
-              <IconUpload />
+              <button type="button" className={disabledToolbarClass} title="Video messages are not available yet." aria-label="Video messages are not available yet." disabled>
+                <IconVideo />
+              </button>
+              <button type="button" className={disabledToolbarClass} title="Camera upload is not available yet." aria-label="Camera upload is not available yet." disabled>
+                <IconCamera />
+              </button>
+              <button type="button" className={disabledToolbarClass} title="File upload is not available yet." aria-label="File upload is not available yet." disabled>
+                <IconUpload />
+              </button>
             </div>
           </div>
           <input
@@ -312,8 +372,9 @@ export function ChatPanelThread({
             placeholder="Type a message here"
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            disabled={sending}
           />
-          <button type="submit" className="rounded-full p-2 hover:bg-neutral-100">
+          <button type="submit" disabled={sending || !input.trim()} className="rounded-full p-2 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">
             <IconSend />
           </button>
         </div>
