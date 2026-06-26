@@ -188,7 +188,41 @@ export async function getChatMessages(threadId: string, afterId?: number) {
   );
 }
 
-export async function sendChatMessage(threadId: string, message: string, productId?: number) {
+export async function sendChatMessage(threadId: string, message: string, productId?: number, attachment?: File) {
+  if (attachment) {
+    const formData = new FormData();
+    formData.append("message", message);
+    if (productId) formData.append("product_id", String(productId));
+    formData.append("attachment", attachment);
+
+    const res = await fetch(`${API_BASE}/chat/threads/${threadId}/send`, {
+      method: "POST",
+      body: formData,
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+        "X-Requested-With": "XMLHttpRequest",
+      },
+    });
+
+    if (!res.ok) {
+      let errorData: any = null;
+      let errorMessage = `Request failed with status ${res.status}`;
+      try {
+        errorData = await res.json();
+        errorMessage = errorData?.message || errorMessage;
+      } catch {
+        // ignore
+      }
+      const error = new Error(errorMessage) as any;
+      error.status = res.status;
+      error.data = errorData;
+      throw error;
+    }
+
+    return res.json() as Promise<{ success: boolean; message: { id: string; text: string; sender_type: string; sender_label?: string; timestamp: string; meta?: any } }>;
+  }
+
   return apiFetch<{ success: boolean; message: { id: string; text: string; sender_type: string; sender_label?: string; timestamp: string; meta?: any } }>(
     `/chat/threads/${threadId}/send`,
     {

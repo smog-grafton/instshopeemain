@@ -1,11 +1,11 @@
 "use client";
 
 import { useRef, useEffect, useState } from "react";
-import type { ChatConversation, ChatProduct } from "./data";
+import type { ChatAttachment, ChatConversation, ChatProduct } from "./data";
 
 interface ChatPanelThreadProps {
   conversation: ChatConversation;
-  onSendMessage: (text: string) => void;
+  onSendMessage: (text: string, attachment?: File) => void;
   sending?: boolean;
   loading?: boolean;
   error?: string | null;
@@ -38,17 +38,6 @@ function IconImage() {
       <path
         fill="currentColor"
         d="M4 5a3 3 0 013-3h10a3 3 0 013 3v14a3 3 0 01-3 3H7a3 3 0 01-3-3V5zm3-1a1 1 0 00-1 1v9l3-3 2 2 5-5 4 4V5a1 1 0 00-1-1H7zm10 16a1 1 0 001-1v-4.17l-3.29-3.3-5 5-2-2-3 3V19a1 1 0 001 1h10z"
-      />
-    </svg>
-  );
-}
-
-function IconVideo() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 text-slate-400" aria-hidden>
-      <path
-        fill="currentColor"
-        d="M4 6a3 3 0 013-3h7a3 3 0 013 3v2l4-2v12l-4-2v2a3 3 0 01-3 3H7a3 3 0 01-3-3V6zm3-1a1 1 0 00-1 1v12a1 1 0 001 1h7a1 1 0 001-1V6a1 1 0 00-1-1H7z"
       />
     </svg>
   );
@@ -99,8 +88,14 @@ export function ChatPanelThread({
   const threadMessages = conversation.messages;
   const [input, setInput] = useState("");
   const [showPicker, setShowPicker] = useState(false);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [productPinned, setProductPinned] = useState(true);
+  const [selectedAttachment, setSelectedAttachment] = useState<File | null>(null);
+  const [attachmentPreview, setAttachmentPreview] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     listRef.current?.scrollTo(0, listRef.current.scrollHeight);
@@ -108,23 +103,74 @@ export function ChatPanelThread({
 
   useEffect(() => {
     setShowPicker(false);
+    setShowEmojiPicker(false);
     setProductPinned(true);
+    setSelectedAttachment(null);
   }, [conversation.id]);
+
+  useEffect(() => {
+    if (!selectedAttachment || !selectedAttachment.type.startsWith("image/")) {
+      setAttachmentPreview(null);
+      return;
+    }
+
+    const url = URL.createObjectURL(selectedAttachment);
+    setAttachmentPreview(url);
+
+    return () => URL.revokeObjectURL(url);
+  }, [selectedAttachment]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const text = input.trim();
-    if (!text) return;
-    onSendMessage(text);
+    if (!text && !selectedAttachment) return;
+    onSendMessage(text, selectedAttachment ?? undefined);
     setInput("");
+    setSelectedAttachment(null);
+    setShowEmojiPicker(false);
   };
 
   const product = conversation.product;
   const recentProducts = conversation.recentProducts || (product ? [product] : []);
   const appendEmoji = (emoji: string) => setInput((value) => `${value}${value ? " " : ""}${emoji}`);
+  const toolbarButtonClass = "inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-neutral-100";
+  const emojis = ["😊", "👍", "🙏", "😍", "🔥", "✅", "🎁", "💬"];
 
-  const disabledToolbarClass =
-    "inline-flex h-8 w-8 cursor-not-allowed items-center justify-center rounded-full opacity-50";
+  const handleAttachmentSelect = (file?: File | null) => {
+    if (!file) return;
+    setSelectedAttachment(file);
+  };
+
+  const renderAttachments = (attachments?: ChatAttachment[] | null, isFromUser = false) => {
+    if (!attachments?.length) return null;
+
+    return (
+      <div className="mt-2 space-y-2">
+        {attachments.map((attachment, idx) => (
+          attachment.type === "image" ? (
+            <a key={attachment.id ?? `${attachment.url}-${idx}`} href={attachment.url} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-md border border-black/10 bg-white/10">
+              <img src={attachment.url} alt={attachment.name} className="max-h-48 w-full object-cover" />
+              <span className={`block truncate px-2 py-1 text-xs ${isFromUser ? "text-red-50" : "text-neutral-500"}`}>{attachment.name}</span>
+            </a>
+          ) : (
+            <a
+              key={attachment.id ?? `${attachment.url}-${idx}`}
+              href={attachment.url}
+              download={attachment.name}
+              target="_blank"
+              rel="noreferrer"
+              className={`flex items-center justify-between gap-2 rounded-md border px-3 py-2 text-xs no-underline ${
+                isFromUser ? "border-white/30 bg-white/10 text-white" : "border-neutral-200 bg-neutral-50 text-zinc-700"
+              }`}
+            >
+              <span className="truncate">{attachment.name}</span>
+              <span className={isFromUser ? "text-red-50" : "text-orange-600"}>Download</span>
+            </a>
+          )
+        ))}
+      </div>
+    );
+  };
 
   return (
     <div className="flex h-full flex-col bg-white">
@@ -230,6 +276,7 @@ export function ChatPanelThread({
                 </p>
               )}
               <p className="[word-break:break-word]">{msg.text}</p>
+              {renderAttachments(msg.meta?.attachments, msg.isFromUser)}
               {msg.meta?.product && (
                 <a
                   href={msg.meta.product.href || "#"}
@@ -334,34 +381,53 @@ export function ChatPanelThread({
       </div>
 
       <form onSubmit={handleSubmit} className="shrink-0 border-t border-zinc-200 px-3 py-3 sm:px-4">
+        {selectedAttachment && (
+          <div className="mb-2 flex items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 p-2">
+            {attachmentPreview ? <img src={attachmentPreview} alt="" className="h-12 w-12 rounded object-cover" /> : null}
+            <div className="min-w-0 flex-1 text-xs">
+              <div className="truncate font-medium text-zinc-700">{selectedAttachment.name}</div>
+              <div className="text-neutral-400">{Math.ceil(selectedAttachment.size / 1024)} KB</div>
+            </div>
+            <button type="button" onClick={() => setSelectedAttachment(null)} className="rounded px-2 py-1 text-xs text-neutral-500 hover:bg-white">Remove</button>
+          </div>
+        )}
         <div className="flex items-center gap-2">
           <div className="flex shrink-0 items-center gap-2 text-slate-400 sm:gap-3">
+            <input ref={imageInputRef} type="file" accept="image/*" className="hidden" onChange={(event) => handleAttachmentSelect(event.target.files?.[0])} />
+            <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(event) => handleAttachmentSelect(event.target.files?.[0])} />
+            <input ref={fileInputRef} type="file" className="hidden" onChange={(event) => handleAttachmentSelect(event.target.files?.[0])} />
             <button
               type="button"
-              onClick={() => appendEmoji("😊")}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full hover:bg-neutral-100"
+              onClick={() => setShowEmojiPicker((value) => !value)}
+              className={toolbarButtonClass}
               title="Insert emoji"
               aria-label="Insert emoji"
             >
               <IconSmile />
             </button>
+            {showEmojiPicker && (
+              <div className="absolute bottom-16 left-3 z-10 grid grid-cols-4 gap-1 rounded-lg border border-neutral-200 bg-white p-2 shadow-lg">
+                {emojis.map((emoji) => (
+                  <button key={emoji} type="button" onClick={() => appendEmoji(emoji)} className="h-8 w-8 rounded text-lg hover:bg-neutral-100">
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
             <button
               type="button"
-              className={disabledToolbarClass}
-              title="Attachments are not available yet."
-              aria-label="Attachments are not available yet."
-              disabled
+              onClick={() => imageInputRef.current?.click()}
+              className={toolbarButtonClass}
+              title="Attach image"
+              aria-label="Attach image"
             >
               <IconImage />
             </button>
             <div className="hidden items-center gap-3 sm:flex">
-              <button type="button" className={disabledToolbarClass} title="Video messages are not available yet." aria-label="Video messages are not available yet." disabled>
-                <IconVideo />
-              </button>
-              <button type="button" className={disabledToolbarClass} title="Camera upload is not available yet." aria-label="Camera upload is not available yet." disabled>
+              <button type="button" onClick={() => cameraInputRef.current?.click()} className={toolbarButtonClass} title="Open camera" aria-label="Open camera">
                 <IconCamera />
               </button>
-              <button type="button" className={disabledToolbarClass} title="File upload is not available yet." aria-label="File upload is not available yet." disabled>
+              <button type="button" onClick={() => fileInputRef.current?.click()} className={toolbarButtonClass} title="Attach file" aria-label="Attach file">
                 <IconUpload />
               </button>
             </div>
@@ -374,7 +440,7 @@ export function ChatPanelThread({
             onChange={(e) => setInput(e.target.value)}
             disabled={sending}
           />
-          <button type="submit" disabled={sending || !input.trim()} className="rounded-full p-2 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">
+          <button type="submit" disabled={sending || (!input.trim() && !selectedAttachment)} className="rounded-full p-2 hover:bg-neutral-100 disabled:cursor-not-allowed disabled:opacity-50">
             <IconSend />
           </button>
         </div>

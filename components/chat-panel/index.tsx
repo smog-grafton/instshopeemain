@@ -306,7 +306,7 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
   );
 
   const handleSendMessage = useCallback(
-    (text: string) => {
+    (text: string, attachment?: File) => {
       if (!selectedId || !isNumericId(selectedId) || sending) return;
 
       const timestamp = new Date().toLocaleTimeString("en-US", {
@@ -317,11 +317,24 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
       const tempId = `tmp-${Date.now()}`;
       const tempMessage: ChatMessage = {
         id: tempId,
-        text,
+        text: text || (attachment ? "Sending attachment..." : ""),
         isFromUser: true,
         senderType: "buyer",
         senderLabel: "You",
         timestamp,
+        meta: attachment
+          ? {
+              attachments: [
+                {
+                  name: attachment.name,
+                  mime: attachment.type,
+                  size: attachment.size,
+                  type: attachment.type.startsWith("image/") ? "image" : "file",
+                  url: URL.createObjectURL(attachment),
+                },
+              ],
+            }
+          : null,
       };
 
       setSending(true);
@@ -333,7 +346,7 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
                 ...conversation,
                 unread: false,
                 isTyping: false,
-                lastMessage: text,
+                lastMessage: text || (attachment ? "Sent an attachment" : ""),
                 lastMessageAt: timestamp,
                 messages: [...conversation.messages, tempMessage],
               }
@@ -343,7 +356,7 @@ export function ChatPanel({ onMinimize, openPayload, onPayloadConsumed }: ChatPa
 
       const thread = conversationsRef.current.find((conversation) => conversation.id === selectedId);
 
-      sendChatMessage(selectedId, text, thread?.product?.id)
+      sendChatMessage(selectedId, text, thread?.product?.id, attachment)
         .then((res) => {
           const persistedMessage = mapApiMessage(res.message);
 

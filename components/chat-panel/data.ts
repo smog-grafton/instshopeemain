@@ -10,8 +10,18 @@ export interface ChatMessage {
   meta?: {
     product_id?: number;
     product?: ChatProduct;
+    attachments?: ChatAttachment[];
     [key: string]: unknown;
   } | null;
+}
+
+export interface ChatAttachment {
+  id?: string;
+  name: string;
+  mime?: string;
+  size?: number;
+  type: "image" | "file";
+  url: string;
 }
 
 export interface ChatProduct {
