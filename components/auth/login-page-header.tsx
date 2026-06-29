@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 
-const HELP_URL = "mailto:shopeecustomerservice58@gmail.com";
+const HELP_URL = "/user/my-message";
 
 export interface AuthPageHeaderProps {
   /** Page title shown next to logo, e.g. "Log In" or "Sign Up". */
