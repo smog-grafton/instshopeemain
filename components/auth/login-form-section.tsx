@@ -88,7 +88,7 @@ export function LoginFormSection() {
       <div
         className="mx-auto flex min-h-[600px] w-full max-w-[1040px] items-center justify-center sm:justify-end bg-contain bg-center bg-no-repeat py-8 px-4 sm:py-0 sm:px-6"
         style={{
-          backgroundImage: `url("${authBackground.image}")`,
+          backgroundImage: authBackground.image ? `url("${authBackground.image}")` : "none",
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "50% 50%",

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { getUiBlocksSafe, resolveCountryIdForBrowser } from "@/lib/api-client";
 
-const DEFAULT_AUTH_BACKGROUND = "/images/auth/background.png";
 const DEFAULT_AUTH_BACKGROUND_COLOR = "rgb(33, 142, 126)";
 
 type AuthBackgroundPage = "login" | "register" | "shared";
@@ -15,7 +14,7 @@ const PAGE_KEYS: Record<AuthBackgroundPage, string> = {
 };
 
 export function useAuthBackground(page: AuthBackgroundPage = "shared") {
-  const [image, setImage] = useState(DEFAULT_AUTH_BACKGROUND);
+  const [image, setImage] = useState<string | null>(null);
   const [backgroundColor, setBackgroundColor] = useState(DEFAULT_AUTH_BACKGROUND_COLOR);
 
   useEffect(() => {
@@ -28,10 +27,10 @@ export function useAuthBackground(page: AuthBackgroundPage = "shared") {
         page === "shared" ? Promise.resolve([]) : getUiBlocksSafe({ key: PAGE_KEYS.shared, country_id: countryId }),
       ]);
       const block = pageBlocks[0] ?? sharedBlocks[0];
-      if (!active || !block) return;
+      if (!active) return;
 
-      setImage(block.imageSrc || DEFAULT_AUTH_BACKGROUND);
-      setBackgroundColor(String(block.meta?.backgroundColor || DEFAULT_AUTH_BACKGROUND_COLOR));
+      setImage(block?.imageSrc || null);
+      setBackgroundColor(String(block?.meta?.backgroundColor || DEFAULT_AUTH_BACKGROUND_COLOR));
     }
 
     void loadBackground();

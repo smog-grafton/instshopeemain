@@ -17,7 +17,7 @@ export function LoginQrSection() {
       <div
         className="mx-auto flex min-h-[600px] w-[1040px] items-center justify-end bg-contain bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url("${authBackground.image}")`,
+          backgroundImage: authBackground.image ? `url("${authBackground.image}")` : "none",
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "50% 50%",
