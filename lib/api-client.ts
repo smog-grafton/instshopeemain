@@ -264,6 +264,7 @@ export async function registerBuyer(input: {
   name: string;
   username: string;
   email: string;
+  countryId: number;
   password: string;
   passwordConfirmation: string;
   verificationCode: string;
@@ -281,6 +282,7 @@ export async function registerBuyer(input: {
       name: input.name,
       username: input.username,
       email: input.email,
+      country_id: input.countryId,
       password: input.password,
       password_confirmation: input.passwordConfirmation,
       verification_code: input.verificationCode,
@@ -288,6 +290,14 @@ export async function registerBuyer(input: {
       privacy_accepted: input.privacyAccepted,
     }),
   });
+}
+
+export interface CountryOption {
+  id: number;
+  code: string;
+  name: string;
+  currency?: string | null;
+  callingCode?: string | null;
 }
 
 export async function fetchSignupVerificationCode(): Promise<{ code: string; expiresIn: number }> {
@@ -1533,6 +1543,10 @@ export async function resolveCountryIdFromCode(
   } catch {
     return undefined;
   }
+}
+
+export async function getCountries(): Promise<{ countries: CountryOption[] }> {
+  return apiFetch<{ countries: CountryOption[] }>("/countries");
 }
 
 /**

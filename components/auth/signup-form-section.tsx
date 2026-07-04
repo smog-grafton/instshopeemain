@@ -8,11 +8,11 @@ import {
   PasswordValidationList,
   isPasswordValid,
 } from "./password-validation";
-import { fetchSignupVerificationCode, registerBuyer, getGoogleAuthRedirectUrl } from "@/lib/api-client";
+import { fetchSignupVerificationCode, registerBuyer, getGoogleAuthRedirectUrl, getCountries, type CountryOption } from "@/lib/api-client";
 import { useAuth } from "./auth-context";
 import { resolvePostAuthHref } from "@/lib/account-routing";
+import { useAuthBackground } from "./use-auth-background";
 
-const BACKGROUND_IMAGE = "/images/auth/background.png";
 const FACEBOOK_ICON = "/images/auth/facebook.png";
 const GOOGLE_ICON = "/images/auth/google.png";
 const TERMS_URL = "/terms-of-service";
@@ -22,7 +22,11 @@ type SignupStep = 1 | 2 | "success";
 
 export function SignupFormSection() {
   const { login: setAuthLoggedIn } = useAuth();
+  const authBackground = useAuthBackground("register");
   const [step, setStep] = useState<SignupStep>(1);
+  const [countries, setCountries] = useState<CountryOption[]>([]);
+  const [selectedCountryId, setSelectedCountryId] = useState("");
+  const [countriesLoading, setCountriesLoading] = useState(false);
   const [phone, setPhone] = useState("");
   const [verificationChallenge, setVerificationChallenge] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -39,7 +43,7 @@ export function SignupFormSection() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const canProceedStep1 = Boolean(phone.trim() && verificationCode.trim());
+  const canProceedStep1 = Boolean(selectedCountryId && phone.trim() && verificationCode.trim());
   const emailsMatch = email.trim() === confirmEmail.trim();
   const passwordsMatch = password === confirmPassword;
   const usernameValid = /^[A-Za-z0-9_-]{3,50}$/.test(username.trim());
@@ -69,9 +73,28 @@ export function SignupFormSection() {
     refreshVerificationCode();
   }, []);
 
+  useEffect(() => {
+    setCountriesLoading(true);
+    getCountries()
+      .then((res) => {
+        const items = (res.countries || []).filter((country) => country.id);
+        setCountries(items);
+        setSelectedCountryId((current) => current || String(items.find((country) => country.code === "UG")?.id || items[0]?.id || ""));
+      })
+      .catch(() => {
+        setCountries([]);
+        setError("Unable to load countries. Please refresh and try again.");
+      })
+      .finally(() => setCountriesLoading(false));
+  }, []);
+
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!selectedCountryId) {
+      setError("Choose your country.");
+      return;
+    }
     if (!phone.trim()) return;
     if (!verificationCode.trim()) {
       setError("Verification code is required.");
@@ -102,6 +125,7 @@ export function SignupFormSection() {
       name: username.trim(),
       username: username.trim(),
       email: email.trim(),
+      countryId: Number(selectedCountryId),
       password,
       passwordConfirmation: confirmPassword,
       verificationCode: verificationCode.trim().toUpperCase(),
@@ -152,11 +176,11 @@ export function SignupFormSection() {
 
   return (
     <>
-      <div className="w-full min-h-screen sm:min-h-0" style={{ backgroundColor: "rgb(33, 142, 126)" }}>
+      <div className="w-full min-h-screen sm:min-h-0" style={{ backgroundColor: authBackground.backgroundColor }}>
         <div
           className="mx-auto flex min-h-[600px] w-full max-w-[1040px] items-center justify-center sm:justify-end bg-contain bg-center bg-no-repeat py-8 px-4 sm:py-0 sm:px-6"
           style={{
-            backgroundImage: `url("${BACKGROUND_IMAGE}")`,
+            backgroundImage: `url("${authBackground.image}")`,
             backgroundSize: "contain",
             backgroundRepeat: "no-repeat",
             backgroundPosition: "50% 50%",
@@ -202,6 +226,38 @@ export function SignupFormSection() {
                       style={{ padding: "0px 30px 30px" }}
                     >
                       <form onSubmit={handleNext}>
+                        <div className="mb-2.5">
+                          <div
+                            className="flex h-10 w-full items-center overflow-hidden rounded-sm border border-black/10 shadow-[inset_0_2px_0_0_rgba(0,0,0,0.02)] box-border"
+                            style={{
+                              border: "1px solid rgba(0, 0, 0, 0.14)",
+                              borderRadius: "2px",
+                              boxShadow: "rgba(0, 0, 0, 0.02) 0px 2px 0px 0px inset",
+                              height: "40px",
+                            }}
+                          >
+                            <select
+                              name="country"
+                              value={selectedCountryId}
+                              onChange={(e) => setSelectedCountryId(e.target.value)}
+                              className="h-full flex-1 border-0 bg-transparent px-3 text-sm outline-none text-black/80"
+                              style={{
+                                flex: "1 0 0%",
+                                padding: "0 12px",
+                                font: '14px Roboto, "Helvetica Neue", Helvetica, Arial, sans-serif',
+                              }}
+                              disabled={countriesLoading}
+                            >
+                              <option value="">{countriesLoading ? "Loading countries..." : "Choose Country"}</option>
+                              {countries.map((country) => (
+                                <option key={country.id} value={country.id}>
+                                  {country.name}{country.callingCode ? ` (+${country.callingCode})` : ""}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div className="min-h-4 pt-1 text-xs text-[rgb(255,66,79)]" aria-live="polite" />
+                        </div>
                         <div className="mb-2.5">
                           <div
                             className="flex h-10 w-full items-center overflow-hidden rounded-sm border border-black/10 shadow-[inset_0_2px_0_0_rgba(0,0,0,0.02)] box-border"

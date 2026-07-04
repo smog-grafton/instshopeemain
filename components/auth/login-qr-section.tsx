@@ -2,20 +2,22 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useAuthBackground } from "./use-auth-background";
 
-const BACKGROUND_IMAGE = "/images/auth/background.png";
 const QR_IMAGE = "/images/qr-code.png";
 
 export function LoginQrSection() {
+  const authBackground = useAuthBackground("login");
+
   return (
     <div
       className="w-full"
-      style={{ backgroundColor: "rgb(33, 142, 126)" }}
+      style={{ backgroundColor: authBackground.backgroundColor }}
     >
       <div
         className="mx-auto flex min-h-[600px] w-[1040px] items-center justify-end bg-contain bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url("${BACKGROUND_IMAGE}")`,
+          backgroundImage: `url("${authBackground.image}")`,
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "50% 50%",

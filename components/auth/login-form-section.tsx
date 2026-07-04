@@ -7,8 +7,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "./auth-context";
 import { loginWithEmailPassword, getGoogleAuthRedirectUrl } from "@/lib/api-client";
 import { resolvePostAuthHref } from "@/lib/account-routing";
+import { useAuthBackground } from "./use-auth-background";
 
-const BACKGROUND_IMAGE = "/images/auth/background.png";
 const FACEBOOK_ICON = "/images/auth/facebook.png";
 const GOOGLE_ICON = "/images/auth/google.png";
 
@@ -16,6 +16,7 @@ export function LoginFormSection() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { login: setAuthLoggedIn } = useAuth();
+  const authBackground = useAuthBackground("login");
   const [loginKey, setLoginKey] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -82,12 +83,12 @@ export function LoginFormSection() {
   return (
     <div
       className="w-full min-h-screen sm:min-h-0"
-      style={{ backgroundColor: "rgb(33, 142, 126)" }}
+      style={{ backgroundColor: authBackground.backgroundColor }}
     >
       <div
         className="mx-auto flex min-h-[600px] w-full max-w-[1040px] items-center justify-center sm:justify-end bg-contain bg-center bg-no-repeat py-8 px-4 sm:py-0 sm:px-6"
         style={{
-          backgroundImage: `url("${BACKGROUND_IMAGE}")`,
+          backgroundImage: `url("${authBackground.image}")`,
           backgroundSize: "contain",
           backgroundRepeat: "no-repeat",
           backgroundPosition: "50% 50%",
