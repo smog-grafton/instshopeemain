@@ -63,7 +63,7 @@ export default function TermsOfServicePage() {
         </div>
 
         <div className="mt-8 rounded-lg border border-orange-100 bg-orange-50 p-4 text-sm leading-6 text-orange-900">
-          For account, wallet, seller processing, or order support, contact Shopee Support from your Message Center.
+          Review the <Link href="/platform-policies" className="font-bold text-[#ee4d2d]">Store Closure & Vacation Mode Policy</Link>, or contact Shopee Support from your Message Center.
         </div>
       </article>
     </main>

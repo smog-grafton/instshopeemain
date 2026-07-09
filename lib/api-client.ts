@@ -308,6 +308,39 @@ export async function fetchSignupVerificationCode(): Promise<{ code: string; exp
   return apiFetch<{ code: string; expiresIn: number }>("/auth/verification-code");
 }
 
+export async function requestPasswordResetChallenge(email: string) {
+  return apiFetch<{ success: boolean; challengeId: string; code: string; expiresIn: number }>(
+    "/auth/password-reset/challenge",
+    {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }
+  );
+}
+
+export async function sendPasswordResetLink(email: string, challengeId: string, code: string) {
+  return apiFetch<{ success: boolean; message: string }>("/auth/password-reset/link", {
+    method: "POST",
+    body: JSON.stringify({
+      email,
+      challenge_id: challengeId,
+      verification_code: code,
+    }),
+  });
+}
+
+export async function resetPassword(data: {
+  email: string;
+  token: string;
+  password: string;
+  password_confirmation: string;
+}) {
+  return apiFetch<{ success: boolean; message: string }>("/auth/password-reset", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
 export async function getBuyerSiteMessages(page = 1) {
   return apiFetch<{ success: boolean; messages: any }>(`/site-messages?page=${page}`, {}, true);
 }

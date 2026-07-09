@@ -1,0 +1,44 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require dirname(__DIR__) . '/vendor/autoload.php';
+
+use TydyPOS\Installer\RequirementChecker;
+use TydyPOS\Updater\ManifestParser;
+use TydyPOS\Updater\UpdatePlanner;
+
+$command = $argv[1] ?? 'help';
+
+switch ($command) {
+    case 'install:check':
+        $checker = new RequirementChecker();
+        $result = $checker->run(dirname(__DIR__));
+        echo implode(PHP_EOL, $result->messages) . PHP_EOL;
+        exit($result->passed() ? 0 : 1);
+
+    case 'update:plan':
+        $manifestFile = $argv[2] ?? '';
+        if ($manifestFile === '' || !is_file($manifestFile)) {
+            fwrite(STDERR, "Usage: bin/tydypos update:plan <manifest.json>\n");
+            exit(1);
+        }
+
+        $parser = new ManifestParser();
+        $version = $parser->parse((string) file_get_contents($manifestFile));
+        $planner = new UpdatePlanner();
+
+        foreach ($planner->steps($version) as $step) {
+            echo "- {$step}" . PHP_EOL;
+        }
+
+        exit(0);
+
+    default:
+        echo "Tydy POS CLI\n";
+        echo "Commands:\n";
+        echo "  install:check             Run installer requirement checks\n";
+        echo "  update:plan <manifest>    Print update execution plan\n";
+        exit(0);
+}

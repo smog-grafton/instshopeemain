@@ -17,10 +17,7 @@ export function LoginPageHeader({ title = "Log In" }: AuthPageHeaderProps) {
         height: "84px",
       }}
     >
-      <div
-        className="mx-auto flex w-[1200px] items-center justify-between"
-        style={{ margin: "0px auto", width: "1200px" }}
-      >
+      <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between gap-3 px-4 sm:px-6">
         <div className="flex items-center">
           <Link
             href="/"
@@ -30,16 +27,13 @@ export function LoginPageHeader({ title = "Log In" }: AuthPageHeaderProps) {
             <Image
               src="/images/svgs/header/logo-orange.svg"
               alt="Shopee"
-              width={190}
+              width={150}
               height={42}
-              className="relative inline-block overflow-hidden -mr-[18px] -mt-2.5 w-[11.875rem] h-[42px]"
+              className="relative inline-block h-auto w-28 overflow-hidden sm:-mr-3 sm:-mt-2.5 sm:w-[9.375rem]"
               priority
             />
           </Link>
-          <div
-            className="text-[rgb(34,34,34)]"
-            style={{ color: "rgb(34, 34, 34)", fontSize: "24px" }}
-          >
+          <div className="whitespace-nowrap text-lg text-[rgb(34,34,34)] sm:text-2xl">
             {title}
           </div>
         </div>
@@ -47,12 +41,7 @@ export function LoginPageHeader({ title = "Log In" }: AuthPageHeaderProps) {
           href={HELP_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="cursor-pointer bg-transparent no-underline mr-4"
-          style={{
-            color: "rgb(238, 77, 45)",
-            fontSize: "14px",
-            marginRight: "15px",
-          }}
+          className="cursor-pointer whitespace-nowrap bg-transparent text-xs text-[#ee4d2d] no-underline sm:text-sm"
         >
           Need help?
         </a>

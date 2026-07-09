@@ -91,12 +91,12 @@ export const mockFooterConfig: FooterConfig = {
           href: "https://careers.shopee.com.my/jobs?country_id=6",
         },
         {
-          text: "Policies",
-          href: "https://help.shopee.com.my/portal/4/category/17529-Policies/17530-Shopee-Policies?page=1",
+          text: "Platform Policies",
+          href: "/platform-policies",
         },
         {
           text: "Shopee Privacy Policy",
-          href: "https://help.shopee.com.my/portal/4/article/77216-Shopee-Privacy-Policy",
+          href: "/privacy-policy",
         },
         { text: "Shopee Mall", href: "https://shopee.com.my/mall/" },
         { text: "Seller Centre", href: "https://seller.shopee.com.my/" },
