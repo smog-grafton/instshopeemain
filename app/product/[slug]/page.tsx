@@ -1,5 +1,6 @@
+"use client";
+
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { TopNavbar } from "@/components/top-navbar";
 import { HeaderWithSearch } from "@/components/header-with-search";
 import { ProductDetailSection } from "@/components/product-detail-section";
@@ -18,12 +19,18 @@ import type {
 } from "@/components/product-detail-section/data";
 import { SiteFooter } from "@/components/site-footer";
 import { IconArrowRight } from "@/components/product-detail-section/icons";
+import { use, useEffect, useState } from "react";
 import {
   getProductBySlug as getProductBySlugApi,
   getProductReviews,
   getRelatedProducts,
   getShopBySlug as getShopBySlugApi,
   getShopVouchers as getShopVouchersApi,
+  type ApiProduct,
+  type ApiProductDetail,
+  type ApiProductReviewsResponse,
+  type ApiShopProfile,
+  type ApiShopVoucher,
 } from "@/lib/api-client";
 import { getCategoryLabel } from "@/lib/products-data";
 import { formatCompact, formatPrice } from "@/lib/utils";
@@ -32,28 +39,146 @@ interface ProductPageProps {
   params: Promise<{ slug: string }>;
 }
 
-export default async function ProductPage({ params }: ProductPageProps) {
-  const { slug } = await params;
+interface ProductPageData {
+  product: ApiProductDetail;
+  reviews: ApiProductReviewsResponse | null;
+  sameShopProducts: { products: ApiProduct[] } | null;
+  recommendedProducts: { products: ApiProduct[] } | null;
+  shopProfile: ApiShopProfile | null;
+  shopVouchers: ApiShopVoucher[] | null;
+}
 
-  let product, reviews, sameShopProducts, recommendedProducts, shopProfile, shopVouchers;
+interface ProductPageError {
+  status: number;
+  message: string;
+}
 
-  try {
-    [product, reviews, sameShopProducts, recommendedProducts] = await Promise.all([
-      getProductBySlugApi(slug),
-      getProductReviews(slug, { page: 1, per_page: 10 }).catch(() => null),
-      getRelatedProducts(slug, { type: "same_shop", limit: 10 }).catch(() => null),
-      getRelatedProducts(slug, { type: "recommended", limit: 40 }).catch(() => null),
-    ]);
-
-    if (product.shopSlug) {
-      [shopVouchers, shopProfile] = await Promise.all([
-        getShopVouchersApi(product.shopSlug).catch(() => null),
-        getShopBySlugApi(product.shopSlug).catch(() => null),
-      ]);
-    }
-  } catch {
-    notFound();
+function getApiError(error: unknown): ProductPageError {
+  if (error instanceof Error) {
+    const status = Number((error as Error & { status?: number }).status ?? 0);
+    return {
+      status: Number.isFinite(status) ? status : 0,
+      message: error.message,
+    };
   }
+
+  return { status: 0, message: "Unable to load this product." };
+}
+
+function ProductLoadState({
+  error,
+  onRetry,
+}: {
+  error: ProductPageError | null;
+  onRetry: () => void;
+}) {
+  const isNotFound = error?.status === 404;
+
+  return (
+    <div className="min-h-screen bg-[rgb(245,245,245)]">
+      <TopNavbar />
+      <HeaderWithSearch />
+      <div className="flex min-h-[430px] items-center justify-center px-4 text-center">
+        <div className="max-w-md">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#fff1ee] text-[#ee4d2d]">
+            {error ? "!" : (
+              <span className="h-7 w-7 animate-spin rounded-full border-2 border-[#ee4d2d]/25 border-t-[#ee4d2d]" />
+            )}
+          </div>
+          <h1 className="mt-5 text-2xl font-semibold text-neutral-900">
+            {error ? (isNotFound ? "Product not found" : "Product temporarily unavailable") : "Loading product"}
+          </h1>
+          <p className="mt-2 text-sm leading-6 text-neutral-600">
+            {error
+              ? isNotFound
+                ? "This product may have moved or is no longer available."
+                : "We could not reach the marketplace service. Please try again."
+              : "Getting the latest product details directly from the marketplace service..."}
+          </p>
+          {error && !isNotFound && (
+            <button
+              type="button"
+              onClick={onRetry}
+              className="mt-5 rounded-sm bg-[#ee4d2d] px-6 py-3 text-sm font-semibold text-white"
+            >
+              Try Again
+            </button>
+          )}
+        </div>
+      </div>
+      <SiteFooter />
+    </div>
+  );
+}
+
+export default function ProductPage({ params }: ProductPageProps) {
+  const { slug } = use(params);
+  const [requestVersion, setRequestVersion] = useState(0);
+  const [data, setData] = useState<ProductPageData | null>(null);
+  const [error, setError] = useState<ProductPageError | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    setData(null);
+    setError(null);
+
+    async function loadProduct() {
+      try {
+        // Run all storefront reads in the visitor's browser. This bypasses
+        // the temporary TLS reset between the frontend VPS and API host.
+        const [product, reviews, sameShopProducts, recommendedProducts] = await Promise.all([
+          getProductBySlugApi(slug),
+          getProductReviews(slug, { page: 1, per_page: 10 }).catch(() => null),
+          getRelatedProducts(slug, { type: "same_shop", limit: 10 }).catch(() => null),
+          getRelatedProducts(slug, { type: "recommended", limit: 40 }).catch(() => null),
+        ]);
+
+        let shopVouchers: ApiShopVoucher[] | null = null;
+        let shopProfile: ApiShopProfile | null = null;
+
+        if (product.shopSlug) {
+          [shopVouchers, shopProfile] = await Promise.all([
+            getShopVouchersApi(product.shopSlug).catch(() => null),
+            getShopBySlugApi(product.shopSlug).catch(() => null),
+          ]);
+        }
+
+        if (!cancelled) {
+          setData({
+            product,
+            reviews,
+            sameShopProducts,
+            recommendedProducts,
+            shopProfile,
+            shopVouchers,
+          });
+        }
+      } catch (loadError) {
+        if (!cancelled) {
+          setError(getApiError(loadError));
+        }
+      }
+    }
+
+    void loadProduct();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [requestVersion, slug]);
+
+  if (!data) {
+    return <ProductLoadState error={error} onRetry={() => setRequestVersion((version) => version + 1)} />;
+  }
+
+  const {
+    product,
+    reviews,
+    sameShopProducts,
+    recommendedProducts,
+    shopProfile,
+    shopVouchers,
+  } = data;
 
   const shop = {
     id: product.shopId,
